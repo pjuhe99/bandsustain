@@ -1,3 +1,5 @@
+import Logo from "./Logo";
+
 const columns = [
   {
     heading: "Explore",
@@ -28,9 +30,7 @@ export default function Footer() {
     <footer className="bg-[#0a0a0a] text-[#f5f5f5] mt-auto">
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-16 grid grid-cols-2 md:grid-cols-4 gap-10">
         <div className="col-span-2 md:col-span-1">
-          <p className="font-display font-black text-xl uppercase mb-3">
-            bandsustain
-          </p>
+          <Logo className="h-8 w-auto text-white mb-4" />
           <p className="text-sm text-neutral-400 max-w-xs">
             Music, stories, and experiments. A home for sound that sustains.
           </p>

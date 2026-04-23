@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import Logo from "./Logo";
 
 const navLinks = [
   { href: "/news", label: "News" },
@@ -30,11 +31,8 @@ export default function Nav() {
     <>
       <header className="border-b border-[--color-border] bg-[--color-bg]">
         <div className="max-w-7xl mx-auto px-6 md:px-12 h-[72px] flex items-center justify-between">
-          <Link
-            href="/"
-            className="font-display font-black text-xl tracking-tight uppercase"
-          >
-            bandsustain
+          <Link href="/" aria-label="bandsustain — home">
+            <Logo className="h-7 md:h-8 w-auto text-[--color-text]" />
           </Link>
 
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
@@ -64,9 +62,7 @@ export default function Nav() {
       {open && (
         <div className="fixed inset-0 z-50 bg-[--color-bg] flex flex-col p-6 md:hidden">
           <div className="flex justify-between items-center h-[72px] -mt-6 -mx-6 px-6 border-b border-[--color-border]">
-            <span className="font-display font-black text-xl uppercase">
-              bandsustain
-            </span>
+            <Logo className="h-7 w-auto text-[--color-text]" />
             <button
               aria-label="Close menu"
               onClick={() => setOpen(false)}
