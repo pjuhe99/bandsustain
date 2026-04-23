@@ -26,7 +26,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${archivo.variable}`}>
+    <html lang="en" className={`${inter.variable} ${archivo.variable} overflow-x-hidden`}>
       <body className="min-h-screen flex flex-col overflow-x-hidden">
         <Nav />
         <main className="flex-1">{children}</main>

@@ -8,8 +8,8 @@ export default function Hero() {
         <p className="text-xs md:text-sm font-medium uppercase tracking-[0.25em] text-[var(--color-accent)] mb-6">
           Now playing
         </p>
-        <h1 className="font-display font-black uppercase leading-[1.02] tracking-tight text-5xl md:text-7xl mb-6">
-          bandsustain
+        <h1 className="font-display font-black uppercase leading-[1.02] tracking-tight text-4xl sm:text-6xl md:text-7xl mb-6">
+          SUSTAIN
         </h1>
         <p className="text-lg md:text-2xl font-medium max-w-2xl mx-auto mb-4">
           Music, stories, and experiments.
