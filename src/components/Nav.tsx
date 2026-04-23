@@ -60,8 +60,14 @@ export default function Nav() {
         </div>
       </header>
 
-      {open && (
-        <div className="fixed inset-0 z-50 bg-[var(--color-bg)] flex flex-col p-6 md:hidden">
+      <div
+        aria-hidden={!open}
+        className={`fixed inset-0 z-50 bg-[var(--color-bg)] flex-col p-6 md:hidden transition-opacity duration-200 motion-reduce:transition-none ${
+          open
+            ? "flex opacity-100 pointer-events-auto"
+            : "flex opacity-0 pointer-events-none"
+        }`}
+      >
           <div className="flex justify-between items-center h-[72px] -mt-6 -mx-6 px-6 border-b border-[var(--color-border)]">
             <Logo className="h-7 w-auto text-[var(--color-text)]" />
             <button
@@ -100,7 +106,6 @@ export default function Nav() {
             ))}
           </div>
         </div>
-      )}
     </>
   );
 }
