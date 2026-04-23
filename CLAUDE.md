@@ -158,7 +158,7 @@ const archivo = Archivo({ subsets: ["latin"], variable: "--font-display", weight
 
 ### Header / Footer
 - **Header**: 상단 고정 안 함(sticky만 고려). 높이 ~72px. 좌측 로고 / 중앙~우측 네비 / 우측 소셜 아이콘.
-- **Footer**: 다크(`bg-[--color-text]`) + 라이트 텍스트. 대형 히어로 이미지 위에 얹는 구조도 가능.
+- **Footer**: 다크(`bg-[var(--color-text)]`) + 라이트 텍스트. 대형 히어로 이미지 위에 얹는 구조도 가능.
 - Mobile header는 햄버거 오른쪽, 로고 왼쪽. 햄버거 탭시 **풀스크린 화이트 오버레이**, 왼쪽 정렬 큰 링크, 하단 소셜.
 
 ---
@@ -170,22 +170,22 @@ const archivo = Archivo({ subsets: ["latin"], variable: "--font-display", weight
 ### Button
 ```tsx
 // Primary — 블랙 솔리드
-className="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold uppercase tracking-wider bg-[--color-text] text-[--color-bg] border border-[--color-text] hover:bg-transparent hover:text-[--color-text] transition-colors"
+className="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold uppercase tracking-wider bg-[var(--color-text)] text-[var(--color-bg)] border border-[var(--color-text)] hover:bg-transparent hover:text-[var(--color-text)] transition-colors"
 
 // Secondary (outline)
-className="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold uppercase tracking-wider bg-transparent text-[--color-text] border border-[--color-text] hover:bg-[--color-text] hover:text-[--color-bg] transition-colors"
+className="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold uppercase tracking-wider bg-transparent text-[var(--color-text)] border border-[var(--color-text)] hover:bg-[var(--color-text)] hover:text-[var(--color-bg)] transition-colors"
 
 // Accent (orange — 드물게 사용)
-className="... bg-[--color-accent] text-[--color-accent-ink] border-[--color-accent] hover:opacity-90"
+className="... bg-[var(--color-accent)] text-[var(--color-accent-ink)] border-[var(--color-accent)] hover:opacity-90"
 ```
 
 ### Filter Pill (탭 필터)
 ```tsx
 // 선택됨
-"px-5 py-2 text-sm font-medium border border-[--color-text] bg-[--color-text] text-[--color-bg]"
+"px-5 py-2 text-sm font-medium border border-[var(--color-text)] bg-[var(--color-text)] text-[var(--color-bg)]"
 
 // 비선택
-"px-5 py-2 text-sm font-medium border border-[--color-text] bg-transparent text-[--color-text] hover:bg-[--color-bg-muted]"
+"px-5 py-2 text-sm font-medium border border-[var(--color-text)] bg-transparent text-[var(--color-text)] hover:bg-[var(--color-bg-muted)]"
 ```
 
 ### Card (제품/뉴스)
@@ -234,7 +234,7 @@ Home › Song Lyrics
 
 - **모든 transition은 `transition-colors` 또는 `transition-opacity` 200ms**. transform 애니메이션 남용 금지.
 - **Hover 기본**: 링크는 underline offset 증가, 버튼은 배경/텍스트 색 반전.
-- **Focus state**: `focus-visible:outline focus-visible:outline-2 focus-visible:outline-[--color-accent] focus-visible:outline-offset-2`
+- **Focus state**: `focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-accent)] focus-visible:outline-offset-2`
 - **Scroll**: parallax, 스크롤 연동 애니메이션 금지 (정적 느낌 유지).
 - **Dark mode**: 현재 미구현. 추후 **수동 토글만** 지원 (라이트/다크/시스템 3단 푸터에 작게). `prefers-color-scheme` 자동 전환은 금지.
 

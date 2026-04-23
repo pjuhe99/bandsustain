@@ -30,10 +30,10 @@ export default function Nav() {
 
   return (
     <>
-      <header className="border-b border-[--color-border] bg-[--color-bg]">
+      <header className="border-b border-[var(--color-border)] bg-[var(--color-bg)]">
         <div className="max-w-7xl mx-auto px-6 md:px-12 h-[72px] flex items-center justify-between">
           <Link href="/" aria-label="bandsustain — home">
-            <Logo className="h-7 md:h-8 w-auto text-[--color-text]" />
+            <Logo className="h-7 md:h-8 w-auto text-[var(--color-text)]" />
           </Link>
 
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
@@ -53,17 +53,17 @@ export default function Nav() {
             aria-label="Open menu"
             onClick={() => setOpen(true)}
           >
-            <span className="block w-6 h-[2px] bg-[--color-text]" />
-            <span className="block w-6 h-[2px] bg-[--color-text]" />
-            <span className="block w-6 h-[2px] bg-[--color-text]" />
+            <span className="block w-6 h-[2px] bg-[var(--color-text)]" />
+            <span className="block w-6 h-[2px] bg-[var(--color-text)]" />
+            <span className="block w-6 h-[2px] bg-[var(--color-text)]" />
           </button>
         </div>
       </header>
 
       {open && (
-        <div className="fixed inset-0 z-50 bg-[--color-bg] flex flex-col p-6 md:hidden">
-          <div className="flex justify-between items-center h-[72px] -mt-6 -mx-6 px-6 border-b border-[--color-border]">
-            <Logo className="h-7 w-auto text-[--color-text]" />
+        <div className="fixed inset-0 z-50 bg-[var(--color-bg)] flex flex-col p-6 md:hidden">
+          <div className="flex justify-between items-center h-[72px] -mt-6 -mx-6 px-6 border-b border-[var(--color-border)]">
+            <Logo className="h-7 w-auto text-[var(--color-text)]" />
             <button
               aria-label="Close menu"
               onClick={() => setOpen(false)}
@@ -86,7 +86,7 @@ export default function Nav() {
             ))}
           </nav>
 
-          <div className="flex gap-6 pt-6 border-t border-[--color-border] text-sm">
+          <div className="flex gap-6 pt-6 border-t border-[var(--color-border)] text-sm">
             {socialLinks.map((s) => (
               <a key={s.label} href={s.href} className="underline underline-offset-4">
                 {s.label}

@@ -4,7 +4,7 @@ export default function MembersPage() {
       <h1 className="font-display font-black uppercase tracking-tight text-4xl md:text-6xl mb-6">
         Members
       </h1>
-      <p className="text-[--color-text-muted]">Coming soon.</p>
+      <p className="text-[var(--color-text-muted)]">Coming soon.</p>
     </section>
   );
 }

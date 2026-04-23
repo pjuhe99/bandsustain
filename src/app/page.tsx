@@ -40,7 +40,7 @@ export default function Home() {
             <h2 className="font-display font-bold text-3xl md:text-5xl uppercase tracking-tight">
               Featured Releases
             </h2>
-            <p className="text-[--color-text-muted] mt-2">Latest and upcoming.</p>
+            <p className="text-[var(--color-text-muted)] mt-2">Latest and upcoming.</p>
           </div>
           <Link
             href="/songs"
@@ -52,13 +52,13 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
           {releases.map((r) => (
             <article key={r.id} className="flex flex-col">
-              <div className="aspect-square bg-[--color-bg-muted] mb-5 flex items-center justify-center text-[--color-text-muted] text-sm">
+              <div className="aspect-square bg-[var(--color-bg-muted)] mb-5 flex items-center justify-center text-[var(--color-text-muted)] text-sm">
                 Artwork
               </div>
               <h3 className="font-semibold text-lg md:text-xl mb-1">
                 {r.title}
               </h3>
-              <p className="text-sm text-[--color-text-muted] mb-4">{r.meta}</p>
+              <p className="text-sm text-[var(--color-text-muted)] mb-4">{r.meta}</p>
               <a href="#" className="text-sm underline underline-offset-4 self-start">
                 View →
               </a>
@@ -68,7 +68,7 @@ export default function Home() {
       </section>
 
       {/* News */}
-      <section className="border-t border-[--color-border]">
+      <section className="border-t border-[var(--color-border)]">
         <div className="max-w-7xl mx-auto px-6 md:px-12 py-16 md:py-24">
           <div className="flex items-end justify-between mb-10 md:mb-12">
             <h2 className="font-display font-bold text-3xl md:text-5xl uppercase tracking-tight">
@@ -83,8 +83,8 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
             {news.map((n) => (
-              <article key={n.id} className="flex flex-col border-t border-[--color-text] pt-4">
-                <p className="text-xs uppercase tracking-widest text-[--color-text-muted] mb-3">
+              <article key={n.id} className="flex flex-col border-t border-[var(--color-text)] pt-4">
+                <p className="text-xs uppercase tracking-widest text-[var(--color-text-muted)] mb-3">
                   {n.category} · {n.date}
                 </p>
                 <h3 className="font-semibold text-lg md:text-xl mb-4 underline underline-offset-4 decoration-1 hover:decoration-2">

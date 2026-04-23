@@ -61,7 +61,7 @@ export default function HeroCarousel() {
           {slides.map((s, i) => (
             <div
               key={s.src}
-              className="relative flex-[0_0_100%] aspect-[3/2] bg-[--color-bg-muted]"
+              className="relative flex-[0_0_100%] aspect-[3/2] bg-[var(--color-bg-muted)]"
             >
               <Image
                 src={s.src}
