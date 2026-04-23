@@ -30,10 +30,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  color: inherit;
-}
-
 @keyframes page-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
