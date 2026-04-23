@@ -29,15 +29,24 @@ export const news: NewsItem[] = [
   },
   {
     id: "02",
-    headline: "Spring run — small rooms across the peninsula",
-    category: "Tour",
-    date: "2026-04-15",
-    heroImage: "",
-    body: `We are booking a short run of dates through late May and early June. The idea is simple: small rooms, long sets, slow cities.
+    headline: "“기타 대신 코드 잡았다”… 서스테인 리더 김영민, 1인 개발로 ‘전략 게임 신화’ 쓰다",
+    category: "Business",
+    date: "2026-04-24",
+    heroImage: "/news/news02-hero.png",
+    body: `서울 — 밴드 서스테인의 기타리스트이자 보컬, 그리고 리더로 알려진 김영민이 이번에는 전혀 다른 무대에서 이름을 올렸다. 음악이 아닌 게임 개발이다. 그것도 단 한 명의 힘으로 완성한 작품이다.
 
-The full schedule will land on the Live page once the venues confirm, but the first weekend is already locked in.
+김영민이 공개한 신작 ‘Age of Medieval(에이지오브비디블)’은 중세 유럽을 배경으로 한 턴제 전략 국가 경영 게임으로, 출시 직후 커뮤니티를 중심으로 빠르게 입소문을 타고 있다.
 
-If your town is not on the list and you think it should be, let us know.`,
+이 게임은 플레이어가 하나의 국가를 선택해 외교, 전쟁, 경제를 모두 직접 운영하는 구조로 설계되었다. 단순한 병력 운용을 넘어, 동맹 관계의 균형과 자원 배분, 그리고 예측 불가능한 정치적 변수까지 고려해야 하는 깊이 있는 시스템이 특징이다. 특히 턴제 방식 특유의 ‘한 수 앞을 보는 긴장감’이 잘 살아 있다는 평가다.
+
+주목할 점은 이 모든 시스템을 김영민이 혼자 설계하고 구현했다는 사실이다. 별도의 팀 없이 기획, 개발, 밸런싱까지 전 과정을 1인으로 진행했다는 점에서 업계에서도 이례적인 사례로 보고 있다.
+
+한 게임 커뮤니티 이용자는 “처음엔 그냥 취미로 만든 줄 알았는데, 몇 시간 붙잡고 있었다”며 “밴드 하던 사람이 맞나 싶을 정도로 완성도가 높다”고 반응했다.
+
+김영민은 별도의 공식 인터뷰 없이 지인들에게 “재밌어서 만들었다”는 짧은 입장만을 전한 것으로 알려졌다. 하지만 그의 행보는 단순한 취미 수준을 넘어, 창작 영역을 확장하는 새로운 사례로 주목받고 있다.
+
+기타를 내려놓고 키보드를 잡은 한 아티스트. 그리고 그 결과물은 또 하나의 ‘작은 세계’가 되었다.
+김영민이 만든 중세는, 생각보다 꽤 치열하다.`,
   },
   {
     id: "03",
