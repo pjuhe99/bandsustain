@@ -5,10 +5,11 @@ import { useState, useEffect } from "react";
 import Logo from "./Logo";
 
 const navLinks = [
-  { href: "/news", label: "News" },
-  { href: "/music", label: "Music" },
+  { href: "/members", label: "Members" },
+  { href: "/songs", label: "Our Songs" },
+  { href: "/quote", label: "Quote" },
   { href: "/live", label: "Live" },
-  { href: "/about", label: "About" },
+  { href: "/news", label: "News" },
 ];
 
 const socialLinks = [

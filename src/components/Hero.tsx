@@ -1,9 +1,10 @@
 import Link from "next/link";
+import HeroCarousel from "./HeroCarousel";
 
 export default function Hero() {
   return (
     <section className="bg-[--color-bg] text-[--color-text]">
-      <div className="max-w-4xl mx-auto px-6 md:px-12 pt-20 md:pt-32 pb-16 md:pb-20 text-center">
+      <div className="max-w-4xl mx-auto px-6 md:px-12 pt-20 md:pt-32 pb-12 md:pb-16 text-center">
         <p className="text-xs md:text-sm font-medium uppercase tracking-[0.25em] text-[--color-accent] mb-6">
           Now playing
         </p>
@@ -16,9 +17,9 @@ export default function Hero() {
         <p className="text-sm md:text-base text-[--color-text-muted] max-w-xl mx-auto mb-10">
           A new home built from the ground up — no noise, just signal.
         </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center mb-16 md:mb-20">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
-            href="/music"
+            href="/songs"
             className="inline-flex items-center justify-center px-8 py-3 text-sm font-semibold uppercase tracking-wider border border-[--color-text] bg-transparent text-[--color-text] hover:bg-[--color-text] hover:text-[--color-bg] transition-colors"
           >
             Explore Music
@@ -30,13 +31,10 @@ export default function Hero() {
             Live Schedule
           </Link>
         </div>
+      </div>
 
-        {/* Video/feature embed placeholder */}
-        <div className="aspect-video bg-[--color-bg-muted] flex items-center justify-center group cursor-pointer">
-          <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[--color-bg] border border-[--color-border-strong] flex items-center justify-center group-hover:bg-[--color-text] transition-colors">
-            <span className="block w-0 h-0 border-y-[10px] border-y-transparent border-l-[16px] border-l-[--color-text] group-hover:border-l-[--color-bg] ml-1 transition-colors" />
-          </div>
-        </div>
+      <div className="pb-16 md:pb-20">
+        <HeroCarousel />
       </div>
     </section>
   );

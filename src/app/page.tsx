@@ -43,7 +43,7 @@ export default function Home() {
             <p className="text-[--color-text-muted] mt-2">Latest and upcoming.</p>
           </div>
           <Link
-            href="/music"
+            href="/songs"
             className="hidden md:inline text-sm underline underline-offset-4"
           >
             View all →
