@@ -22,7 +22,7 @@ const columns = [
   },
   {
     heading: "Contact",
-    items: [{ href: "mailto:hello@bandsustain.com", label: "hello@bandsustain.com" }],
+    items: [{ href: "mailto:rome1453@naver.com", label: "rome1453@naver.com" }],
   },
 ];
 
