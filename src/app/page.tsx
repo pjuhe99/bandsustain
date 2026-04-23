@@ -1,31 +1,13 @@
 import Hero from "@/components/Hero";
+import NewsCard from "@/components/NewsCard";
 import SongGrid from "@/components/SongGrid";
+import { sortedByDateDesc as sortedNewsDesc } from "@/data/news";
 import { sortedByReleaseDesc } from "@/data/songs";
 import Link from "next/link";
 
-const news = [
-  {
-    id: 1,
-    category: "News",
-    title: "Announcing the first studio session recordings",
-    date: "Apr 22, 2026",
-  },
-  {
-    id: 2,
-    category: "Tour",
-    title: "Spring run — small rooms across the peninsula",
-    date: "Apr 15, 2026",
-  },
-  {
-    id: 3,
-    category: "Studio",
-    title: "Behind the scenes: building the mix",
-    date: "Apr 03, 2026",
-  },
-];
-
 export default function Home() {
   const featured = sortedByReleaseDesc().slice(0, 3);
+  const latestNews = sortedNewsDesc().slice(0, 3);
 
   return (
     <>
@@ -65,15 +47,8 @@ export default function Home() {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
-            {news.map((n) => (
-              <article key={n.id} className="flex flex-col border-t border-[var(--color-text)] pt-4">
-                <p className="text-xs uppercase tracking-widest text-[var(--color-text-muted)] mb-3">
-                  {n.category} · {n.date}
-                </p>
-                <h3 className="font-semibold text-lg md:text-xl mb-4 underline underline-offset-4 decoration-1 hover:decoration-2">
-                  <a href="#">{n.title}</a>
-                </h3>
-              </article>
+            {latestNews.map((n) => (
+              <NewsCard key={n.id} item={n} />
             ))}
           </div>
         </div>
