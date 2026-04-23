@@ -13,9 +13,9 @@ const navLinks = [
 ];
 
 const socialLinks = [
-  { href: "#", label: "Instagram" },
-  { href: "#", label: "YouTube" },
-  { href: "#", label: "Spotify" },
+  { href: "https://www.instagram.com/band_sustain", label: "Instagram" },
+  { href: "https://www.youtube.com/@bandsustain1453", label: "YouTube" },
+  { href: "https://open.spotify.com/artist/3Zp50Xd4MEceDdVsnPO7Fs", label: "Spotify" },
 ];
 
 export default function Nav() {
@@ -88,7 +88,13 @@ export default function Nav() {
 
           <div className="flex gap-6 pt-6 border-t border-[var(--color-border)] text-sm">
             {socialLinks.map((s) => (
-              <a key={s.label} href={s.href} className="underline underline-offset-4">
+              <a
+                key={s.label}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-4"
+              >
                 {s.label}
               </a>
             ))}

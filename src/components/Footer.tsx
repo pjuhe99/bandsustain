@@ -14,10 +14,10 @@ const columns = [
   {
     heading: "Follow",
     items: [
-      { href: "#", label: "Instagram" },
-      { href: "#", label: "YouTube" },
-      { href: "#", label: "Spotify" },
-      { href: "#", label: "Apple Music" },
+      { href: "https://www.instagram.com/band_sustain", label: "Instagram" },
+      { href: "https://www.youtube.com/@bandsustain1453", label: "YouTube" },
+      { href: "https://open.spotify.com/artist/3Zp50Xd4MEceDdVsnPO7Fs", label: "Spotify" },
+      { href: "https://www.melon.com/artist/timeline.htm?artistId=3455164", label: "Melon Music" },
     ],
   },
   {
@@ -43,16 +43,22 @@ export default function Footer() {
               {col.heading}
             </h4>
             <ul className="space-y-2 text-sm">
-              {col.items.map((item) => (
-                <li key={item.label}>
-                  <a
-                    href={item.href}
-                    className="hover:underline underline-offset-4"
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              ))}
+              {col.items.map((item) => {
+                const external = /^https?:/.test(item.href);
+                return (
+                  <li key={item.label}>
+                    <a
+                      href={item.href}
+                      className="hover:underline underline-offset-4"
+                      {...(external
+                        ? { target: "_blank", rel: "noopener noreferrer" }
+                        : {})}
+                    >
+                      {item.label}
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ))}
