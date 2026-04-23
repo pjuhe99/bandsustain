@@ -1,0 +1,103 @@
+"use client";
+
+import Link from "next/link";
+import { useState, useEffect } from "react";
+
+const navLinks = [
+  { href: "/news", label: "News" },
+  { href: "/music", label: "Music" },
+  { href: "/live", label: "Live" },
+  { href: "/about", label: "About" },
+];
+
+const socialLinks = [
+  { href: "#", label: "Instagram" },
+  { href: "#", label: "YouTube" },
+  { href: "#", label: "Spotify" },
+];
+
+export default function Nav() {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  return (
+    <>
+      <header className="border-b border-[--color-border] bg-[--color-bg]">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 h-[72px] flex items-center justify-between">
+          <Link
+            href="/"
+            className="font-display font-black text-xl tracking-tight uppercase"
+          >
+            bandsustain
+          </Link>
+
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
+            {navLinks.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="hover:underline underline-offset-4 decoration-2"
+              >
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+
+          <button
+            className="md:hidden w-8 h-8 flex flex-col items-center justify-center gap-1.5"
+            aria-label="Open menu"
+            onClick={() => setOpen(true)}
+          >
+            <span className="block w-6 h-[2px] bg-[--color-text]" />
+            <span className="block w-6 h-[2px] bg-[--color-text]" />
+            <span className="block w-6 h-[2px] bg-[--color-text]" />
+          </button>
+        </div>
+      </header>
+
+      {open && (
+        <div className="fixed inset-0 z-50 bg-[--color-bg] flex flex-col p-6 md:hidden">
+          <div className="flex justify-between items-center h-[72px] -mt-6 -mx-6 px-6 border-b border-[--color-border]">
+            <span className="font-display font-black text-xl uppercase">
+              bandsustain
+            </span>
+            <button
+              aria-label="Close menu"
+              onClick={() => setOpen(false)}
+              className="w-8 h-8 flex items-center justify-center text-3xl leading-none"
+            >
+              ×
+            </button>
+          </div>
+
+          <nav className="flex flex-col gap-1 flex-1 pt-12">
+            {navLinks.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="text-3xl font-semibold py-3"
+                onClick={() => setOpen(false)}
+              >
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex gap-6 pt-6 border-t border-[--color-border] text-sm">
+            {socialLinks.map((s) => (
+              <a key={s.label} href={s.href} className="underline underline-offset-4">
+                {s.label}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
