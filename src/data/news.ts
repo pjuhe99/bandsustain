@@ -50,15 +50,24 @@ export const news: NewsItem[] = [
   },
   {
     id: "03",
-    headline: "Behind the scenes: building the mix",
-    category: "News",
-    date: "2026-04-03",
-    heroImage: "",
-    body: `Mixing has been slower than we planned, and we are okay with that.
+    headline: "“5년 내 결혼설에 기타 예물까지?”… 서스테인 김예빈·함시현 열애설, 결국 ‘해프닝’으로",
+    category: "Entertainment",
+    date: "2026-04-24",
+    heroImage: "/news/news03-hero.png",
+    body: `서울 — 밴드 서스테인의 드러머 김예빈과 팀의 매니저이자 디자이너, 백업 멤버로 활동 중인 함시현을 둘러싼 열애설이 온라인 커뮤니티를 중심으로 확산되며 관심을 모았다.
 
-We decided to keep the room tone from the studio takes rather than cleaning it up. It changes the feel of the record in a way we like.
+해당 소문은 두 사람이 오랜 시간 가까운 관계를 유지해왔다는 점에서 출발했다. 여기에 더해 “5년 안에 결혼을 계획 중”이라는 이야기와 함께, 예물로 깁슨 커스텀샵 기타와 앰프를 주고받았다는 구체적인 내용까지 더해지며 사실처럼 퍼져나갔다.
 
-More notes from the process will follow as the release gets closer.`,
+특히 음악 장비를 예물로 주고받았다는 설정은 팬들 사이에서 “서스테인다운 로맨스”라는 반응을 불러일으키기도 했다. 일부에서는 실제 커플이 아니고서는 나오기 힘든 디테일이라는 주장까지 제기되며 논란은 더욱 커졌다.
+
+그러나 확인 결과, 해당 열애설은 사실이 아닌 것으로 밝혀졌다. 함시현은 이미 다른 결혼을 약속한 연인이 있는 것으로 전해졌으며, 이번 소문 역시 과장된 추측에서 시작된 것으로 보인다.
+
+김예빈 측근에 따르면, 김예빈은 해당 소문과 관련해 “나만 진심이었구나”라는 반응을 보인 것으로 알려졌다. 해당 발언의 진위나 맥락에 대해서는 추가적인 확인이 이뤄지지 않았지만, 오히려 상황을 더욱 미묘하게 만들고 있다는 분석도 나온다.
+
+열애설은 해프닝으로 일단락되는 분위기지만, 팬들의 관심은 쉽게 가라앉지 않을 전망이다. 특히 오는 4월 24일 예정된 서스테인의 합주가 두 사람의 ‘첫 공식 동선’으로 주목받고 있다.
+
+단순한 루머로 끝날 사건일지, 혹은 또 다른 이야기를 남길지.
+서스테인의 다음 합주에 시선이 쏠리고 있다.`,
   },
 ];
 
