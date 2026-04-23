@@ -1,11 +1,7 @@
 import Hero from "@/components/Hero";
+import SongGrid from "@/components/SongGrid";
+import { sortedByReleaseDesc } from "@/data/songs";
 import Link from "next/link";
-
-const releases = [
-  { id: 1, title: "Signal Through Noise", meta: "2026 · Album" },
-  { id: 2, title: "Room Tone EP", meta: "2025 · EP" },
-  { id: 3, title: "First Takes", meta: "2025 · Live Session" },
-];
 
 const news = [
   {
@@ -29,6 +25,8 @@ const news = [
 ];
 
 export default function Home() {
+  const featured = sortedByReleaseDesc().slice(0, 3);
+
   return (
     <>
       <Hero />
@@ -49,22 +47,7 @@ export default function Home() {
             View all →
           </Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
-          {releases.map((r) => (
-            <article key={r.id} className="flex flex-col">
-              <div className="aspect-square bg-[var(--color-bg-muted)] mb-5 flex items-center justify-center text-[var(--color-text-muted)] text-sm">
-                Artwork
-              </div>
-              <h3 className="font-semibold text-lg md:text-xl mb-1">
-                {r.title}
-              </h3>
-              <p className="text-sm text-[var(--color-text-muted)] mb-4">{r.meta}</p>
-              <a href="#" className="text-sm underline underline-offset-4 self-start">
-                View →
-              </a>
-            </article>
-          ))}
-        </div>
+        <SongGrid items={featured} />
       </section>
 
       {/* News */}
