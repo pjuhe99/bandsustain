@@ -39,6 +39,11 @@ yarn-error.log*
 # superpowers brainstorming
 /.superpowers/
 
+# Member photos — kept out of git for privacy (EXIF metadata) and
+# blob bloat. Files live on the server filesystem and are served
+# directly; swap them there without touching the repo.
+/public/members/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
