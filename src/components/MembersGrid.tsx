@@ -20,7 +20,6 @@ export default function MembersGrid({ members }: Props) {
   // desktop card from rendering as open after resizing to a mobile
   // viewport, and vice versa.
   useEffect(() => {
-    if (typeof window === "undefined") return;
     const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
     const handler = () => setOpenId(null);
     mq.addEventListener("change", handler);
