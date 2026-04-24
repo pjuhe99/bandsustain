@@ -25,7 +25,7 @@ export async function generateMetadata({
     description,
     openGraph: {
       type: "article",
-      siteName: "bandsustain",
+      siteName: "Band Sustain",
       url,
       title: item.headline,
       description,
