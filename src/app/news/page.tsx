@@ -1,6 +1,30 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { excerpt, formatNewsDate, sortedByDateDesc } from "@/data/news";
+
+const description = "All the news that matters — 안 중요해도 씁니다";
+const ogImage = "/news/news01-hero.png";
+
+export const metadata: Metadata = {
+  title: "News",
+  description,
+  openGraph: {
+    type: "website",
+    siteName: "bandsustain",
+    url: "https://bandsustain.com/news",
+    title: "News — bandsustain",
+    description,
+    images: [{ url: ogImage, alt: "News" }],
+    locale: "ko_KR",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "News — bandsustain",
+    description,
+    images: [ogImage],
+  },
+};
 
 export default function NewsPage() {
   const items = sortedByDateDesc();

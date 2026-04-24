@@ -1,10 +1,45 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { formatNewsDate, news } from "@/data/news";
+import { excerpt, formatNewsDate, news } from "@/data/news";
 
 export function generateStaticParams() {
   return news.map((n) => ({ id: n.id }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const item = news.find((n) => n.id === id);
+  if (!item) return {};
+
+  const description = excerpt(item.body, 200);
+  const url = `https://bandsustain.com/news/${item.id}`;
+
+  return {
+    title: item.headline,
+    description,
+    openGraph: {
+      type: "article",
+      siteName: "bandsustain",
+      url,
+      title: item.headline,
+      description,
+      images: [{ url: item.heroImage, alt: item.headline }],
+      locale: "ko_KR",
+      publishedTime: item.date,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: item.headline,
+      description,
+      images: [item.heroImage],
+    },
+  };
 }
 
 export default async function NewsDetailPage({

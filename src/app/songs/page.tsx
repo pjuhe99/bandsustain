@@ -1,5 +1,29 @@
+import type { Metadata } from "next";
 import SongGrid from "@/components/SongGrid";
 import { sortedByReleaseDesc } from "@/data/songs";
+
+const description = "Classics for your new world — 새로운 세상을 만나게 해줄 명곡들";
+const ogImage = "/songs/song01.jpg";
+
+export const metadata: Metadata = {
+  title: "Our Songs",
+  description,
+  openGraph: {
+    type: "website",
+    siteName: "bandsustain",
+    url: "https://bandsustain.com/songs",
+    title: "Our Songs — bandsustain",
+    description,
+    images: [{ url: ogImage, alt: "Our Songs" }],
+    locale: "ko_KR",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Our Songs — bandsustain",
+    description,
+    images: [ogImage],
+  },
+};
 
 export default function SongsPage() {
   const all = sortedByReleaseDesc();

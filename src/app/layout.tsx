@@ -17,9 +17,32 @@ const archivo = Archivo({
   display: "swap",
 });
 
+const siteUrl = "https://bandsustain.com";
+const defaultDescription = "bandsustain — music, stories, experiments.";
+const defaultOgImage = "/slides/hero-a7f3c1e2.jpg";
+
 export const metadata: Metadata = {
-  title: "bandsustain",
-  description: "bandsustain — music, stories, experiments.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "bandsustain",
+    template: "%s — bandsustain",
+  },
+  description: defaultDescription,
+  openGraph: {
+    type: "website",
+    siteName: "bandsustain",
+    url: siteUrl,
+    title: "bandsustain",
+    description: defaultDescription,
+    images: [{ url: defaultOgImage, alt: "bandsustain" }],
+    locale: "ko_KR",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "bandsustain",
+    description: defaultDescription,
+    images: [defaultOgImage],
+  },
 };
 
 export default function RootLayout({

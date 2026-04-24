@@ -1,5 +1,29 @@
+import type { Metadata } from "next";
 import MembersGrid from "@/components/MembersGrid";
 import { sortedMembers } from "@/data/members";
+
+const description = "Let me introduce the best friends of your life — 너의 인생에 최고의 친구들을 소개합니다";
+const ogImage = "/members/member01.jpg";
+
+export const metadata: Metadata = {
+  title: "Members",
+  description,
+  openGraph: {
+    type: "website",
+    siteName: "bandsustain",
+    url: "https://bandsustain.com/members",
+    title: "Members — bandsustain",
+    description,
+    images: [{ url: ogImage, alt: "Members" }],
+    locale: "ko_KR",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Members — bandsustain",
+    description,
+    images: [ogImage],
+  },
+};
 
 export default function MembersPage() {
   const all = sortedMembers();
