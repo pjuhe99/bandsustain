@@ -1,6 +1,6 @@
 -- 002_members.sql
--- bandsustain.com /members tab — member card data
--- manual execution: mysql -h $DB_HOST -u $DB_USER -p $DB_NAME < db/schema/002_members.sql
+-- bandsustain.com /members 탭 — 멤버 카드 데이터
+-- 수동 실행: mysql -h $DB_HOST -u $DB_USER -p $DB_NAME < db/schema/002_members.sql
 
 CREATE TABLE IF NOT EXISTS members (
   id              INT AUTO_INCREMENT PRIMARY KEY,
