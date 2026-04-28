@@ -121,6 +121,11 @@ export async function swapMemberOrder(id: number, direction: "up" | "down") {
     await conn.commit();
   } catch (e) {
     await conn.rollback();
+    const errno = (e as { errno?: number }).errno;
+    if (errno === 1213) {
+      // InnoDB deadlock — opposing concurrent swap. Treat as no-op; user can retry.
+      return;
+    }
     throw e;
   } finally {
     conn.release();
