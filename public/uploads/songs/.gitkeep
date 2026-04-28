@@ -1,0 +1,1 @@
+# admin이 업로드한 이미지가 저장되는 디렉토리. 정적 자산 디렉토리(public/{members,songs,news})와 분리.
