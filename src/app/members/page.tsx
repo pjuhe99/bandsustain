@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import MembersGrid from "@/components/MembersGrid";
-import { sortedMembers } from "@/data/members";
+import { getPublishedMembers } from "@/lib/members";
+
+export const dynamic = "force-dynamic";
 
 const description = "Let me introduce the best friends of your life — 너의 인생에 최고의 친구들을 소개합니다";
 const ogImage = "/members/member01.jpg";
@@ -25,8 +27,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function MembersPage() {
-  const all = sortedMembers();
+export default async function MembersPage() {
+  const members = await getPublishedMembers();
 
   return (
     <section className="max-w-7xl mx-auto px-6 md:px-12 py-16 md:py-24">
@@ -41,7 +43,7 @@ export default function MembersPage() {
         </p>
       </header>
 
-      <MembersGrid members={all} />
+      <MembersGrid members={members} />
     </section>
   );
 }

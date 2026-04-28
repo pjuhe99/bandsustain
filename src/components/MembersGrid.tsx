@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { Member } from "@/data/members";
+import type { Member } from "@/lib/members";
 import MemberCard from "./MemberCard";
 
 type Props = {
@@ -9,9 +9,9 @@ type Props = {
 };
 
 export default function MembersGrid({ members }: Props) {
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<number | null>(null);
 
-  const handleToggle = useCallback((id: string) => {
+  const handleToggle = useCallback((id: number) => {
     setOpenId((current) => (current === id ? null : id));
   }, []);
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import type { Member } from "@/data/members";
+import type { Member } from "@/lib/members";
 
 type Props = {
   member: Member;
@@ -34,7 +34,7 @@ export default function MemberCard({ member, isOpen, onToggle }: Props) {
       <span aria-hidden="true" className="contents">
         {/* Photo */}
         <Image
-          src={member.photo}
+          src={member.photoUrl}
           alt=""
           fill
           sizes="(min-width:768px) 33vw, (min-width:640px) 50vw, 100vw"
