@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { formatNewsDate, type NewsItem } from "@/data/news";
+import { formatNewsDate, type NewsItem } from "@/lib/news";
 
 export default function NewsCard({ item }: { item: NewsItem }) {
   return (

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { excerpt, formatNewsDate, sortedByDateDesc } from "@/data/news";
+import { excerpt, formatNewsDate, getPublishedNews } from "@/lib/news";
+
+export const dynamic = "force-dynamic";
 
 const description = "All the news that matters — 안 중요해도 씁니다";
 const ogImage = "/news/news01-hero.png";
@@ -26,8 +28,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function NewsPage() {
-  const items = sortedByDateDesc();
+export default async function NewsPage() {
+  const items = await getPublishedNews();
 
   return (
     <section className="max-w-7xl mx-auto px-6 md:px-12 py-16 md:py-24">
@@ -70,7 +72,7 @@ export default function NewsPage() {
                   {n.headline}
                 </h2>
                 <p className="text-[var(--color-text-muted)] mb-4 leading-[1.6]">
-                  {excerpt(n.body)}
+                  {excerpt(n.body, 200)}
                 </p>
                 <span className="text-sm underline underline-offset-4 mt-auto">
                   Read the article →

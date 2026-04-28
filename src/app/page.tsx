@@ -1,7 +1,7 @@
 import Hero from "@/components/Hero";
 import NewsCard from "@/components/NewsCard";
 import SongGrid from "@/components/SongGrid";
-import { sortedByDateDesc as sortedNewsDesc } from "@/data/news";
+import { getPublishedNews } from "@/lib/news";
 import { getPublishedSongs } from "@/lib/songs";
 import Link from "next/link";
 
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const featured = (await getPublishedSongs()).slice(0, 3);
-  const latestNews = sortedNewsDesc().slice(0, 3);
+  const latestNews = (await getPublishedNews()).slice(0, 3);
 
   return (
     <>

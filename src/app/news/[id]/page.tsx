@@ -2,11 +2,10 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { excerpt, formatNewsDate, news } from "@/data/news";
+import { excerpt, formatNewsDate, getNewsById } from "@/lib/news";
+import { Fragment } from "react";
 
-export function generateStaticParams() {
-  return news.map((n) => ({ id: n.id }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -14,8 +13,10 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const item = news.find((n) => n.id === id);
-  if (!item) return {};
+  const numId = Number(id);
+  if (!Number.isInteger(numId)) return {};
+  const item = await getNewsById(numId);
+  if (!item || !item.published) return {};
 
   const description = excerpt(item.body, 200);
   const url = `https://bandsustain.com/news/${item.id}`;
@@ -31,7 +32,7 @@ export async function generateMetadata({
       description,
       images: [{ url: item.heroImage, alt: item.headline }],
       locale: "ko_KR",
-      publishedTime: item.date,
+      publishedTime: formatNewsDate(item.date),
     },
     twitter: {
       card: "summary_large_image",
@@ -48,8 +49,10 @@ export default async function NewsDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const item = news.find((n) => n.id === id);
-  if (!item) notFound();
+  const numId = Number(id);
+  if (!Number.isInteger(numId)) notFound();
+  const item = await getNewsById(numId);
+  if (!item || !item.published) notFound();
 
   const paragraphs = item.body.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
   const midIndex = item.midImage
@@ -93,7 +96,14 @@ export default async function NewsDetailPage({
       <div className="text-base md:text-lg leading-[1.75]">
         {paragraphs.map((p, i) => (
           <div key={i}>
-            <p className="mb-6">{p}</p>
+            <p className="mb-6">
+              {p.split("\n").map((line, j, arr) => (
+                <Fragment key={j}>
+                  {line}
+                  {j < arr.length - 1 && <br />}
+                </Fragment>
+              ))}
+            </p>
             {item.midImage && i === midIndex && (
               <figure className="relative aspect-[3/2] bg-[var(--color-bg-muted)] my-10 md:my-12 overflow-hidden flex items-center justify-center text-[var(--color-text-muted)] text-sm">
                 <Image
