@@ -18,7 +18,7 @@ export default async function QuotesListPage() {
           + 새로 추가
         </Link>
       </div>
-      <table className="w-full text-sm">
+      <div className="overflow-x-auto"><table className="w-full min-w-[480px] text-sm">
         <thead className="text-left text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
           <tr>
             <th className="py-2 w-40">인물</th>
@@ -49,7 +49,7 @@ export default async function QuotesListPage() {
             </tr>
           ))}
         </tbody>
-      </table>
+      </table></div>
     </div>
   );
 }

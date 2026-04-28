@@ -84,7 +84,7 @@ export default async function DashboardPage() {
         <h2 className="text-sm uppercase tracking-wider text-[var(--color-text-muted)] mb-4">
           최근 수정 5건
         </h2>
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto"><table className="w-full min-w-[480px] text-sm">
           <thead className="text-left text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
             <tr>
               <th className="py-2 font-medium">리소스</th>
@@ -112,7 +112,7 @@ export default async function DashboardPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       </section>
     </div>
   );
