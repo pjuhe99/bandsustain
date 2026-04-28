@@ -44,6 +44,11 @@ yarn-error.log*
 # directly; swap them there without touching the repo.
 /public/members/
 
+# Admin-uploaded images (runtime assets, not git-tracked).
+# .gitkeep in each subdirectory is preserved.
+/public/uploads/*/*
+!/public/uploads/*/.gitkeep
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
