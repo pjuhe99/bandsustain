@@ -1,17 +1,6 @@
+import "server-only";
 import mysql from "mysql2/promise";
-import { readFileSync } from "node:fs";
-
-function loadCreds(): Record<string, string> {
-  const path = process.env.DB_CREDENTIALS_PATH
-    ?? "/var/www/html/_______site_BANDSUSTAIN/.db_credentials";
-  const raw = readFileSync(path, "utf8");
-  const out: Record<string, string> = {};
-  for (const line of raw.split("\n")) {
-    const m = line.match(/^([A-Z_]+)=(.*)$/);
-    if (m) out[m[1]] = m[2].trim().replace(/^["']|["']$/g, "");
-  }
-  return out;
-}
+import { loadCreds } from "./creds";
 
 function createPool(): mysql.Pool {
   const c = loadCreds();
