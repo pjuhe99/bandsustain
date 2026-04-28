@@ -59,8 +59,12 @@ export async function uploadImage(
   const ext = MIME_EXT[detected];
   const filename = `${randomUUID()}${ext}`;
   const dir = path.join(process.cwd(), "public", "uploads", resource);
-  await mkdir(dir, { recursive: true });
-  await writeFile(path.join(dir, filename), buf);
+  try {
+    await mkdir(dir, { recursive: true });
+    await writeFile(path.join(dir, filename), buf);
+  } catch {
+    return { ok: false, error: "Failed to save file" };
+  }
 
   return { ok: true, path: `/uploads/${resource}/${filename}` };
 }
