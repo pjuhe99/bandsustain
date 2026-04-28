@@ -1,4 +1,4 @@
-import type { Song } from "@/data/songs";
+import type { Song } from "@/lib/songs";
 import SongCard from "./SongCard";
 
 export default function SongGrid({ items }: { items: Song[] }) {

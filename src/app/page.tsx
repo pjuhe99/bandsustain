@@ -2,11 +2,13 @@ import Hero from "@/components/Hero";
 import NewsCard from "@/components/NewsCard";
 import SongGrid from "@/components/SongGrid";
 import { sortedByDateDesc as sortedNewsDesc } from "@/data/news";
-import { sortedByReleaseDesc } from "@/data/songs";
+import { getPublishedSongs } from "@/lib/songs";
 import Link from "next/link";
 
-export default function Home() {
-  const featured = sortedByReleaseDesc().slice(0, 3);
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const featured = (await getPublishedSongs()).slice(0, 3);
   const latestNews = sortedNewsDesc().slice(0, 3);
 
   return (

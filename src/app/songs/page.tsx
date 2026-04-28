@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import SongGrid from "@/components/SongGrid";
-import { sortedByReleaseDesc } from "@/data/songs";
+import { getPublishedSongs } from "@/lib/songs";
+
+export const dynamic = "force-dynamic";
 
 const description = "Classics for your new world — 새로운 세상을 만나게 해줄 명곡들";
 const ogImage = "/songs/song01.jpg";
@@ -25,8 +27,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function SongsPage() {
-  const all = sortedByReleaseDesc();
+export default async function SongsPage() {
+  const all = await getPublishedSongs();
 
   return (
     <section className="max-w-7xl mx-auto px-6 md:px-12 py-16 md:py-24">
