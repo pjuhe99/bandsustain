@@ -1,6 +1,8 @@
+// @ts-nocheck
 // 주의: 이 스크립트는 src/data/{members,songs,news}.ts 가 존재하던 시점에
 // 한 번 실행되어 db/seed/00{2,3,4}_*_seed.sql 을 생성한 일회성 코드입니다.
 // 해당 데이터 파일이 제거된 이후로는 재실행 불가능합니다 (히스토리 보존용).
+// @ts-nocheck 는 import 가 깨진 채 남는 것을 tsc 가 무시하도록 합니다.
 
 import { writeFileSync } from "node:fs";
 import { members } from "../src/data/members";
