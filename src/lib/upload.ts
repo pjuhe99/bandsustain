@@ -58,7 +58,10 @@ export async function uploadImage(
 
   const ext = MIME_EXT[detected];
   const filename = `${randomUUID()}${ext}`;
-  const dir = path.join(process.cwd(), "public", "uploads", resource);
+  // Stored outside public/ because Next 16 + Turbopack only serves
+  // public/ files known at build time. Served via the dynamic route
+  // handler at src/app/uploads/[resource]/[filename]/route.ts.
+  const dir = path.join(process.cwd(), "uploaded-assets", resource);
   try {
     await mkdir(dir, { recursive: true });
     await writeFile(path.join(dir, filename), buf);

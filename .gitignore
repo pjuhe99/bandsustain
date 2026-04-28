@@ -45,9 +45,9 @@ yarn-error.log*
 /public/members/
 
 # Admin-uploaded images (runtime assets, not git-tracked).
-# .gitkeep in each subdirectory is preserved.
-/public/uploads/*/*
-!/public/uploads/*/.gitkeep
+# Stored outside public/ because Next 16 + Turbopack only serves
+# public/ files known at build time; served via dynamic route handler.
+/uploaded-assets/
 
 # typescript
 *.tsbuildinfo
