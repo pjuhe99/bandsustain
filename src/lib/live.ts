@@ -28,9 +28,10 @@ type Row = RowDataPacket & {
 
 function toDateString(v: Date | string): string {
   if (v instanceof Date) {
-    // DATE 컬럼은 시간대 없이 'YYYY-MM-DD' 의미. JS Date로 받으면 로컬 자정으로 해석되는 케이스가 있어
-    // UTC 기준 ISO에서 날짜 부분만 잘라낸다 (mysql2 DATE 처리 관행과 일치).
-    return v.toISOString().slice(0, 10);
+    // mysql2는 DATE 컬럼을 로컬 타임존 자정의 Date로 돌려준다(`new Date(yyyy, mm-1, dd)`).
+    // toISOString()은 UTC로 변환하므로 KST 서버에서는 하루 어긋난다. 로컬 컴포넌트로 그대로 추출.
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${v.getFullYear()}-${pad(v.getMonth() + 1)}-${pad(v.getDate())}`;
   }
   return v.slice(0, 10);
 }
