@@ -16,6 +16,20 @@ type Recent = {
   ts: Date;
 };
 
+function formatRecentKST(d: Date): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(d);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}`;
+}
+
 async function getRecent(): Promise<Recent[]> {
   const pool = getPool();
   const [rows] = await pool.query<(RowDataPacket & {
@@ -114,7 +128,7 @@ export default async function DashboardPage() {
                   </Link>
                 </td>
                 <td className="py-3 text-[var(--color-text-muted)]">
-                  {r.ts.toISOString().slice(0, 16).replace("T", " ")}
+                  {formatRecentKST(r.ts)}
                 </td>
               </tr>
             ))}
