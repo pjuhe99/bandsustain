@@ -60,7 +60,7 @@ export default async function LiveListPage() {
                       published={ev.published}
                       toggleAction={async () => {
                         "use server";
-                        await togglePublishedLive(ev.id, ev.published);
+                        await togglePublishedLive(ev.id);
                       }}
                     />
                   </td>

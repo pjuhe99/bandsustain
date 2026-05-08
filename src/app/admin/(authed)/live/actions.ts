@@ -6,7 +6,7 @@ import { readSession } from "@/lib/auth";
 import {
   createLiveEvent,
   updateLiveEvent,
-  setLiveEventPublished,
+  togglePublishedLiveEvent,
   type LiveEventInput,
 } from "@/lib/live";
 
@@ -85,8 +85,8 @@ export async function updateLive(
   redirect("/admin/live");
 }
 
-export async function togglePublishedLive(id: number, currentPublished: boolean) {
+export async function togglePublishedLive(id: number) {
   await requireAuth();
-  await setLiveEventPublished(id, !currentPublished);
+  await togglePublishedLiveEvent(id);
   revalidateAll(id);
 }

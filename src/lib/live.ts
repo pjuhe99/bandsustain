@@ -164,6 +164,13 @@ export async function setLiveEventPublished(id: number, published: boolean): Pro
   );
 }
 
+export async function togglePublishedLiveEvent(id: number): Promise<void> {
+  await getPool().query(
+    `UPDATE live_events SET published = 1 - published WHERE id = ?`,
+    [id],
+  );
+}
+
 function formatMonthDay(eventDate: string): string {
   const [y, m, d] = eventDate.split("-").map(Number);
   const dt = new Date(Date.UTC(y, m - 1, d));
