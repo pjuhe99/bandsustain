@@ -3,7 +3,7 @@
 **작성일:** 2026-05-08
 **대상:** bandsustain.com `/live` 공개 페이지 + `/admin/live` CRUD
 **참고:** [oasisinet.com/live](https://www.oasisinet.com/live/) — 행 단위 리스트, Past Shows에 영상 ▶
-**스코프 제외:** 실시간 좌석 잔여, 다국어, 임베드 플레이어, 인스타·페북 등 비-유튜브 영상
+**스코프 제외:** 실시간 좌석 잔여, 다국어, 임베드 플레이어
 
 ---
 
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS live_events (
   venue       VARCHAR(200)  NOT NULL,             -- 예: "Yes24 Live Hall"
   city        VARCHAR(100)  NOT NULL,             -- 예: "Seoul"
   ticket_url  VARCHAR(500)  NULL,                 -- 예매 링크 (예정 공연용)
-  video_url   VARCHAR(500)  NULL,                 -- 유튜브 링크 (과거 공연용)
+  video_url   VARCHAR(500)  NULL,                 -- 외부 영상 링크 (과거 공연용, 유튜브/인스타 등)
   published   TINYINT(1)    NOT NULL DEFAULT 1,
   created_at  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -166,7 +166,7 @@ export async function setLiveEventPublished(id: number, published: boolean): Pro
 - 데스크톱: `grid-cols-[120px_1fr_120px_40px]` (날짜 / 공연장+도시 / 액션 / ▶) 정렬
 - 모바일(<md): 날짜 위, 공연장·도시 다음, 액션 줄 마지막으로 stack
 - `[Tickets]` 버튼: `<a href={ticketUrl} target="_blank" rel="noopener">` — `ticket_url`이 null이면 노출 안 함 (예매 시작 전이면 행만 보임)
-- ▶ 버튼: `<a href={videoUrl} target="_blank" rel="noopener" aria-label="Watch on YouTube">` — `video_url`이 null이면 자리만 비움 (정렬 흐트러지지 않게)
+- ▶ 버튼: `<a href={videoUrl} target="_blank" rel="noopener" aria-label="Watch video">` — `video_url`이 null이면 자리만 비움 (정렬 흐트러지지 않게)
 - 빈 상태:
   - upcoming만 0건 → Upcoming 섹션 통째 숨김
   - past만 0건 → Past 섹션 자리에 "공연 일정 준비 중" 1줄
@@ -209,7 +209,7 @@ export async function setLiveEventPublished(id: number, published: boolean): Pro
 공연장          [text, required, max 200]
 도시            [text, required, max 100]
 티켓 URL        [url, optional, max 500, https 권장]
-영상 URL (YouTube)  [url, optional, max 500, youtube.com / youtu.be만 허용]
+영상 URL        [url, optional, max 500, 도메인 제한 없음 — 유튜브/인스타/페북 등 자유]
 공개            [checkbox, default 체크]
 
 [저장]  [취소]
@@ -222,10 +222,7 @@ const LiveEventSchema = z.object({
   venue: z.string().min(1).max(200),
   city: z.string().min(1).max(100),
   ticketUrl: z.string().url().max(500).nullable().or(z.literal("").transform(() => null)),
-  videoUrl: z.string().url().max(500)
-    .refine((u) => /^https?:\/\/(www\.|m\.)?(youtube\.com|youtu\.be)\//i.test(u),
-            "YouTube URL만 허용")
-    .nullable().or(z.literal("").transform(() => null)),
+  videoUrl: z.string().url().max(500).nullable().or(z.literal("").transform(() => null)),
   published: z.boolean(),
 });
 ```
@@ -269,8 +266,7 @@ INSERT INTO live_events (event_date, venue, city, ticket_url, video_url, publish
 ## 8. 구현 범위 외 (out of scope)
 
 - 다국어 (영문 한 언어 고정. 다른 탭 패턴 동일)
-- 인스타그램·페이스북 영상 (유튜브만 검증)
-- 임베드 플레이어 (새 탭 이동)
+- 임베드 플레이어 (새 탭 이동만 — 플랫폼별 임베드 위젯 없음)
 - 좌석 매진/잔여 표시
 - 포스터 이미지 업로드
 - Setlist / 게스트 / 부가 메모
