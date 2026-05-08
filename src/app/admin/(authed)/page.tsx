@@ -4,12 +4,13 @@ import { countMembers } from "@/lib/members";
 import { countSongs } from "@/lib/songs";
 import { countNews } from "@/lib/news";
 import { countQuotes } from "@/lib/quotes";
+import { countLiveEvents } from "@/lib/live";
 import type { RowDataPacket } from "mysql2";
 
 export const dynamic = "force-dynamic";
 
 type Recent = {
-  resource: "members" | "songs" | "news" | "quotes";
+  resource: "members" | "songs" | "news" | "quotes" | "live";
   id: number;
   label: string;
   ts: Date;
@@ -31,6 +32,10 @@ async function getRecent(): Promise<Recent[]> {
       (SELECT 'news' AS resource, id, headline AS label, updated_at AS ts FROM news)
       UNION ALL
       (SELECT 'quotes' AS resource, id, COALESCE(attribution, LEFT(text, 40)) AS label, created_at AS ts FROM quotes)
+      UNION ALL
+      (SELECT 'live' AS resource, id,
+              CONCAT(DATE_FORMAT(event_date, '%Y-%m-%d'), ' ', venue) AS label,
+              updated_at AS ts FROM live_events)
     ) AS u ORDER BY ts DESC LIMIT 5`,
   );
   return rows.map((r) => ({
@@ -46,24 +51,26 @@ const cards = [
   { resource: "songs" as const, label: "Songs" },
   { resource: "news" as const, label: "News" },
   { resource: "quotes" as const, label: "Quotes" },
+  { resource: "live" as const, label: "Live" },
 ];
 
 export default async function DashboardPage() {
-  const [m, s, n, q, recent] = await Promise.all([
+  const [m, s, n, q, l, recent] = await Promise.all([
     countMembers(),
     countSongs(),
     countNews(),
     countQuotes(),
+    countLiveEvents(),
     getRecent(),
   ]);
-  const counts = { members: m, songs: s, news: n, quotes: q };
+  const counts = { members: m, songs: s, news: n, quotes: q, live: l };
 
   return (
     <div>
       <h1 className="font-display font-black uppercase text-3xl md:text-4xl mb-8">
         Dashboard
       </h1>
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+      <section className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-12">
         {cards.map((c) => (
           <Link
             key={c.resource}
