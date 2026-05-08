@@ -3,4 +3,4 @@
 
 INSERT INTO live_events (event_date, venue, city, ticket_url, video_url, published) VALUES
   ('2026-06-12', 'Rolling Hall', 'Seoul', 'https://example.com/tickets/rolling-hall', NULL, 1),
-  ('2025-12-14', 'Club FF',      'Seoul', NULL, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 1);
+  ('2025-12-14', 'Club FF',      'Seoul', NULL, 'https://example.com/live/club-ff-2025-demo-video', 1);
