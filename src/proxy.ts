@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logPageView } from "@/lib/analytics";
 
 const COOKIE_NAME = "bs_admin";
 
-// Edge runtime constraint: this proxy cannot use src/lib/auth.ts
-// because that module imports node:crypto + bcryptjs + server-only,
-// which Edge runtime does not provide. Instead, this is a 1st-stage
-// gate that only verifies cookie presence + format. Real HMAC validation
-// happens at the page/layout level via readSession() (Node runtime).
-// A user with a forged cookie passes this gate but is rejected by the
-// (authed) layout's readSession() call.
-
+// Admin auth gate: 1st-stage cookie format check only (real HMAC validation
+// runs at the (authed) layout via readSession()). A forged cookie passes this
+// gate but is rejected by readSession().
 function looksLikeToken(t: string | undefined): boolean {
   if (!t) return false;
   const parts = t.split(".");
@@ -17,16 +13,10 @@ function looksLikeToken(t: string | undefined): boolean {
   return parts[0].length > 0 && parts[1].length > 0;
 }
 
-export function proxy(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-
-  if (
-    pathname.startsWith("/admin/login")
-    || pathname === "/admin/logout"
-  ) {
+function adminGate(req: NextRequest, pathname: string): NextResponse {
+  if (pathname.startsWith("/admin/login") || pathname === "/admin/logout") {
     return NextResponse.next();
   }
-
   const token = req.cookies.get(COOKIE_NAME)?.value;
   if (!looksLikeToken(token)) {
     const url = req.nextUrl.clone();
@@ -37,6 +27,38 @@ export function proxy(req: NextRequest) {
   return NextResponse.next();
 }
 
+function trackAnalytics(req: NextRequest, pathname: string): void {
+  // Skip Next.js Link prefetches
+  if (req.headers.get("next-router-prefetch")) return;
+
+  const ua = req.headers.get("user-agent") || "";
+  const ip =
+    (req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "")
+      .split(",")[0]
+      .trim() || "0.0.0.0";
+  const referrer = req.headers.get("referer");
+  const country = req.headers.get("cf-ipcountry");
+
+  // Fire-and-forget: never block the response on logging
+  logPageView({ path: pathname, ua, ip, referrer, country }).catch(() => {});
+}
+
+export function proxy(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  if (pathname.startsWith("/admin")) {
+    return adminGate(req, pathname);
+  }
+
+  trackAnalytics(req, pathname);
+  return NextResponse.next();
+}
+
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: [
+    // Admin auth gate
+    "/admin/:path*",
+    // Public-page analytics tracking (admin/api/internals excluded)
+    "/((?!api|admin|_next|favicon|icon|robots|sitemap|uploads).*)",
+  ],
 };

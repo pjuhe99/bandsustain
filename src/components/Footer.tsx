@@ -65,8 +65,9 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-neutral-800">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 py-6 text-xs text-neutral-500">
-          © {new Date().getFullYear()} bandsustain. All rights reserved.
+        <div className="max-w-7xl mx-auto px-6 md:px-12 py-6 text-xs text-neutral-500 flex flex-col md:flex-row gap-2 md:gap-6 md:justify-between">
+          <span>© {new Date().getFullYear()} bandsustain. All rights reserved.</span>
+          <span>익명 통계 수집, 쿠키 미사용</span>
         </div>
       </div>
     </footer>
