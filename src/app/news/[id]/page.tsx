@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import JsonLd from "@/components/JsonLd";
 import { excerpt, formatNewsDate, getNewsById } from "@/lib/news";
+import { buildNewsArticleSchema } from "@/lib/seo";
 import { Fragment } from "react";
 
 export const dynamic = "force-dynamic";
@@ -61,6 +63,7 @@ export default async function NewsDetailPage({
 
   return (
     <article className="max-w-3xl mx-auto px-6 md:px-12 py-16 md:py-24">
+      <JsonLd data={buildNewsArticleSchema(item)} />
       <nav className="text-sm text-[var(--color-text-muted)] mb-8">
         <Link href="/" className="underline underline-offset-4">
           Home

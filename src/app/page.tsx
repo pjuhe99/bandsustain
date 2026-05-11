@@ -1,18 +1,27 @@
 import Hero from "@/components/Hero";
+import JsonLd from "@/components/JsonLd";
 import NewsCard from "@/components/NewsCard";
 import SongGrid from "@/components/SongGrid";
+import { getPublishedMembers } from "@/lib/members";
 import { getPublishedNews } from "@/lib/news";
 import { getPublishedSongs } from "@/lib/songs";
+import { buildMusicGroupSchema } from "@/lib/seo";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const featured = (await getPublishedSongs()).slice(0, 3);
-  const latestNews = (await getPublishedNews()).slice(0, 3);
+  const [songs, latestNewsAll, members] = await Promise.all([
+    getPublishedSongs(),
+    getPublishedNews(),
+    getPublishedMembers(),
+  ]);
+  const featured = songs.slice(0, 3);
+  const latestNews = latestNewsAll.slice(0, 3);
 
   return (
     <>
+      <JsonLd data={buildMusicGroupSchema({ members, songs })} />
       <Hero />
 
       {/* About */}

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import JsonLd from "@/components/JsonLd";
 import SongGrid from "@/components/SongGrid";
 import { getPublishedSongs } from "@/lib/songs";
+import { buildSongsItemListSchema } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +34,7 @@ export default async function SongsPage() {
 
   return (
     <section className="max-w-7xl mx-auto px-6 md:px-12 py-16 md:py-24">
+      <JsonLd data={buildSongsItemListSchema(all)} />
       <header className="mb-4">
         <h1 className="font-display font-black uppercase tracking-tight text-4xl md:text-6xl mb-6">
           Our Songs

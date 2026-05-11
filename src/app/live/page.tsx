@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import JsonLd from "@/components/JsonLd";
 import {
   getUpcomingEvents,
   getPastEventsByYear,
@@ -6,6 +7,7 @@ import {
   formatLiveDateWithYear,
   type LiveEvent,
 } from "@/lib/live";
+import { buildLiveEventsSchema } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +45,7 @@ export default async function LivePage() {
 
   return (
     <section className="max-w-7xl mx-auto px-6 md:px-12 py-16 md:py-24">
+      {hasUpcoming && <JsonLd data={buildLiveEventsSchema(upcoming)} />}
       <h1 className="font-display font-black uppercase tracking-tight text-4xl md:text-6xl mb-12 md:mb-16">
         Live
       </h1>
