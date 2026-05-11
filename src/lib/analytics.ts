@@ -42,16 +42,18 @@ function getAnalyticsSecret(): string {
   return cachedSecret;
 }
 
-function todayYYYYMMDD(): string {
+// 월 회전 솔트: 한 달 안에서는 같은 사람이 같은 신원 → cross-day unique
+// 카운트가 정확. 매월 1일 자정에 신원이 새로 생성되어 영구 추적은 불가
+// (PIPA 보수적). cross-month 윈도우는 같은 사람이 2번 카운트될 수 있음.
+function thisMonthYYYYMM(): string {
   const d = new Date();
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+  return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
 export function visitorHash(ip: string, ua: string): string {
   return crypto
     .createHash("sha256")
-    .update(`${ip}|${ua}|${todayYYYYMMDD()}|${getAnalyticsSecret()}`)
+    .update(`${ip}|${ua}|${thisMonthYYYYMM()}|${getAnalyticsSecret()}`)
     .digest("hex")
     .slice(0, 16);
 }

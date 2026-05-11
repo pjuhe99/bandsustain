@@ -1,20 +1,27 @@
 import {
   getSnapshot,
   getDailyMetrics,
-  getTopPaths,
-  getTopReferrers,
+  getTopPathsThisMonth,
+  getTopReferrersThisMonth,
   type DailyMetric,
 } from "@/lib/analytics-stats";
 
 export const dynamic = "force-dynamic";
 
+function thisMonthLabel(): string {
+  const d = new Date();
+  return `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
+}
+
 export default async function AnalyticsPage() {
   const [snap, daily, topPaths, topRefs] = await Promise.all([
     getSnapshot(),
     getDailyMetrics(30),
-    getTopPaths(30, 20),
-    getTopReferrers(30, 20),
+    getTopPathsThisMonth(20),
+    getTopReferrersThisMonth(20),
   ]);
+
+  const monthLabel = thisMonthLabel();
 
   return (
     <div className="space-y-10 max-w-5xl">
@@ -23,29 +30,53 @@ export default async function AnalyticsPage() {
           Analytics
         </h1>
         <p className="text-sm text-[var(--color-text-muted)]">
-          익명 페이지뷰 통계 — 봇 자동 제외, 일일 회전 솔트로 방문자 식별 (개인정보 미보존).
+          익명 페이지뷰 통계 — 봇 자동 제외, 매월 1일 자정에 방문자 신원 새로 생성 (개인정보 미보존).
         </p>
       </header>
 
       {/* Snapshot cards */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <Stat label="Today views" value={snap.todayViews} sub={`Yesterday ${snap.yesterdayViews}`} />
-        <Stat label="Today visitors" value={snap.todayVisitors} sub={`Yesterday ${snap.yesterdayVisitors}`} />
-        <Stat label="7d views" value={snap.last7dViews} sub={`Visitors ${snap.last7dVisitors}`} />
-        <Stat label="30d views" value={snap.last30dViews} sub={`Visitors ${snap.last30dVisitors}`} />
+        <Stat
+          label="Today views"
+          value={snap.todayViews}
+          sub={`Yesterday ${snap.yesterdayViews}`}
+          hint="오늘 페이지가 로드된 총 횟수 (새로고침·재진입 모두 +1)"
+        />
+        <Stat
+          label="Today visitors"
+          value={snap.todayVisitors}
+          sub={`Yesterday ${snap.yesterdayVisitors}`}
+          hint="오늘 방문한 unique 사용자 수 (DAU). 한 사람이 여러 페이지를 봐도 1로 카운트."
+        />
+        <Stat
+          label={`${monthLabel} views`}
+          value={snap.thisMonthViews}
+          hint="이번 달 1일부터 지금까지 누적 페이지뷰"
+        />
+        <Stat
+          label={`${monthLabel} visitors`}
+          value={snap.thisMonthVisitors}
+          hint="이번 달 unique 사용자 수. 월 회전 솔트로 동일인은 같은 신원 → 정확."
+        />
       </section>
 
       {/* Daily chart */}
       <section>
-        <h2 className="text-sm uppercase tracking-wider font-semibold mb-4">Last 30 days</h2>
+        <h2 className="text-sm uppercase tracking-wider font-semibold mb-1">Last 30 days trend</h2>
+        <p className="text-xs text-[var(--color-text-muted)] mb-4">
+          하루 단위 페이지뷰와 그날의 unique 방문자 수 (각 점은 그날의 DAU).
+        </p>
         <DailyChart data={daily} />
       </section>
 
       {/* Top paths */}
       <section>
-        <h2 className="text-sm uppercase tracking-wider font-semibold mb-4">
-          Top paths (last 30 days)
+        <h2 className="text-sm uppercase tracking-wider font-semibold mb-1">
+          Top paths · {monthLabel}
         </h2>
+        <p className="text-xs text-[var(--color-text-muted)] mb-4">
+          이번 달 가장 많이 본 페이지. <strong>Visitors</strong>는 그 페이지를 본 unique 사용자.
+        </p>
         {topPaths.length === 0 ? (
           <Empty />
         ) : (
@@ -74,11 +105,14 @@ export default async function AnalyticsPage() {
 
       {/* Top referrers */}
       <section>
-        <h2 className="text-sm uppercase tracking-wider font-semibold mb-4">
-          Top referrers (last 30 days)
+        <h2 className="text-sm uppercase tracking-wider font-semibold mb-1">
+          Top referrers · {monthLabel}
         </h2>
+        <p className="text-xs text-[var(--color-text-muted)] mb-4">
+          외부 사이트(검색·SNS·뉴스 등)에서 클릭해 들어온 출처. 직접 URL 입력이나 사이트 내부 이동은 잡히지 않습니다.
+        </p>
         {topRefs.length === 0 ? (
-          <Empty hint="유입 추적은 외부 도메인에서 클릭한 링크만 기록됩니다 (직접 방문 / bandsustain.com 내부 이동 제외)." />
+          <Empty hint="아직 외부 유입이 기록되지 않았습니다." />
         ) : (
           <table className="w-full text-sm">
             <thead>
@@ -102,13 +136,26 @@ export default async function AnalyticsPage() {
           </table>
         )}
       </section>
+
+      {/* Glossary */}
+      <Glossary />
     </div>
   );
 }
 
-function Stat({ label, value, sub }: { label: string; value: number; sub?: string }) {
+function Stat({
+  label,
+  value,
+  sub,
+  hint,
+}: {
+  label: string;
+  value: number;
+  sub?: string;
+  hint?: string;
+}) {
   return (
-    <div className="border border-[var(--color-border)] p-4">
+    <div className="border border-[var(--color-border)] p-4" title={hint}>
       <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] mb-1">
         {label}
       </p>
@@ -126,6 +173,52 @@ function Empty({ hint }: { hint?: string }) {
       아직 데이터가 충분하지 않습니다.
       {hint && <span className="block mt-2 text-xs">{hint}</span>}
     </div>
+  );
+}
+
+function Glossary() {
+  const items: Array<{ term: string; def: string }> = [
+    {
+      term: "Page view (Views)",
+      def: "페이지가 한 번 로드될 때마다 1. 같은 사람이 새로고침하거나 다시 방문하면 매번 추가됨.",
+    },
+    {
+      term: "Today/Yesterday visitors (DAU)",
+      def: "그날 사이트를 본 unique 사용자. 한 사람이 5개 페이지를 봐도 1로 카운트.",
+    },
+    {
+      term: "This month visitors",
+      def: "이번 달 1일부터 지금까지 unique 사용자. 같은 달 안에서는 동일인이 같은 신원으로 인식되므로 정확.",
+    },
+    {
+      term: "Source / Ref host",
+      def: "외부 사이트에서 클릭해 들어온 출처 도메인 (예: google.com, instagram.com). 검색·SNS·뉴스 등 유입 경로 파악용. 직접 URL 입력이나 사이트 내부 이동은 빈 값.",
+    },
+    {
+      term: "방문자 식별 방식",
+      def: "IP + 브라우저(UA) + 이번 달 솔트의 sha256 해시. 한 달이 지나면 같은 사람도 새 신원으로 카운트됨 (PIPA 보수적, 영구 추적 불가).",
+    },
+    {
+      term: "봇 자동 제외",
+      def: "googlebot, bingbot, naverbot/yeti, baidu, GPTBot, ClaudeBot, PerplexityBot 등 24개 패턴은 INSERT 자체를 안 함 (테이블 비대 방지).",
+    },
+    {
+      term: "주의: cross-month 윈도우",
+      def: "두 달에 걸친 윈도우에서 unique visitor 수는 같은 사람을 2번 셀 수 있음 (월 1일에 신원이 새로 생성되기 때문). 월별로 보는 게 가장 정확.",
+    },
+  ];
+  return (
+    <section className="border-t border-[var(--color-border)] pt-6">
+      <h2 className="text-sm uppercase tracking-wider font-semibold mb-4">지표 설명</h2>
+      <dl className="space-y-3 text-xs text-[var(--color-text-muted)] max-w-3xl">
+        {items.map((it) => (
+          <div key={it.term}>
+            <dt className="font-semibold text-[var(--color-text)] inline">{it.term}</dt>
+            <dd className="inline"> — {it.def}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   );
 }
 
@@ -162,12 +255,12 @@ function DailyChart({ data }: { data: DailyMetric[] }) {
 
   return (
     <div>
-      <div className="flex items-center gap-4 text-xs text-[var(--color-text-muted)] mb-3">
+      <div className="flex items-center gap-4 text-xs text-[var(--color-text-muted)] mb-3 flex-wrap">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-[2px] bg-[var(--color-accent)]" /> Views
+          <span className="inline-block w-3 h-[2px] bg-[var(--color-accent)]" /> Daily views
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-[2px] bg-[var(--color-text)]" /> Visitors
+          <span className="inline-block w-3 h-[2px] bg-[var(--color-text)]" /> Daily visitors (DAU)
         </span>
         <span className="ml-auto tabular-nums">total {totalViews.toLocaleString()} views</span>
       </div>

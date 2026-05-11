@@ -25,13 +25,14 @@ export type Snapshot = {
   todayVisitors: number;
   yesterdayViews: number;
   yesterdayVisitors: number;
-  last7dViews: number;
-  last7dVisitors: number;
-  last30dViews: number;
-  last30dVisitors: number;
+  thisMonthViews: number;
+  thisMonthVisitors: number;
 };
 
 // MySQL session timezone is +09:00 (KST), so DATE(ts) is already KST-aligned.
+// Visitor hash uses monthly salt → unique-visitor counts within the same
+// calendar month are exact; cross-month windows over-count returning visitors
+// (they appear once per month they touched).
 
 export async function getSnapshot(): Promise<Snapshot> {
   const [rows] = await getPool().query<(RowDataPacket & {
@@ -51,17 +52,11 @@ export async function getSnapshot(): Promise<Snapshot> {
        FROM analytics_events
       WHERE DATE(ts) = CURDATE() - INTERVAL 1 DAY
      UNION ALL
-     SELECT 'last7d',
+     SELECT 'thisMonth',
             COUNT(*),
             COUNT(DISTINCT visitor_hash)
        FROM analytics_events
-      WHERE ts >= NOW() - INTERVAL 7 DAY
-     UNION ALL
-     SELECT 'last30d',
-            COUNT(*),
-            COUNT(DISTINCT visitor_hash)
-       FROM analytics_events
-      WHERE ts >= NOW() - INTERVAL 30 DAY`,
+      WHERE DATE_FORMAT(ts, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')`,
   );
 
   const m: Record<string, { views: number; visitors: number }> = {};
@@ -72,13 +67,13 @@ export async function getSnapshot(): Promise<Snapshot> {
     todayVisitors: m.today?.visitors ?? 0,
     yesterdayViews: m.yesterday?.views ?? 0,
     yesterdayVisitors: m.yesterday?.visitors ?? 0,
-    last7dViews: m.last7d?.views ?? 0,
-    last7dVisitors: m.last7d?.visitors ?? 0,
-    last30dViews: m.last30d?.views ?? 0,
-    last30dVisitors: m.last30d?.visitors ?? 0,
+    thisMonthViews: m.thisMonth?.views ?? 0,
+    thisMonthVisitors: m.thisMonth?.visitors ?? 0,
   };
 }
 
+// 30-day daily trend: each day's per-day visitor count is exact DAU
+// (COUNT DISTINCT within a single day is unaffected by salt-rotation period).
 export async function getDailyMetrics(days: number): Promise<DailyMetric[]> {
   const [rows] = await getPool().query<(RowDataPacket & {
     d: Date | string;
@@ -104,7 +99,6 @@ export async function getDailyMetrics(days: number): Promise<DailyMetric[]> {
     byDate.set(dateStr, { views: Number(r.views), visitors: Number(r.visitors) });
   }
 
-  // Fill missing days with 0
   const out: DailyMetric[] = [];
   const today = new Date();
   for (let i = days - 1; i >= 0; i--) {
@@ -117,7 +111,9 @@ export async function getDailyMetrics(days: number): Promise<DailyMetric[]> {
   return out;
 }
 
-export async function getTopPaths(days: number, limit = 20): Promise<PathStat[]> {
+// Top paths/refs scoped to current calendar month so unique-visitor count
+// stays accurate under monthly salt rotation.
+export async function getTopPathsThisMonth(limit = 20): Promise<PathStat[]> {
   const [rows] = await getPool().query<(RowDataPacket & {
     path: string;
     views: number;
@@ -127,11 +123,11 @@ export async function getTopPaths(days: number, limit = 20): Promise<PathStat[]>
             COUNT(*) AS views,
             COUNT(DISTINCT visitor_hash) AS visitors
        FROM analytics_events
-      WHERE ts >= NOW() - INTERVAL ? DAY
+      WHERE DATE_FORMAT(ts, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
    GROUP BY path
    ORDER BY views DESC
       LIMIT ?`,
-    [days, limit],
+    [limit],
   );
   return rows.map((r) => ({
     path: r.path,
@@ -140,7 +136,7 @@ export async function getTopPaths(days: number, limit = 20): Promise<PathStat[]>
   }));
 }
 
-export async function getTopReferrers(days: number, limit = 20): Promise<RefStat[]> {
+export async function getTopReferrersThisMonth(limit = 20): Promise<RefStat[]> {
   const [rows] = await getPool().query<(RowDataPacket & {
     ref_host: string;
     views: number;
@@ -150,12 +146,12 @@ export async function getTopReferrers(days: number, limit = 20): Promise<RefStat
             COUNT(*) AS views,
             COUNT(DISTINCT visitor_hash) AS visitors
        FROM analytics_events
-      WHERE ts >= NOW() - INTERVAL ? DAY
+      WHERE DATE_FORMAT(ts, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
         AND ref_host IS NOT NULL
    GROUP BY ref_host
    ORDER BY views DESC
       LIMIT ?`,
-    [days, limit],
+    [limit],
   );
   return rows.map((r) => ({
     refHost: r.ref_host,
