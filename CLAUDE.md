@@ -28,7 +28,7 @@
 1. **Light is default, always** — 페이지 바탕색은 **화이트**. 다크는 옵션 토글(미구현)이지, 시스템 `prefers-color-scheme`을 따라 자동 전환하지 않는다. Hero·본문 섹션을 블랙으로 만들면 안 된다.
 2. **Dark sections are exceptions, not the base** — 다크 배경은 **푸터**와 **mid-page splash 섹션(큰 라이브 사진 + 오버레이 카피)** 두 곳에만 허용. 메인 콘텐츠 영역은 항상 화이트.
 3. **High-contrast monochrome base** — 화이트 바탕에 거의 블랙 텍스트. 회색 계조는 2~3단계만.
-4. **Accent color is rare** — 액센트(오렌지 등)는 **페이지당 1~2개 요소에만**. 베이스 톤을 침범하지 않음.
+4. **Accent color is rare** — 액센트(시그니처 블루)는 **페이지당 1~2개 요소에만**. 베이스 톤을 침범하지 않음.
 5. **Typography-first** — 장식 없이 타이포의 사이즈·웨이트 대비만으로 위계를 만든다.
 6. **Editorial link style** — 본문 텍스트 링크는 **underline** 기본. 파란색 링크 금지. 블랙 underline.
 7. **Clean flat imagery** — 사진은 drop shadow, rounded corner, border 없이 그대로 배치. 제품은 플랫레이.
@@ -49,7 +49,7 @@
 | `--color-text-muted` | `#555555` | 메타·캡션 |
 | `--color-border` | `#E5E5E5` | 연한 구분선 |
 | `--color-border-strong` | `#0A0A0A` | 버튼 보더, 필터 pill |
-| `--color-accent` | `#F05A28` | 네온 오렌지 포인트 (극소량 사용) |
+| `--color-accent` | `#2563FF` | 시그니처 블루 포인트 (극소량 사용) |
 | `--color-accent-ink` | `#FFFFFF` | 액센트 배경 위 텍스트 |
 
 ### Dark mode (향후 수동 토글용 — 현재 미구현)
@@ -61,7 +61,7 @@
 | `--color-text-muted` | `#A0A0A0` | 메타 |
 | `--color-border` | `#2A2A2A` | 구분선 |
 | `--color-border-strong` | `#F5F5F5` | 버튼 보더 |
-| `--color-accent` | `#F05A28` | 그대로 |
+| `--color-accent` | `#2563FF` | 그대로 |
 
 > ⚠️ **`prefers-color-scheme: dark` 미디어 쿼리로 자동 전환하지 말 것.** 시스템 다크모드를 따라가면 레퍼런스 디자인이 깨진다. 다크는 반드시 사용자 토글로만 활성화.
 
@@ -84,7 +84,7 @@
   --color-text-muted: #555555;
   --color-border: #e5e5e5;
   --color-border-strong: #0a0a0a;
-  --color-accent: #f05a28;
+  --color-accent: #2563FF;
   --color-accent-ink: #ffffff;
 }
 
@@ -93,8 +93,8 @@
 ```
 
 ### 색상 사용 규칙
-- 액센트 오렌지는 **페이지당 1~2곳**. 버튼 전면, 태그 뱃지, 강조 카피의 하이라이트 등.
-- 파란색·녹색 등 보조 컬러 금지 (이 브랜드는 모노크롬).
+- 액센트 블루(`#2563FF`)는 **페이지당 1~2곳**. 버튼 전면, 태그 뱃지, 강조 카피의 하이라이트 등.
+- 액센트 외 보조 컬러(녹색·노란색·추가 청색 톤 등) 금지 (이 브랜드는 모노크롬 + 단일 액센트).
 - 상태 컬러(성공/경고/에러)는 꼭 필요할 때만, 역시 저채도로.
 
 ---
@@ -175,7 +175,7 @@ className="inline-flex items-center justify-center px-6 py-3 text-sm font-semibo
 // Secondary (outline)
 className="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold uppercase tracking-wider bg-transparent text-[var(--color-text)] border border-[var(--color-text)] hover:bg-[var(--color-text)] hover:text-[var(--color-bg)] transition-colors"
 
-// Accent (orange — 드물게 사용)
+// Accent (blue — 드물게 사용)
 className="... bg-[var(--color-accent)] text-[var(--color-accent-ink)] border-[var(--color-accent)] hover:opacity-90"
 ```
 
@@ -212,7 +212,7 @@ Home › Song Lyrics
 
 **A. Home / Landing Hero (기본, 라이트)** — oasisinet의 상단 홈 페이지 패턴
 - **흰색 배경**, 블랙 텍스트. 섹션을 블랙으로 만들지 말 것.
-- 작은 eyebrow 라벨 (uppercase, tracking-wide, **오렌지 액센트 허용**)
+- 작은 eyebrow 라벨 (uppercase, tracking-wide, **블루 액센트 허용**)
 - 큰 display 제목 (`font-display`, `text-5xl md:text-7xl`, uppercase)
 - 서브카피 + CTA 버튼 1~2개
 - 하단에 **비디오/이미지 임베드 박스** (`aspect-video`, bg-muted, 재생 버튼 오버레이)
@@ -262,7 +262,7 @@ Home › Song Lyrics
 
 **참고만 허용되는 것**:
 - 전반적인 레이아웃 구조 (3컬럼 그리드 등)
-- 색상 철학 (화이트+블랙 + 오렌지 액센트)
+- 색상 철학 (화이트+블랙 + 단일 액센트 컬러 — bandsustain은 블루 #2563FF 채택)
 - 타이포 위계와 링크 스타일
 - 햄버거 메뉴의 풀스크린 처리 방식
 - 버튼·카드의 사각형·플랫 스타일

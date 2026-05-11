@@ -59,7 +59,7 @@ export default function MemberCard({ member, isOpen, onToggle }: Props) {
           Tap
         </span>
 
-        {/* Orange reveal overlay */}
+        {/* Accent reveal overlay */}
         <span
           data-open={isOpen}
           className="absolute inset-0 bg-[var(--color-accent)] text-[var(--color-accent-ink)] p-4 md:p-5 flex flex-col justify-end text-left opacity-0 transition-opacity duration-200 md:group-hover:opacity-100 group-focus-visible:opacity-100 data-[open=true]:opacity-100"
