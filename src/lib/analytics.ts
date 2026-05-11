@@ -83,8 +83,12 @@ export async function logPageView(input: LogInput): Promise<void> {
   const hash = visitorHash(input.ip || "0.0.0.0", input.ua);
   const refHost = extractRefHost(input.referrer);
 
+  // INSERT IGNORE relies on UNIQUE(visitor_hash, path, bucket_30s) to drop
+  // same-visitor + same-path hits within a 30s bucket → silently absorbs
+  // prefetch leakage and refresh spam.
   await getPool().query(
-    `INSERT INTO analytics_events (path, referrer, ref_host, visitor_hash, is_bot, country)
+    `INSERT IGNORE INTO analytics_events
+       (path, referrer, ref_host, visitor_hash, is_bot, country)
      VALUES (?, ?, ?, ?, 0, ?)`,
     [
       input.path.slice(0, 255),

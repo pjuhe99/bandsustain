@@ -27,9 +27,20 @@ function adminGate(req: NextRequest, pathname: string): NextResponse {
   return NextResponse.next();
 }
 
+function isPrefetch(req: NextRequest): boolean {
+  if (req.headers.get("next-router-prefetch")) return true;
+  if (req.headers.get("next-router-segment-prefetch")) return true;
+  if (req.headers.get("purpose") === "prefetch") return true;
+  const secPurpose = req.headers.get("sec-purpose");
+  if (secPurpose && secPurpose.includes("prefetch")) return true;
+  return false;
+}
+
 function trackAnalytics(req: NextRequest, pathname: string): void {
-  // Skip Next.js Link prefetches
-  if (req.headers.get("next-router-prefetch")) return;
+  // Skip prefetch requests across all known header variants.
+  // Belt-and-suspenders: a 30s (visitor, path) DB unique index also drops
+  // any prefetch that slips through here.
+  if (isPrefetch(req)) return;
 
   const ua = req.headers.get("user-agent") || "";
   const ip =
