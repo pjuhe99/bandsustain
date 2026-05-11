@@ -27,6 +27,11 @@ function adminGate(req: NextRequest, pathname: string): NextResponse {
   return NextResponse.next();
 }
 
+// Apache mod_security2 (OWASP CRS) strips `Next-Router-Prefetch` from inbound
+// requests, so the cleanest server-side prefetch signal never reaches us.
+// `Sec-Purpose: prefetch` does survive (browser-emitted, standard) so we still
+// catch some. Anything that slips past gets absorbed by the 5-minute
+// (visitor, path) DB unique index in lib/analytics.ts.
 function isPrefetch(req: NextRequest): boolean {
   if (req.headers.get("next-router-prefetch")) return true;
   if (req.headers.get("next-router-segment-prefetch")) return true;
@@ -37,9 +42,6 @@ function isPrefetch(req: NextRequest): boolean {
 }
 
 function trackAnalytics(req: NextRequest, pathname: string): void {
-  // Skip prefetch requests across all known header variants.
-  // Belt-and-suspenders: a 30s (visitor, path) DB unique index also drops
-  // any prefetch that slips through here.
   if (isPrefetch(req)) return;
 
   const ua = req.headers.get("user-agent") || "";

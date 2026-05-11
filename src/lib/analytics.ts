@@ -83,9 +83,11 @@ export async function logPageView(input: LogInput): Promise<void> {
   const hash = visitorHash(input.ip || "0.0.0.0", input.ua);
   const refHost = extractRefHost(input.referrer);
 
-  // INSERT IGNORE relies on UNIQUE(visitor_hash, path, bucket_30s) to drop
-  // same-visitor + same-path hits within a 30s bucket → silently absorbs
-  // prefetch leakage and refresh spam.
+  // INSERT IGNORE relies on UNIQUE(visitor_hash, path, bucket_5m) to drop
+  // same-visitor + same-path hits within a 5-minute bucket → absorbs
+  // prefetch leakage (Apache mod_security strips Next-Router-Prefetch
+  // header) and refresh-spam. Real follow-up visits (>5min apart) still
+  // count.
   await getPool().query(
     `INSERT IGNORE INTO analytics_events
        (path, referrer, ref_host, visitor_hash, is_bot, country)
