@@ -101,3 +101,42 @@ export async function logPageView(input: LogInput): Promise<void> {
     ],
   );
 }
+
+type ClickInput = {
+  path: string;
+  targetUrl: string;
+  itemType: string | null;
+  itemId: number | null;
+  ua: string;
+  ip: string;
+};
+
+export async function logClickEvent(input: ClickInput): Promise<void> {
+  if (isBot(input.ua)) return;
+
+  let targetHost = "";
+  try {
+    targetHost = new URL(input.targetUrl).hostname;
+  } catch {
+    return;
+  }
+  if (!targetHost) return;
+
+  const hash = visitorHash(input.ip || "0.0.0.0", input.ua);
+
+  // 5s bucket UNIQUE absorbs accidental double-clicks; legitimate repeat
+  // clicks (>5s apart) still record.
+  await getPool().query(
+    `INSERT IGNORE INTO analytics_clicks
+       (path, target_url, target_host, item_type, item_id, visitor_hash)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [
+      input.path.slice(0, 255),
+      input.targetUrl.slice(0, 500),
+      targetHost.slice(0, 100),
+      input.itemType ? input.itemType.slice(0, 40) : null,
+      input.itemId,
+      hash,
+    ],
+  );
+}

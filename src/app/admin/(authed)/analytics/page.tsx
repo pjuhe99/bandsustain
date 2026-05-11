@@ -3,6 +3,10 @@ import {
   getDailyMetrics,
   getTopPathsThisMonth,
   getTopReferrersThisMonth,
+  getClickSnapshot,
+  getTopClickedSongsThisMonth,
+  getTopClickedLiveThisMonth,
+  getTopClickHostsThisMonth,
   type DailyMetric,
 } from "@/lib/analytics-stats";
 
@@ -14,12 +18,17 @@ function thisMonthLabel(): string {
 }
 
 export default async function AnalyticsPage() {
-  const [snap, daily, topPaths, topRefs] = await Promise.all([
-    getSnapshot(),
-    getDailyMetrics(30),
-    getTopPathsThisMonth(20),
-    getTopReferrersThisMonth(20),
-  ]);
+  const [snap, daily, topPaths, topRefs, clickSnap, topSongs, topLives, topHosts] =
+    await Promise.all([
+      getSnapshot(),
+      getDailyMetrics(30),
+      getTopPathsThisMonth(20),
+      getTopReferrersThisMonth(20),
+      getClickSnapshot(),
+      getTopClickedSongsThisMonth(20),
+      getTopClickedLiveThisMonth(20),
+      getTopClickHostsThisMonth(20),
+    ]);
 
   const monthLabel = thisMonthLabel();
 
@@ -137,6 +146,144 @@ export default async function AnalyticsPage() {
         )}
       </section>
 
+      {/* Click events divider */}
+      <section className="border-t border-[var(--color-border)] pt-10">
+        <h2 className="font-display font-bold text-2xl md:text-3xl uppercase tracking-tight mb-2">
+          Click events
+        </h2>
+        <p className="text-sm text-[var(--color-text-muted)]">
+          외부 링크 클릭 (곡 Listen 버튼, 라이브 Tickets/Video 등). 페이지뷰와 별개로 측정 — 사용자가 실제로 행동했는지 보여줍니다.
+        </p>
+      </section>
+
+      {/* Click snapshot */}
+      <section className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+        <Stat
+          label="Today clicks"
+          value={clickSnap.todayClicks}
+          hint="오늘 외부 링크가 클릭된 총 횟수"
+        />
+        <Stat
+          label={`${monthLabel} clicks`}
+          value={clickSnap.thisMonthClicks}
+          hint="이번 달 외부 링크 클릭 누적"
+        />
+        <Stat
+          label={`${monthLabel} unique clickers`}
+          value={clickSnap.thisMonthUniqueClickers}
+          hint="이번 달 한 번이라도 클릭한 unique 사용자"
+        />
+      </section>
+
+      {/* Top clicked songs */}
+      <section>
+        <h2 className="text-sm uppercase tracking-wider font-semibold mb-1">
+          Top clicked songs · {monthLabel}
+        </h2>
+        <p className="text-xs text-[var(--color-text-muted)] mb-4">
+          곡 카드의 Listen 버튼 클릭 수. 어떤 곡이 실제로 들리는지의 직접 신호.
+        </p>
+        {topSongs.length === 0 ? (
+          <Empty hint="아직 곡 Listen 클릭 기록이 없습니다." />
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[var(--color-border)] text-left text-xs uppercase text-[var(--color-text-muted)]">
+                <th className="py-2 pr-4">Song</th>
+                <th className="py-2 pr-4 w-24 text-right">Clicks</th>
+                <th className="py-2 w-28 text-right">Unique</th>
+              </tr>
+            </thead>
+            <tbody>
+              {topSongs.map((s) => (
+                <tr key={s.songId} className="border-b border-[var(--color-border)]">
+                  <td className="py-2 pr-4">{s.title}</td>
+                  <td className="py-2 pr-4 text-right tabular-nums">{s.clicks}</td>
+                  <td className="py-2 text-right tabular-nums text-[var(--color-text-muted)]">
+                    {s.uniqueClickers}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+
+      {/* Top clicked live events */}
+      <section>
+        <h2 className="text-sm uppercase tracking-wider font-semibold mb-1">
+          Top clicked live events · {monthLabel}
+        </h2>
+        <p className="text-xs text-[var(--color-text-muted)] mb-4">
+          라이브 카드의 Tickets / Video 버튼 클릭 수.
+        </p>
+        {topLives.length === 0 ? (
+          <Empty hint="아직 라이브 클릭 기록이 없습니다." />
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[var(--color-border)] text-left text-xs uppercase text-[var(--color-text-muted)]">
+                <th className="py-2 pr-4">Event</th>
+                <th className="py-2 pr-4 w-28">Date</th>
+                <th className="py-2 pr-4 w-24 text-right">Clicks</th>
+                <th className="py-2 w-28 text-right">Unique</th>
+              </tr>
+            </thead>
+            <tbody>
+              {topLives.map((l) => (
+                <tr key={l.liveId} className="border-b border-[var(--color-border)]">
+                  <td className="py-2 pr-4">
+                    {l.venue}
+                    <span className="text-[var(--color-text-muted)] ml-2">· {l.city}</span>
+                  </td>
+                  <td className="py-2 pr-4 tabular-nums text-[var(--color-text-muted)]">
+                    {l.eventDate}
+                  </td>
+                  <td className="py-2 pr-4 text-right tabular-nums">{l.clicks}</td>
+                  <td className="py-2 text-right tabular-nums text-[var(--color-text-muted)]">
+                    {l.uniqueClickers}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+
+      {/* Top click destinations */}
+      <section>
+        <h2 className="text-sm uppercase tracking-wider font-semibold mb-1">
+          Top click destinations · {monthLabel}
+        </h2>
+        <p className="text-xs text-[var(--color-text-muted)] mb-4">
+          외부 링크 도메인 분포 (youtube.com, spotify.com, melon.com 등). 어디로 더 많이 빠져나가는지.
+        </p>
+        {topHosts.length === 0 ? (
+          <Empty />
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[var(--color-border)] text-left text-xs uppercase text-[var(--color-text-muted)]">
+                <th className="py-2 pr-4">Destination</th>
+                <th className="py-2 pr-4 w-24 text-right">Clicks</th>
+                <th className="py-2 w-28 text-right">Unique</th>
+              </tr>
+            </thead>
+            <tbody>
+              {topHosts.map((h) => (
+                <tr key={h.targetHost} className="border-b border-[var(--color-border)]">
+                  <td className="py-2 pr-4">{h.targetHost}</td>
+                  <td className="py-2 pr-4 text-right tabular-nums">{h.clicks}</td>
+                  <td className="py-2 text-right tabular-nums text-[var(--color-text-muted)]">
+                    {h.uniqueClickers}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+
       {/* Glossary */}
       <Glossary />
     </div>
@@ -205,6 +352,14 @@ function Glossary() {
     {
       term: "측정 방식",
       def: "페이지가 클라이언트에서 hydrate된 후 JS가 직접 /api/analytics/log를 호출. prefetch RSC fetch는 JS를 실행하지 않으므로 자동 제외. JS를 실행하지 않는 봇도 자동 제외. F5 연타 같은 노이즈는 DB 레벨 5분 윈도우로 흡수.",
+    },
+    {
+      term: "Click events",
+      def: "외부 링크(<a href> 외부 도메인)를 사용자가 클릭하면 별도 테이블(analytics_clicks)에 기록. 곡 카드의 Listen 버튼과 라이브 카드의 Tickets/Video 버튼에 data-track-item-{type,id} 속성이 붙어있어 어떤 곡/라이브인지까지 식별. 5초 안 더블클릭은 1번으로 흡수.",
+    },
+    {
+      term: "Page view vs Click 차이",
+      def: "Page view = 사람이 페이지를 봤다 (수동적 노출). Click = 사람이 외부로 행동했다 (능동적 의도). 같은 곡이 페이지뷰는 많은데 Listen 클릭이 적으면 카드 디자인·CTA 문제일 수 있음.",
     },
     {
       term: "5분 dedup 윈도우",

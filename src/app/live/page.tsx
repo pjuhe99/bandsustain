@@ -108,6 +108,8 @@ function EventRow({ event, showYear = false }: { event: LiveEvent; showYear?: bo
             href={event.ticketUrl}
             target="_blank"
             rel="noopener"
+            data-track-item-type="live"
+            data-track-item-id={event.id}
             className="inline-flex items-center justify-center px-4 py-2 text-xs font-semibold uppercase tracking-wider bg-[var(--color-text)] text-[var(--color-bg)] border border-[var(--color-text)] hover:bg-transparent hover:text-[var(--color-text)] transition-colors"
           >
             Tickets
@@ -122,6 +124,8 @@ function EventRow({ event, showYear = false }: { event: LiveEvent; showYear?: bo
             rel="noopener"
             aria-label="Watch video"
             title="Watch video"
+            data-track-item-type="live"
+            data-track-item-id={event.id}
             className="inline-flex items-center justify-center w-11 h-11 border border-[var(--color-border-strong)] hover:bg-[var(--color-text)] hover:text-[var(--color-bg)] transition-colors"
           >
             <PlayIcon />

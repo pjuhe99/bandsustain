@@ -36,6 +36,8 @@ export default function SongCard({ song }: { song: Song }) {
               href={song.listenUrl ?? "#"}
               target="_blank"
               rel="noopener noreferrer"
+              data-track-item-type="song"
+              data-track-item-id={song.id}
               className="inline-flex items-center justify-center px-5 py-2 text-sm font-semibold uppercase tracking-wider bg-[var(--color-text)] text-[var(--color-bg)] border border-[var(--color-text)] hover:bg-transparent hover:text-[var(--color-text)] transition-colors"
             >
               Listen
