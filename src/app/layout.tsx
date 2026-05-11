@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Archivo } from "next/font/google";
 import "./globals.css";
+import AnalyticsBeacon from "@/components/AnalyticsBeacon";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 
@@ -58,6 +59,7 @@ export default function RootLayout({
   return (
     <html lang="ko" className={`${inter.variable} ${archivo.variable} overflow-x-hidden`}>
       <body className="min-h-screen flex flex-col overflow-x-hidden">
+        <AnalyticsBeacon />
         <Nav />
         <main className="flex-1">{children}</main>
         <Footer />

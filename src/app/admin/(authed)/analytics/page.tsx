@@ -203,8 +203,12 @@ function Glossary() {
       def: "googlebot, bingbot, naverbot/yeti, baidu, GPTBot, ClaudeBot, PerplexityBot 등 24개 패턴은 INSERT 자체를 안 함 (테이블 비대 방지).",
     },
     {
+      term: "측정 방식",
+      def: "페이지가 클라이언트에서 hydrate된 후 JS가 직접 /api/analytics/log를 호출. prefetch RSC fetch는 JS를 실행하지 않으므로 자동 제외. JS를 실행하지 않는 봇도 자동 제외. F5 연타 같은 노이즈는 DB 레벨 5분 윈도우로 흡수.",
+    },
+    {
       term: "5분 dedup 윈도우",
-      def: "같은 사용자가 같은 페이지를 5분 안에 여러 번 보면 1번으로 카운트 (DB 레벨). prefetch·새로고침 연타·짧은 세션 내 재방문 노이즈를 흡수하기 위함. 5분이 지나서 다시 본 경우는 새로 카운트.",
+      def: "같은 사용자가 같은 페이지를 5분 안에 여러 번 보면 1번으로 카운트. F5 연타·짧은 세션 내 재방문 노이즈 흡수용. 5분이 지나서 다시 본 경우는 새로 카운트.",
     },
     {
       term: "주의: cross-month 윈도우",
