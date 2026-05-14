@@ -4,7 +4,7 @@ import path from "node:path";
 
 export const dynamic = "force-dynamic";
 
-const RESOURCES = new Set(["members", "songs", "news", "quotes"]);
+const RESOURCES = new Set(["members", "songs", "news", "quotes", "youngmin"]);
 
 const MIME: Record<string, string> = {
   ".jpg": "image/jpeg",
