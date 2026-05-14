@@ -10,6 +10,7 @@ const navLinks = [
   { href: "/quote", label: "Quote" },
   { href: "/live", label: "Live" },
   { href: "/news", label: "News" },
+  { href: "/playground", label: "Playground" },
 ];
 
 const socialLinks = [

@@ -89,8 +89,8 @@ export const playgroundFeatures: PlaygroundFeature[] = [
 ```
 <section className="max-w-7xl mx-auto px-6 md:px-12 py-16 md:py-24">
   <header className="mb-12 md:mb-16">
-    <h1>PLAYGROUND</h1>              {/* font-display font-black uppercase tracking-tight text-4xl md:text-6xl */}
-    <p className="mt-6 text-lg text-[var(--color-text-muted)] max-w-2xl">
+    <h1>Playground</h1>              {/* font-display font-black uppercase tracking-tight text-4xl md:text-6xl — uppercase 클래스가 시각적으로 대문자화 */}
+    <p className="mt-6 text-lg text-[var(--color-text-muted)] max-w-2xl leading-relaxed">
       서스테인이 만든 작은 놀이터. 이상하고 귀엽고 쓸데없지만 묘하게 즐거운 것들을 모아둔 공간입니다.
     </p>
   </header>
@@ -102,7 +102,7 @@ export const playgroundFeatures: PlaygroundFeature[] = [
 ```
 
 - SSG로 두고 `dynamic` 지정 없음 (정적 데이터).
-- `metadata` export: title "Playground — Band Sustain", description은 페이지 intro 문장 사용. OG는 기존 `/slides/hero-b4d9e516.jpg` 재사용.
+- `metadata` export: `title: "Playground"` (루트 layout의 `template: "%s — Band Sustain"`이 자동 suffix). description은 페이지 intro 문장 사용. OG는 기존 `/slides/hero-b4d9e516.jpg` 재사용.
 
 ### 4.4 카드 마크업 (페이지 파일 안 inline 컴포넌트로 충분)
 
@@ -112,8 +112,8 @@ export const playgroundFeatures: PlaygroundFeature[] = [
 <li className="border border-[var(--color-border)] p-6 md:p-8 flex flex-col gap-4">
   {eyebrow && <span className="text-xs uppercase tracking-wider text-[var(--color-text-muted)]">{eyebrow}</span>}
   <h2 className="font-display font-bold text-2xl md:text-3xl leading-tight">{title}</h2>
-  <p className="text-[var(--color-text-muted)] flex-1">{description}</p>
-  <Link href={href} className={buttonClasses("primary")}>{cta}</Link>
+  <p className="text-[var(--color-text-muted)] flex-1 leading-relaxed">{description}</p>
+  <Link href={href} className={buttonClasses("primary", "self-start")}>{cta}</Link>
 </li>
 ```
 
@@ -123,12 +123,15 @@ Coming Soon (`href` 없음):
 <li className="border border-[var(--color-border)] p-6 md:p-8 flex flex-col gap-4">
   {eyebrow && <span className="text-xs uppercase tracking-wider text-[var(--color-text-muted)]">{eyebrow}</span>}
   <h2 className="font-display font-bold text-2xl md:text-3xl leading-tight">{title}</h2>
-  <p className="text-[var(--color-text-muted)] flex-1">{description}</p>
-  <span className="inline-flex items-center gap-2 text-xs uppercase tracking-wider text-[var(--color-text-muted)]">
+  <p className="text-[var(--color-text-muted)] flex-1 leading-relaxed">{description}</p>
+  <span className="inline-flex items-center gap-2 text-xs uppercase tracking-wider text-[var(--color-text-muted)] self-start">
     <span className="inline-block w-2 h-2 bg-[var(--color-border-strong)]" aria-hidden /> 곧 공개
   </span>
 </li>
 ```
+
+- `self-start`는 flex column 컨테이너에서 버튼/라벨이 카드 폭 전체로 stretch 되는 것을 방지하기 위함 (UX).
+- `leading-relaxed`는 description 본문 가독성을 위함.
 
 - `Button.tsx`의 `buttonClasses("primary")`를 그대로 사용해 다른 페이지 버튼과 시각 일관성 유지.
 - 카드 자체 hover 효과 없음 (CLAUDE.md의 "no shadow/no rounded/transform 남용 금지" 원칙).
