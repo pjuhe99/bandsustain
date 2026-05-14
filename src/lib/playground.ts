@@ -14,6 +14,7 @@ export const playgroundFeatures: PlaygroundFeature[] = [
     description: "궁금한 게 있으면 김영민 봇이 답해드려요.",
     cta: "말 걸러 가기",
     eyebrow: "이야기 상대",
+    href: "/playground/kim-youngmin-bot",
   },
   {
     slug: "band-name-generator",
