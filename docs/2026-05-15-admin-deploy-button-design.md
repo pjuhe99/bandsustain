@@ -173,7 +173,7 @@ src/components/admin/AdminNav.tsx  # items 배열에 { href: "/admin/deploy", la
 ## 6. 데이터 모델
 
 ### 새 테이블: `deploy_history`
-DB: `SORITUNECOM_BANDSUSTAIN`
+DB: `BANDSUSTAIN`
 
 ```sql
 CREATE TABLE deploy_history (
@@ -363,7 +363,7 @@ UI는 마지막 `## STEP X` ~ `## STEP_OK X` 사이를 "현재 단계 진행 중
 
 ## 11. 마이그레이션 / 셋업 단계
 
-1. DB 스키마 `db/schema/011_deploy_history.sql` 적용 (`SORITUNECOM_BANDSUSTAIN`)
+1. DB 스키마 `db/schema/011_deploy_history.sql` 적용 (`BANDSUSTAIN`)
 2. `/var/log/bandsustain-deploy/` 디렉토리 생성, `chown ec2-user:ec2-user 755`, `restorecon` 1회
 3. `scripts/deploy.sh` 배포 + `chmod +x`
 4. `AdminNav` 에 Deploy 탭 추가
