@@ -75,9 +75,49 @@ run() {
 now_ts() { date +%s; }
 START_TS="$(now_ts)"
 
+db_update_from_log() {
+  local result_line db_status fail_step dur sql post_head_sql pre_head_sql fail_step_sql
+  result_line="$(tac "${LOG_FILE}" | grep -m1 '^## RESULT ' || true)"
+  case "$result_line" in
+    *"RESULT SUCCESS"*) db_status="success"; fail_step="" ;;
+    *"RESULT FAIL"*)    db_status="fail";    fail_step="$(echo "$result_line" | sed -nE 's/.*step=([a-z_]+).*/\1/p')" ;;
+    *)                  db_status="interrupted"; fail_step="" ;;
+  esac
+  dur=$(( $(now_ts) - START_TS ))
+
+  # Defensive: if creds file missing, skip without breaking the trap.
+  [[ -r "$DB_CREDS" ]] || return 0
+
+  local DB_HOST="" DB_USER="" DB_PASS="" DB_NAME=""
+  # shellcheck disable=SC1090
+  # Disable nounset temporarily: creds file contains $2b-style bcrypt hashes that
+  # would throw "unbound variable" under set -u.
+  set +u; set -a; . "$DB_CREDS"; set +a; set -u
+
+  command -v mysql >/dev/null 2>&1 || return 0
+
+  post_head_sql="$( [[ -n "${POST_HEAD:-}" ]] && printf "'%s'" "${POST_HEAD}" || printf NULL )"
+  pre_head_sql="$(  [[ -n "${PRE_HEAD:-}"  ]] && printf "'%s'" "${PRE_HEAD}"  || printf NULL )"
+  fail_step_sql="$( [[ -n "$fail_step" ]] && printf "'%s'" "${fail_step}" || printf NULL )"
+  sql="UPDATE deploy_history
+       SET status='${db_status}',
+           fail_step=${fail_step_sql},
+           pre_head=${pre_head_sql},
+           post_head=${post_head_sql},
+           ended_at=NOW(),
+           duration_sec=${dur}
+       WHERE job_id='${JOB_ID}';"
+  if [[ "$DRY_RUN" == "1" ]]; then
+    echo "[dry-run] mysql UPDATE: ${sql//$'\n'/ }"
+  else
+    echo "$sql" | mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" 2>&1 || echo "## DB_WARN mysql UPDATE failed"
+  fi
+}
+
 # Trap: ensure every log ends with a ## RESULT line so the parser sees a terminal state
 # even on abnormal exit (kill, OOM, pm2 restart killing this child mid-flight).
-trap 'rc=$?; if ! grep -q "^## RESULT " "${LOG_FILE}"; then echo "## RESULT INTERRUPTED total=$(( $(now_ts) - START_TS ))s"; fi; exit "$rc"' EXIT
+# Also runs db_update_from_log on ALL exit paths (success, fail, interrupted).
+trap 'rc=$?; if ! grep -q "^## RESULT " "${LOG_FILE}"; then echo "## RESULT INTERRUPTED total=$(( $(now_ts) - START_TS ))s"; fi; db_update_from_log; exit "$rc"' EXIT
 
 # Acquire lock (non-blocking). If lost, do not write any RESULT — caller will sweep us.
 exec {LOCKFD}>"${LOCK_FILE}"
@@ -168,44 +208,9 @@ if [[ "$SMOKE_OK" != "1" ]]; then
   echo "HTTP ${LAST_HTTP} (failed after retries)"
   echo "## STEP_FAIL smoke exit=2 elapsed=$(( $(now_ts) - T0 ))s last_http=${LAST_HTTP}"
   echo "## RESULT FAIL step=smoke last_http=${LAST_HTTP} total=$(( $(now_ts) - START_TS ))s"
-  # DB update on failure handled by `## RESULT FAIL` trap-equivalent below.
   exit 2
 fi
 echo "HTTP 200"
 step_ok smoke "$T0"
 
 echo "## RESULT SUCCESS total=$(( $(now_ts) - START_TS ))s"
-
-# ─── DB update ────────────────────────────────────────────────────────────────
-# Re-read the last RESULT line we just wrote and persist to deploy_history.
-RESULT_LINE="$(tac "${LOG_FILE}" | grep -m1 '^## RESULT ' || true)"
-case "$RESULT_LINE" in
-  *"RESULT SUCCESS"*) DB_STATUS="success"; FAIL_STEP="" ;;
-  *"RESULT FAIL"*)    DB_STATUS="fail";    FAIL_STEP="$(echo "$RESULT_LINE" | sed -nE 's/.*step=([a-z_]+).*/\1/p')" ;;
-  *)                  DB_STATUS="interrupted"; FAIL_STEP="" ;;
-esac
-DUR=$(( $(now_ts) - START_TS ))
-
-# Load DB creds without leaking into the environment of caller.
-DB_HOST=""; DB_USER=""; DB_PASS=""; DB_NAME=""
-# shellcheck disable=SC1090
-set -a; . "$DB_CREDS"; set +a
-
-if command -v mysql >/dev/null 2>&1; then
-  POST_HEAD_SQL="$( [[ -n "${POST_HEAD:-}" ]] && printf %s "'${POST_HEAD}'" || printf NULL )"
-  PRE_HEAD_SQL="$(  [[ -n "${PRE_HEAD:-}"  ]] && printf %s "'${PRE_HEAD}'"  || printf NULL )"
-  FAIL_STEP_SQL="$( [[ -n "$FAIL_STEP" ]] && printf %s "'${FAIL_STEP}'" || printf NULL )"
-  SQL="UPDATE deploy_history
-       SET status='${DB_STATUS}',
-           fail_step=${FAIL_STEP_SQL},
-           pre_head=${PRE_HEAD_SQL},
-           post_head=${POST_HEAD_SQL},
-           ended_at=NOW(),
-           duration_sec=${DUR}
-       WHERE job_id='${JOB_ID}';"
-  if [[ "$DRY_RUN" == "1" ]]; then
-    echo "[dry-run] mysql UPDATE: ${SQL//$'\n'/ }"
-  else
-    echo "$SQL" | mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" 2>&1 || true
-  fi
-fi
