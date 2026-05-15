@@ -8,6 +8,7 @@ export const DEPLOY_LOG_DIR = "/var/log/bandsustain-deploy";
 export const DEPLOY_LOCK_FILE = join(DEPLOY_LOG_DIR, "lock");
 export const APP_DIR = "/var/www/html/_______site_BANDSUSTAIN/public_html/bandsustain";
 export const DEPLOY_SCRIPT = join(APP_DIR, "scripts", "deploy.sh");
+export const DEPLOY_LAUNCH_SCRIPT = join(APP_DIR, "scripts", "deploy-launch.sh");
 export const JOB_ID_REGEX = /^[0-9]{8}-[0-9]{6}-[a-f0-9]{6}$/;
 export const COMMIT_HASH_REGEX = /^[a-f0-9]{7,40}$/;
 

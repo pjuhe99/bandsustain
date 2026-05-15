@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { spawn, execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { readSession } from "@/lib/auth";
-import { COMMIT_HASH_REGEX, newJobId, logPathFor, DEPLOY_SCRIPT, APP_DIR } from "@/lib/deploy";
+import { COMMIT_HASH_REGEX, newJobId, logPathFor, DEPLOY_LAUNCH_SCRIPT, APP_DIR } from "@/lib/deploy";
 import { findRunning, insertRunning, isWhitelistedRollbackHash } from "@/lib/deploy-db";
 
 const exec = promisify(execFile);
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     jobId, actor: session.u, kind: "rollback", targetRef: hash, logPath: logPathFor(jobId),
   });
 
-  const child = spawn("bash", [DEPLOY_SCRIPT, jobId, "--rollback", hash], {
+  const child = spawn("bash", [DEPLOY_LAUNCH_SCRIPT, jobId, "--rollback", hash], {
     cwd: APP_DIR,
     detached: true,
     stdio: "ignore",
