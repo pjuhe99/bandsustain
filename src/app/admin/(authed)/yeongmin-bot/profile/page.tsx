@@ -14,7 +14,7 @@ export default function ProfilePage() {
   }, []);
 
   function refresh() {
-    fetch("/api/admin/youngmin-bot/settings", { cache: "no-store" })
+    fetch("/api/admin/yeongmin-bot/settings", { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => setCurrentPath(d.profileImagePath ?? null))
       .catch(() => setErr("로드 실패"));
@@ -32,7 +32,7 @@ export default function ProfilePage() {
     const fd = new FormData();
     fd.append("file", file);
     try {
-      const res = await fetch("/api/admin/youngmin-bot/profile", {
+      const res = await fetch("/api/admin/yeongmin-bot/profile", {
         method: "POST",
         body: fd,
       });

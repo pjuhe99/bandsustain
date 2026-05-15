@@ -50,7 +50,7 @@ export default function PromptEditorPage() {
   const [err, setErr] = useState<string>("");
 
   useEffect(() => {
-    fetch("/api/admin/youngmin-bot/settings", { cache: "no-store" })
+    fetch("/api/admin/yeongmin-bot/settings", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
         const s: Sections = {
@@ -75,7 +75,7 @@ export default function PromptEditorPage() {
     setSaving(true);
     setErr("");
     try {
-      const res = await fetch("/api/admin/youngmin-bot/settings", {
+      const res = await fetch("/api/admin/yeongmin-bot/settings", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(sections),

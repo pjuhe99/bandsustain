@@ -1,7 +1,7 @@
--- youngmin_bot_seed.sql
--- youngmin_settings singleton row 초기 데이터.
+-- yeongmin_bot_seed.sql
+-- yeongmin_settings singleton row 초기 데이터.
 
-INSERT INTO youngmin_settings (
+INSERT INTO yeongmin_settings (
   id,
   model_name,
   input_rate_per_1m_usd,

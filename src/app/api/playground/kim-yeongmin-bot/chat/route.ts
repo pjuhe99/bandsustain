@@ -10,12 +10,12 @@ import {
   countSessionMessagesLast24h,
   sumTodayTokens,
   calcCostUsd,
-} from "@/lib/youngminBot";
+} from "@/lib/yeongminBot";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const COOKIE_NAME = "bs_youngmin_sid";
+const COOKIE_NAME = "bs_yeongmin_sid";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
 const FALLBACK_SESSION_CAP =
@@ -173,7 +173,7 @@ export async function POST(req: Request) {
       false,
     );
   } catch (err) {
-    console.error("[youngmin-bot] OpenAI error:", err);
+    console.error("[yeongmin-bot] OpenAI error:", err);
     return replyJson(
       FALLBACK_OPENAI_ERROR,
       sessionId,

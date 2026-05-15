@@ -1,4 +1,4 @@
-import { getSettings, getUsageKpis, listRecentSessions } from "@/lib/youngminBot";
+import { getSettings, getUsageKpis, listRecentSessions } from "@/lib/yeongminBot";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +14,7 @@ function fmtDateTime(d: Date): string {
   return d.toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
 }
 
-export default async function YoungminBotDashboard() {
+export default async function YeongminBotDashboard() {
   const [settings, kpis, sessions] = await Promise.all([
     getSettings(),
     getUsageKpis(),

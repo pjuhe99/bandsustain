@@ -25,7 +25,7 @@ export default function ApiKeyPage() {
   }, []);
 
   function refresh() {
-    fetch("/api/admin/youngmin-bot/settings", { cache: "no-store" })
+    fetch("/api/admin/yeongmin-bot/settings", { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => setView(d))
       .catch(() => setErr("로드 실패"));
@@ -40,7 +40,7 @@ export default function ApiKeyPage() {
     setMsg("");
     setErr("");
     try {
-      const res = await fetch("/api/admin/youngmin-bot/api-key", {
+      const res = await fetch("/api/admin/yeongmin-bot/api-key", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ apiKey: newKey }),
@@ -63,7 +63,7 @@ export default function ApiKeyPage() {
     setMsg("");
     setErr("");
     try {
-      const res = await fetch("/api/admin/youngmin-bot/settings", {
+      const res = await fetch("/api/admin/yeongmin-bot/settings", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(patch),

@@ -10,7 +10,7 @@ const items = [
   { href: "/admin/news", label: "News" },
   { href: "/admin/quotes", label: "Quotes" },
   { href: "/admin/live", label: "Live" },
-  { href: "/admin/youngmin-bot", label: "Kim Young-min Bot" },
+  { href: "/admin/yeongmin-bot", label: "Kim Yeong-min Bot" },
 ];
 
 export default function AdminNav() {

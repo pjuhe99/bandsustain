@@ -41,7 +41,7 @@ export default function ChatRoom({ profileImagePath }: Props) {
     setInput("");
     setSending(true);
     try {
-      const res = await fetch("/api/playground/kim-youngmin-bot/chat", {
+      const res = await fetch("/api/playground/kim-yeongmin-bot/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({

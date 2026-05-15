@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import ChatRoom from "@/components/youngmin/ChatRoom";
-import { getSettings } from "@/lib/youngminBot";
+import ChatRoom from "@/components/yeongmin/ChatRoom";
+import { getSettings } from "@/lib/yeongminBot";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "Band Sustain",
-    url: "https://bandsustain.com/playground/kim-youngmin-bot",
+    url: "https://bandsustain.com/playground/kim-yeongmin-bot",
     title: "김영민 봇 — Band Sustain",
     description,
     images: [{ url: ogImage, alt: "김영민 봇" }],
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function KimYoungminBotPage() {
+export default async function KimYeongminBotPage() {
   const settings = await getSettings();
   const profileImagePath = settings.profileImagePath;
 

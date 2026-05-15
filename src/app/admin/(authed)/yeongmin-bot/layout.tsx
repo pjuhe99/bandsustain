@@ -3,18 +3,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const subItems = [
-  { href: "/admin/youngmin-bot", label: "Dashboard" },
-  { href: "/admin/youngmin-bot/prompt", label: "Prompt" },
-  { href: "/admin/youngmin-bot/api-key", label: "API Key" },
-  { href: "/admin/youngmin-bot/profile", label: "Profile" },
+  { href: "/admin/yeongmin-bot", label: "Dashboard" },
+  { href: "/admin/yeongmin-bot/prompt", label: "Prompt" },
+  { href: "/admin/yeongmin-bot/api-key", label: "API Key" },
+  { href: "/admin/yeongmin-bot/profile", label: "Profile" },
 ];
 
-export default function YoungminBotLayout({ children }: { children: React.ReactNode }) {
+export default function YeongminBotLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
     <div className="flex flex-col gap-6">
       <h1 className="font-display font-black uppercase text-2xl md:text-3xl">
-        Kim Young-min Bot
+        Kim Yeong-min Bot
       </h1>
       <nav className="flex flex-wrap gap-x-5 gap-y-2 border-b border-[var(--color-border)] pb-3">
         {subItems.map((it) => {

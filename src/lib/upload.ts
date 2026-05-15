@@ -6,7 +6,7 @@ import path from "node:path";
 import { readSession } from "./auth";
 
 const MAX_BYTES = 8 * 1024 * 1024;
-const RESOURCES = ["members", "songs", "news", "quotes", "youngmin"] as const;
+const RESOURCES = ["members", "songs", "news", "quotes", "yeongmin"] as const;
 type Resource = (typeof RESOURCES)[number];
 
 const MIME_EXT: Record<string, string> = {

@@ -1,9 +1,9 @@
 import "server-only";
 import { getPool } from "./db";
-import { decryptApiKey, encryptApiKey } from "./youngminCrypto";
+import { decryptApiKey, encryptApiKey } from "./yeongminCrypto";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
 
-export type YoungminSettings = {
+export type YeongminSettings = {
   id: 1;
   apiKeyEncrypted: string | null;
   modelName: string;
@@ -45,7 +45,7 @@ type SettingsRow = RowDataPacket & {
   section_examples: string | null;
 };
 
-function rowToSettings(r: SettingsRow): YoungminSettings {
+function rowToSettings(r: SettingsRow): YeongminSettings {
   return {
     id: 1,
     apiKeyEncrypted: r.api_key_encrypted,
@@ -68,12 +68,12 @@ function rowToSettings(r: SettingsRow): YoungminSettings {
   };
 }
 
-export async function getSettings(): Promise<YoungminSettings> {
+export async function getSettings(): Promise<YeongminSettings> {
   const [rows] = await getPool().query<SettingsRow[]>(
-    "SELECT * FROM youngmin_settings WHERE id = 1 LIMIT 1",
+    "SELECT * FROM yeongmin_settings WHERE id = 1 LIMIT 1",
   );
   if (rows.length === 0) {
-    throw new Error("youngmin_settings singleton row missing — run db/seed/youngmin_bot_seed.sql");
+    throw new Error("yeongmin_settings singleton row missing — run db/seed/yeongmin_bot_seed.sql");
   }
   return rowToSettings(rows[0]);
 }
@@ -127,7 +127,7 @@ export async function updateSettings(patch: UpdatableSettings): Promise<void> {
   }
   if (setClauses.length === 0) return;
   await getPool().query(
-    `UPDATE youngmin_settings SET ${setClauses.join(", ")} WHERE id = 1`,
+    `UPDATE yeongmin_settings SET ${setClauses.join(", ")} WHERE id = 1`,
     values,
   );
 }
@@ -135,12 +135,12 @@ export async function updateSettings(patch: UpdatableSettings): Promise<void> {
 export async function setApiKey(plainKey: string): Promise<void> {
   const ct = encryptApiKey(plainKey);
   await getPool().query(
-    "UPDATE youngmin_settings SET api_key_encrypted = ? WHERE id = 1",
+    "UPDATE yeongmin_settings SET api_key_encrypted = ? WHERE id = 1",
     [ct],
   );
 }
 
-export function getDecryptedApiKey(settings: YoungminSettings): string {
+export function getDecryptedApiKey(settings: YeongminSettings): string {
   if (!settings.apiKeyEncrypted) {
     throw new Error("OpenAI API key not configured");
   }
@@ -150,7 +150,7 @@ export function getDecryptedApiKey(settings: YoungminSettings): string {
 const PROMPT_HEADER =
   '너는 밴드 서스테인의 리더 김영민을 모티브로 만든 AI 캐릭터 챗봇이다. 실제 김영민 본인은 아니며, 카카오톡 대화에서 보이는 김영민의 말투와 농담 방식, 음악/기타 장비/역사 지식을 참고해 대화한다.\n\n이 봇의 목적은 밴드 홍보보다 "진짜 김영민과 카톡하는 것 같은 재미"를 주는 것이다.';
 
-const SECTION_ORDER: Array<{ heading: string; key: keyof YoungminSettings }> = [
+const SECTION_ORDER: Array<{ heading: string; key: keyof YeongminSettings }> = [
   { heading: "1. 정체성", key: "sectionIdentity" },
   { heading: "2. 역할", key: "sectionRole" },
   { heading: "3. 말투", key: "sectionTone" },
@@ -163,7 +163,7 @@ const SECTION_ORDER: Array<{ heading: string; key: keyof YoungminSettings }> = [
   { heading: "10. 답변 예시", key: "sectionExamples" },
 ];
 
-export function assemblePrompt(settings: YoungminSettings): string {
+export function assemblePrompt(settings: YeongminSettings): string {
   const parts: string[] = [PROMPT_HEADER];
   for (const { heading, key } of SECTION_ORDER) {
     const value = settings[key];
@@ -193,7 +193,7 @@ export async function insertUsageLog(args: {
   costUsd: number;
 }): Promise<void> {
   await getPool().query<ResultSetHeader>(
-    `INSERT INTO youngmin_usage_log
+    `INSERT INTO yeongmin_usage_log
        (session_id, input_tokens, output_tokens, model_name, cost_usd)
      VALUES (?, ?, ?, ?, ?)`,
     [
@@ -209,7 +209,7 @@ export async function insertUsageLog(args: {
 export async function countSessionMessagesLast24h(sessionId: string): Promise<number> {
   const [rows] = await getPool().query<(RowDataPacket & { cnt: number })[]>(
     `SELECT COUNT(*) AS cnt
-       FROM youngmin_usage_log
+       FROM yeongmin_usage_log
       WHERE session_id = ?
         AND created_at >= DATE_SUB(NOW(), INTERVAL 1 DAY)`,
     [sessionId],
@@ -220,7 +220,7 @@ export async function countSessionMessagesLast24h(sessionId: string): Promise<nu
 export async function sumTodayTokens(): Promise<number> {
   const [rows] = await getPool().query<(RowDataPacket & { total: number | null })[]>(
     `SELECT COALESCE(SUM(input_tokens + output_tokens), 0) AS total
-       FROM youngmin_usage_log
+       FROM yeongmin_usage_log
       WHERE created_at >= CURDATE()`,
   );
   return Number(rows[0]?.total ?? 0);
@@ -247,7 +247,7 @@ export async function getUsageKpis(): Promise<UsageKpis> {
        COALESCE(SUM(CASE WHEN created_at >= CURDATE() THEN cost_usd END), 0)                  AS today_cost,
        COALESCE(SUM(CASE WHEN created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01') THEN cost_usd END), 0) AS month_cost,
        COALESCE(SUM(cost_usd), 0)                                                               AS all_cost
-     FROM youngmin_usage_log`,
+     FROM yeongmin_usage_log`,
   );
   const r = rows[0];
   return {
@@ -287,7 +287,7 @@ export async function listRecentSessions(limit = 50): Promise<SessionSummary[]> 
             SUM(input_tokens) AS sum_in,
             SUM(output_tokens) AS sum_out,
             SUM(cost_usd) AS sum_cost
-       FROM youngmin_usage_log
+       FROM yeongmin_usage_log
       GROUP BY session_id
       ORDER BY last_activity DESC
       LIMIT ?`,

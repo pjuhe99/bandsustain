@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { readSession } from "@/lib/auth";
-import { getSettings, updateSettings, type UpdatableSettings } from "@/lib/youngminBot";
+import { getSettings, updateSettings, type UpdatableSettings } from "@/lib/yeongminBot";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

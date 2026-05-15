@@ -9,12 +9,12 @@ export type PlaygroundFeature = {
 
 export const playgroundFeatures: PlaygroundFeature[] = [
   {
-    slug: "kim-youngmin-bot",
+    slug: "kim-yeongmin-bot",
     title: "김영민 봇",
     description: "궁금한 게 있으면 김영민 봇이 답해드려요.",
     cta: "말 걸러 가기",
     eyebrow: "이야기 상대",
-    href: "/playground/kim-youngmin-bot",
+    href: "/playground/kim-yeongmin-bot",
   },
   {
     slug: "band-name-generator",

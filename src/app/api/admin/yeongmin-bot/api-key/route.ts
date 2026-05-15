@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { readSession } from "@/lib/auth";
-import { setApiKey } from "@/lib/youngminBot";
+import { setApiKey } from "@/lib/yeongminBot";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   try {
     await setApiKey(apiKey);
   } catch (e) {
-    console.error("[youngmin-bot] setApiKey failed:", e);
+    console.error("[yeongmin-bot] setApiKey failed:", e);
     return NextResponse.json({ error: "encrypt failed (check ENCRYPTION_KEY)" }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
