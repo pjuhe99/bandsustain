@@ -12,6 +12,7 @@
 #   PM2_NAME       (default bandsustain)
 #   HEALTH_URL     (default http://127.0.0.1:3100/)
 #   DB_CREDS       (default /var/www/html/_______site_BANDSUSTAIN/.db_credentials)
+#   ACTOR          (optional, set by caller; written to ## JOB START line)
 #
 # Exit codes: 0=ok, 1=deploy step failed, 2=smoke failed, 3=lock not acquired
 set -euo pipefail
@@ -54,6 +55,9 @@ if [[ "$(id -un)" != "ec2-user" ]]; then
   exec sudo -u ec2-user -- "$0" ${DRY_RUN:+--dry-run} "$JOB_ID" ${ROLLBACK_HASH:+--rollback "$ROLLBACK_HASH"}
 fi
 
+# Bootstrap log directory before redirecting output.
+mkdir -p "${DEPLOY_LOG_DIR}" || { echo "deploy.sh: cannot create log dir: ${DEPLOY_LOG_DIR}" >&2; exit 1; }
+
 LOG_FILE="${DEPLOY_LOG_DIR}/${JOB_ID}.log"
 LOCK_FILE="${DEPLOY_LOG_DIR}/lock"
 
@@ -71,6 +75,8 @@ run() {
 now_ts() { date +%s; }
 START_TS="$(now_ts)"
 
+# Trap: ensure every log ends with a ## RESULT line so the parser sees a terminal state
+# even on abnormal exit (kill, OOM, pm2 restart killing this child mid-flight).
 trap 'rc=$?; if ! grep -q "^## RESULT " "${LOG_FILE}"; then echo "## RESULT INTERRUPTED total=$(( $(now_ts) - START_TS ))s"; fi; exit "$rc"' EXIT
 
 # Acquire lock (non-blocking). If lost, do not write any RESULT — caller will sweep us.
