@@ -11,6 +11,7 @@ const items = [
   { href: "/admin/quotes", label: "Quotes" },
   { href: "/admin/live", label: "Live" },
   { href: "/admin/yeongmin-bot", label: "Kim Yeong-min Bot" },
+  { href: "/admin/deploy", label: "Deploy" },
 ];
 
 export default function AdminNav() {
