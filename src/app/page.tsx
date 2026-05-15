@@ -2,6 +2,9 @@ import Hero from "@/components/Hero";
 import JsonLd from "@/components/JsonLd";
 import NewsCard from "@/components/NewsCard";
 import SongGrid from "@/components/SongGrid";
+import UpcomingShowCard from "@/components/UpcomingShowCard";
+import { getHomepageUpcomingEvent } from "@/lib/home-live";
+import { getUpcomingEvents } from "@/lib/live";
 import { getPublishedMembers } from "@/lib/members";
 import { getPublishedNews } from "@/lib/news";
 import { getPublishedSongs } from "@/lib/songs";
@@ -11,18 +14,22 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [songs, latestNewsAll, members] = await Promise.all([
+  const [songs, latestNewsAll, members, upcomingEvents] = await Promise.all([
     getPublishedSongs(),
     getPublishedNews(),
     getPublishedMembers(),
+    getUpcomingEvents(),
   ]);
   const featured = songs.slice(0, 3);
   const latestNews = latestNewsAll.slice(0, 3);
+  const upcomingShow = getHomepageUpcomingEvent(upcomingEvents);
 
   return (
     <>
       <JsonLd data={buildMusicGroupSchema({ members, songs })} />
       <Hero />
+
+      {upcomingShow ? <UpcomingShowCard event={upcomingShow} /> : null}
 
       {/* About */}
       <section className="border-t border-[var(--color-border)]">
