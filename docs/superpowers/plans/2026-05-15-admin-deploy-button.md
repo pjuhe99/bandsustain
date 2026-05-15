@@ -1216,10 +1216,12 @@ const items = [
   { href: "/admin/news", label: "News" },
   { href: "/admin/quotes", label: "Quotes" },
   { href: "/admin/live", label: "Live" },
-  { href: "/admin/youngmin-bot", label: "Kim Young-min Bot" },
+  { href: "/admin/yeongmin-bot", label: "Kim Yeong-min Bot" },
   { href: "/admin/deploy", label: "Deploy" },
 ];
 ```
+
+Note: existing item was renamed from `youngmin-bot` / `"Kim Young-min Bot"` to `yeongmin-bot` / `"Kim Yeongmin Bot"` in a separate refactor commit `cb73684`. When you open `AdminNav.tsx` you should already see the new href/label — your job is just to append the Deploy entry. If the file still shows `youngmin-bot`, STOP and report — the refactor was not committed.
 
 - [ ] **Step 2: Commit**
 
