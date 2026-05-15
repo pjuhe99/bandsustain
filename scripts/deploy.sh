@@ -122,5 +122,30 @@ else
   step_ok git_pull "$T0"
 fi
 
+# 4. pnpm install (only if lockfile changed in this pull/reset)
+LOCKFILE_CHANGED=0
+if git diff --name-only "$PRE_HEAD" HEAD | grep -q '^pnpm-lock.yaml$'; then
+  LOCKFILE_CHANGED=1
+fi
+
+if [[ "$LOCKFILE_CHANGED" == "1" ]]; then
+  echo "## STEP pnpm_install"
+  T0="$(now_ts)"
+  if ! run pnpm install --frozen-lockfile; then step_fail pnpm_install $? "$T0"; fi
+  step_ok pnpm_install "$T0"
+else
+  echo "## STEP pnpm_install skipped reason=lockfile_unchanged"
+fi
+
+# 5. pnpm build
+echo "## STEP pnpm_build"
+T0="$(now_ts)"
+if ! run pnpm build; then step_fail pnpm_build $? "$T0"; fi
+step_ok pnpm_build "$T0"
+
+# 6. POST_HEAD
+POST_HEAD="$(git rev-parse HEAD)"
+echo "## POST_HEAD ${POST_HEAD}"
+
 # (More steps in next tasks.)
 echo "## RESULT SUCCESS total=$(( $(now_ts) - START_TS ))s"
