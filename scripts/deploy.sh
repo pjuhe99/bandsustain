@@ -89,6 +89,38 @@ fi
 
 echo "## JOB ${JOB_ID} START kind=${KIND} actor=${ACTOR:-unknown}"
 
-# (Steps fill in later tasks.)
-# Placeholder so the skeleton exits cleanly:
+cd "$APP_DIR"
+
+step_ok() { local name="$1" t0="$2"; echo "## STEP_OK ${name} $(( $(now_ts) - t0 ))s"; }
+step_fail() {
+  local name="$1" rc="$2" t0="$3"
+  echo "## STEP_FAIL ${name} exit=${rc} elapsed=$(( $(now_ts) - t0 ))s"
+  echo "## RESULT FAIL step=${name} total=$(( $(now_ts) - START_TS ))s"
+  exit 1
+}
+
+# 1. git fetch
+echo "## STEP git_fetch"
+T0="$(now_ts)"
+if ! run git fetch origin main; then step_fail git_fetch $? "$T0"; fi
+step_ok git_fetch "$T0"
+
+# 2. PRE_HEAD
+PRE_HEAD="$(git rev-parse HEAD)"
+echo "## PRE_HEAD ${PRE_HEAD}"
+
+# 3. pull or reset
+if [[ "$KIND" == "rollback" ]]; then
+  echo "## STEP git_reset target=${ROLLBACK_HASH}"
+  T0="$(now_ts)"
+  if ! run git reset --hard "$ROLLBACK_HASH"; then step_fail git_reset $? "$T0"; fi
+  step_ok git_reset "$T0"
+else
+  echo "## STEP git_pull"
+  T0="$(now_ts)"
+  if ! run git pull --ff-only origin main; then step_fail git_pull $? "$T0"; fi
+  step_ok git_pull "$T0"
+fi
+
+# (More steps in next tasks.)
 echo "## RESULT SUCCESS total=$(( $(now_ts) - START_TS ))s"
