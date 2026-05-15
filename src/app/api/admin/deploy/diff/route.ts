@@ -18,28 +18,33 @@ export async function POST() {
   const session = await readSession();
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  await git(["fetch", "origin", "main"]);
-  const head = await git(["rev-parse", "HEAD"]);
-  const remote = await git(["rev-parse", "origin/main"]);
-  const aheadStr = await git(["rev-list", "--count", "HEAD..origin/main"]);
-  const behindStr = await git(["rev-list", "--count", "origin/main..HEAD"]);
-  const commitsRaw = aheadStr === "0"
-    ? ""
-    : await git(["log", "--pretty=format:%h %s", "HEAD..origin/main"]);
+  try {
+    await git(["fetch", "origin", "main"]);
+    const head = await git(["rev-parse", "HEAD"]);
+    const remote = await git(["rev-parse", "origin/main"]);
+    const aheadStr = await git(["rev-list", "--count", "HEAD..origin/main"]);
+    const behindStr = await git(["rev-list", "--count", "origin/main..HEAD"]);
+    const commitsRaw = aheadStr === "0"
+      ? ""
+      : await git(["log", "--pretty=format:%h %s", "HEAD..origin/main"]);
 
-  const commits = commitsRaw
-    ? commitsRaw.split("\n").map((line) => {
-        const [hash, ...rest] = line.split(" ");
-        return { hash, subject: rest.join(" ") };
-      })
-    : [];
+    const commits = commitsRaw
+      ? commitsRaw.split("\n").map((line) => {
+          const [hash, ...rest] = line.split(" ");
+          return { hash, subject: rest.join(" ") };
+        })
+      : [];
 
-  return NextResponse.json({
-    head,
-    remote,
-    ahead: Number(aheadStr),
-    behind: Number(behindStr),
-    commits,
-    fetchedAt: new Date().toISOString(),
-  });
+    return NextResponse.json({
+      head,
+      remote,
+      ahead: Number(aheadStr),
+      behind: Number(behindStr),
+      commits,
+      fetchedAt: new Date().toISOString(),
+    });
+  } catch (e) {
+    const detail = e instanceof Error ? e.message : String(e);
+    return NextResponse.json({ error: "git_error", detail }, { status: 502 });
+  }
 }
