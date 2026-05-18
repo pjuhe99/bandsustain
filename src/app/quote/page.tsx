@@ -1,34 +1,23 @@
 import type { Metadata } from "next";
-import { getPublishedQuotes } from "@/lib/quotes";
 import QuoteRow from "@/components/QuoteRow";
+import { getPublishedQuotes } from "@/lib/quotes";
+import { buildPageMetadata } from "@/lib/seo";
 
-// 빌드 시점 pre-render 차단 — DB 미접속 환경에서도 pnpm build 가 성공해야 함.
-// 저트래픽 탭이라 per-request DB 쿼리는 비용 문제 없음.
+// Prevent build-time prerendering so production builds still work without a DB.
+// This page is lightweight enough to render from the database per request.
 export const dynamic = "force-dynamic";
 
 const description =
-  "These are words that don't really help in life — 삶에 별로 도움은 되지 않을 명언들";
+  "밴드 서스테인 멤버들의 문장과 인용문을 모아둔 페이지. 공연장 바깥의 말과 분위기도 함께 남깁니다.";
 const ogImage = "/slides/hero-c28a7f43.jpg";
 
-export const metadata: Metadata = {
-  title: "Quote",
+export const metadata: Metadata = buildPageMetadata({
+  title: "인용문",
+  path: "/quote",
   description,
-  openGraph: {
-    type: "website",
-    siteName: "Band Sustain",
-    url: "https://bandsustain.com/quote",
-    title: "Quote — Band Sustain",
-    description,
-    images: [{ url: ogImage, alt: "Quote" }],
-    locale: "ko_KR",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Quote — Band Sustain",
-    description,
-    images: [ogImage],
-  },
-};
+  keywords: ["서스테인 인용문", "밴드 서스테인 명언", "Band Sustain quotes"],
+  ogImage,
+});
 
 export default async function QuotePage() {
   const quotes = await getPublishedQuotes();
@@ -42,7 +31,7 @@ export default async function QuotePage() {
         <p className="text-lg md:text-xl text-[var(--color-text-muted)] leading-[1.5]">
           These are words that don&apos;t really help in life
           <br />
-          삶에 별로 도움은 되지 않을 명언들
+          그런데 이상하게 오래 남는 말들
         </p>
       </header>
 

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { Fragment } from "react";
 import { notFound } from "next/navigation";
 import JsonLd from "@/components/JsonLd";
 import { excerpt, formatNewsDate, getNewsById } from "@/lib/news";
-import { buildNewsArticleSchema } from "@/lib/seo";
-import { Fragment } from "react";
+import { buildNewsArticleSchema, buildPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -21,28 +21,15 @@ export async function generateMetadata({
   if (!item || !item.published) return {};
 
   const description = excerpt(item.body, 200);
-  const url = `https://bandsustain.com/news/${item.id}`;
 
-  return {
-    title: item.headline,
+  return buildPageMetadata({
+    title: `${item.headline} - 뉴스`,
+    path: `/news/${item.id}`,
     description,
-    openGraph: {
-      type: "article",
-      siteName: "Band Sustain",
-      url,
-      title: item.headline,
-      description,
-      images: [{ url: item.heroImage, alt: item.headline }],
-      locale: "ko_KR",
-      publishedTime: formatNewsDate(item.date),
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: item.headline,
-      description,
-      images: [item.heroImage],
-    },
-  };
+    keywords: ["서스테인 뉴스", item.category, item.headline],
+    ogImage: item.heroImage,
+    type: "article",
+  });
 }
 
 export default async function NewsDetailPage({
@@ -68,7 +55,7 @@ export default async function NewsDetailPage({
         <Link href="/" className="underline underline-offset-4">
           Home
         </Link>
-        <span className="mx-2">›</span>
+        <span className="mx-2">/</span>
         <Link href="/news" className="underline underline-offset-4">
           News
         </Link>

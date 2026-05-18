@@ -25,7 +25,7 @@ test("buildPublicSitemap returns approved public routes and freshness metadata",
     "https://bandsustain.com/members",
     "https://bandsustain.com/quote",
     "https://bandsustain.com/playground",
-    "https://bandsustain.com/playground/kim-youngmin-bot",
+    "https://bandsustain.com/playground/kim-yeongmin-bot",
     "https://bandsustain.com/news/7",
   ]);
 

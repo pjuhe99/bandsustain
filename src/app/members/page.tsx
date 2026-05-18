@@ -1,31 +1,21 @@
 import type { Metadata } from "next";
 import MembersGrid from "@/components/MembersGrid";
 import { getPublishedMembers } from "@/lib/members";
+import { buildPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-const description = "Let me introduce the best friends of your life — 너의 인생에 최고의 친구들을 소개합니다";
+const description =
+  "밴드 서스테인 멤버 소개 페이지. 각 멤버의 역할과 개성을 한곳에서 확인할 수 있습니다.";
 const ogImage = "/members/member01.jpg";
 
-export const metadata: Metadata = {
-  title: "Members",
+export const metadata: Metadata = buildPageMetadata({
+  title: "멤버",
+  path: "/members",
   description,
-  openGraph: {
-    type: "website",
-    siteName: "Band Sustain",
-    url: "https://bandsustain.com/members",
-    title: "Members — Band Sustain",
-    description,
-    images: [{ url: ogImage, alt: "Members" }],
-    locale: "ko_KR",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Members — Band Sustain",
-    description,
-    images: [ogImage],
-  },
-};
+  keywords: ["서스테인 멤버", "밴드 서스테인 멤버", "Band Sustain members"],
+  ogImage,
+});
 
 export default async function MembersPage() {
   const members = await getPublishedMembers();
@@ -39,7 +29,7 @@ export default async function MembersPage() {
         <p className="text-lg md:text-xl text-[var(--color-text-muted)] leading-[1.5]">
           Let me introduce the best friends of your life
           <br />
-          너의 인생에 최고의 친구들을 소개합니다
+          밴드 서스테인을 함께 만드는 멤버들을 소개합니다
         </p>
       </header>
 

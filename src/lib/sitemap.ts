@@ -92,13 +92,13 @@ export function buildPublicSitemap({
       url: `${siteUrl}/playground`,
       lastModified: now,
       changeFrequency: "monthly",
-      priority: 0.6,
+      priority: 0.65,
     },
     {
-      url: `${siteUrl}/playground/kim-youngmin-bot`,
+      url: `${siteUrl}/playground/kim-yeongmin-bot`,
       lastModified: now,
       changeFrequency: "weekly",
-      priority: 0.6,
+      priority: 0.7,
     },
   ];
 

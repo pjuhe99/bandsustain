@@ -1,15 +1,27 @@
-import "server-only";
-import type { Member } from "./members";
-import type { Song } from "./songs";
+import type { Metadata } from "next";
 import type { LiveEvent } from "./live";
+import type { Member } from "./members";
 import type { NewsItem } from "./news";
+import type { Song } from "./songs";
 
 export const SITE_URL = "https://bandsustain.com";
-export const BAND_NAME = "Sustain";
+export const BAND_NAME = "Band Sustain";
+export const BAND_NAME_EN_SHORT = "Sustain";
 export const BAND_NAME_KR = "서스테인";
+export const BAND_NAME_KR_FULL = "밴드 서스테인";
+export const BRAND_SITE_NAME = `${BAND_NAME_KR_FULL} | ${BAND_NAME}`;
+export const BRAND_KEYWORDS = [
+  BAND_NAME_KR,
+  BAND_NAME_KR_FULL,
+  BAND_NAME,
+  BAND_NAME_EN_SHORT,
+  `${BAND_NAME_KR} 밴드`,
+  "bandsustain",
+];
 
+const DEFAULT_OG_IMAGE = "/slides/hero-a7f3c1e2.jpg";
 const BAND_DESCRIPTION =
-  "오래 남는 소리, 계속 이어지는 감정 — 감성적인 멜로디와 선명한 밴드 사운드로 순간의 마음을 오래 남기는 음악을 만듭니다.";
+  "감성적인 멜로디와 선명한 밴드 사운드로 오래 남는 소리와 계속 이어지는 감정을 전하는 대한민국 밴드 서스테인.";
 
 const SOCIAL_URLS = [
   "https://www.instagram.com/band_sustain",
@@ -18,13 +30,95 @@ const SOCIAL_URLS = [
   "https://www.melon.com/artist/timeline.htm?artistId=3455164",
 ];
 
+type BuildPageMetadataInput = {
+  title: string;
+  path: string;
+  description: string;
+  keywords?: string[];
+  ogImage: string;
+  type?: "website" | "article";
+};
+
 function abs(path: string): string {
   if (/^https?:/.test(path)) return path;
   return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
-// mysql2 가 DATE 컬럼을 로컬 타임존 자정의 Date 로 돌려주므로 toISOString()
-// 으로는 KST 서버에서 하루 어긋난다. 로컬 컴포넌트 추출이 안전.
+function uniqueKeywords(keywords: string[] = []): string[] {
+  return [...new Set([...BRAND_KEYWORDS, ...keywords])];
+}
+
+export function buildRootMetadata(): Metadata {
+  const description =
+    "밴드 서스테인(Band Sustain) 공식 사이트. 서스테인 음악, 공연 일정, 멤버 소개, 뉴스, 플레이그라운드 콘텐츠를 확인하세요.";
+  const title = `${BAND_NAME_KR_FULL} | ${BAND_NAME} 공식 사이트`;
+
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: {
+      default: title,
+    },
+    description,
+    keywords: BRAND_KEYWORDS,
+    alternates: {
+      canonical: SITE_URL,
+    },
+    openGraph: {
+      type: "website",
+      siteName: BRAND_SITE_NAME,
+      url: SITE_URL,
+      title,
+      description,
+      images: [{ url: DEFAULT_OG_IMAGE, alt: BRAND_SITE_NAME }],
+      locale: "ko_KR",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [DEFAULT_OG_IMAGE],
+    },
+  };
+}
+
+export function buildPageMetadata({
+  title,
+  path,
+  description,
+  keywords,
+  ogImage,
+  type = "website",
+}: BuildPageMetadataInput): Metadata {
+  const canonicalUrl = abs(path);
+  const fullTitle = `${title} | ${BAND_NAME_KR_FULL}`;
+
+  return {
+    title: fullTitle,
+    description,
+    keywords: uniqueKeywords(keywords),
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      type,
+      siteName: BRAND_SITE_NAME,
+      url: canonicalUrl,
+      title: fullTitle,
+      description,
+      images: [{ url: ogImage, alt: title }],
+      locale: "ko_KR",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: fullTitle,
+      description,
+      images: [ogImage],
+    },
+  };
+}
+
+// mysql2 returns DATE columns as local Date objects, so toISOString() can shift
+// the calendar day on a KST server. Keep these schema dates date-only.
 function dateOnly(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -32,7 +126,7 @@ function dateOnly(d: Date): string {
 
 const BAND_REF = {
   "@type": "MusicGroup",
-  name: BAND_NAME,
+  name: BAND_NAME_KR_FULL,
   url: SITE_URL,
 } as const;
 
@@ -44,10 +138,10 @@ export function buildMusicGroupSchema(opts: {
     "@context": "https://schema.org",
     "@type": "MusicGroup",
     "@id": `${SITE_URL}/#band`,
-    name: BAND_NAME,
-    alternateName: BAND_NAME_KR,
+    name: BAND_NAME_KR_FULL,
+    alternateName: [BAND_NAME_KR, BAND_NAME, BAND_NAME_EN_SHORT],
     url: SITE_URL,
-    image: abs("/slides/hero-a7f3c1e2.jpg"),
+    image: abs(DEFAULT_OG_IMAGE),
     logo: abs("/icon.svg"),
     foundingDate: "2021",
     foundingLocation: {
@@ -79,7 +173,7 @@ export function buildSongsItemListSchema(songs: Song[]) {
   return {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: `${BAND_NAME} — Releases`,
+    name: `${BAND_NAME_KR_FULL} 음원`,
     itemListElement: songs.map((s, i) => ({
       "@type": "ListItem",
       position: i + 1,
@@ -99,7 +193,7 @@ export function buildLiveEventsSchema(events: LiveEvent[]) {
   return events.map((e) => ({
     "@context": "https://schema.org",
     "@type": "MusicEvent",
-    name: `${BAND_NAME} — ${e.venue}`,
+    name: `${BAND_NAME_KR_FULL} - ${e.venue}`,
     startDate: e.eventDate,
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
@@ -132,10 +226,10 @@ export function buildNewsArticleSchema(item: NewsItem) {
     headline: item.headline,
     datePublished: dateOnly(item.date),
     image: [abs(item.heroImage)],
-    author: { "@type": "Organization", name: BAND_NAME, url: SITE_URL },
+    author: { "@type": "Organization", name: BAND_NAME_KR_FULL, url: SITE_URL },
     publisher: {
       "@type": "Organization",
-      name: BAND_NAME,
+      name: BAND_NAME_KR_FULL,
       logo: { "@type": "ImageObject", url: abs("/icon.svg") },
     },
     articleSection: item.category,

@@ -2,31 +2,21 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { excerpt, formatNewsDate, getPublishedNews } from "@/lib/news";
+import { buildPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-const description = "All the news that matters — 안 중요해도 씁니다";
+const description =
+  "밴드 서스테인 뉴스 페이지. 공연 소식, 새 음악, 멤버 이야기와 플레이그라운드 업데이트를 한곳에서 확인하세요.";
 const ogImage = "/news/news01-hero.png";
 
-export const metadata: Metadata = {
-  title: "News",
+export const metadata: Metadata = buildPageMetadata({
+  title: "뉴스",
+  path: "/news",
   description,
-  openGraph: {
-    type: "website",
-    siteName: "Band Sustain",
-    url: "https://bandsustain.com/news",
-    title: "News — Band Sustain",
-    description,
-    images: [{ url: ogImage, alt: "News" }],
-    locale: "ko_KR",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "News — Band Sustain",
-    description,
-    images: [ogImage],
-  },
-};
+  keywords: ["서스테인 뉴스", "밴드 서스테인 소식", "Band Sustain news"],
+  ogImage,
+});
 
 export default async function NewsPage() {
   const items = await getPublishedNews();

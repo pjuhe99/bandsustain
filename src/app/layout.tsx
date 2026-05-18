@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Inter, Archivo } from "next/font/google";
-import "./globals.css";
+import { Archivo, Inter } from "next/font/google";
 import AnalyticsBeacon from "@/components/AnalyticsBeacon";
 import ClickTracker from "@/components/ClickTracker";
-import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import Nav from "@/components/Nav";
+import { buildRootMetadata } from "@/lib/seo";
+import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -19,32 +20,10 @@ const archivo = Archivo({
   display: "swap",
 });
 
-const siteUrl = "https://bandsustain.com";
-const defaultDescription = "Band Sustain — music, stories, experiments.";
-const defaultOgImage = "/slides/hero-a7f3c1e2.jpg";
+const rootMetadata = buildRootMetadata();
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: {
-    default: "Band Sustain",
-    template: "%s — Band Sustain",
-  },
-  description: defaultDescription,
-  openGraph: {
-    type: "website",
-    siteName: "Band Sustain",
-    url: siteUrl,
-    title: "Band Sustain",
-    description: defaultDescription,
-    images: [{ url: defaultOgImage, alt: "Band Sustain" }],
-    locale: "ko_KR",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Band Sustain",
-    description: defaultDescription,
-    images: [defaultOgImage],
-  },
+  ...rootMetadata,
   verification: {
     google: "AMJOi47eVTgK7Oh9l3ihsx4JAayNErTTsuPI8ro8IP4",
     other: {
@@ -59,7 +38,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ko" className={`${inter.variable} ${archivo.variable} overflow-x-hidden`}>
-      <body className="min-h-screen flex flex-col overflow-x-hidden">
+      <body className="flex min-h-screen flex-col overflow-x-hidden">
         <AnalyticsBeacon />
         <ClickTracker />
         <Nav />

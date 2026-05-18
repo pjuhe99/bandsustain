@@ -1,38 +1,26 @@
 import type { Metadata } from "next";
 import JsonLd from "@/components/JsonLd";
+import { buildLiveEventsSchema, buildPageMetadata } from "@/lib/seo";
 import {
-  getUpcomingEvents,
-  getPastEventsByYear,
   formatLiveDate,
   formatLiveDateWithYear,
+  getPastEventsByYear,
+  getUpcomingEvents,
   type LiveEvent,
 } from "@/lib/live";
-import { buildLiveEventsSchema } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-const description = "Band Sustain 공연 일정 — 예정 공연과 지나간 라이브.";
+const description = "Band Sustain 怨듭뿰 ?쇱젙 ???덉젙 怨듭뿰怨?吏?섍컙 ?쇱씠釉?";
 const ogImage = "/slides/hero-b4d9e516.jpg";
 
-export const metadata: Metadata = {
-  title: "Live",
+export const metadata: Metadata = buildPageMetadata({
+  title: "공연 일정",
+  path: "/live",
   description,
-  openGraph: {
-    type: "website",
-    siteName: "Band Sustain",
-    url: "https://bandsustain.com/live",
-    title: "Live — Band Sustain",
-    description,
-    images: [{ url: ogImage, alt: "Live" }],
-    locale: "ko_KR",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Live — Band Sustain",
-    description,
-    images: [ogImage],
-  },
-};
+  keywords: ["서스테인 공연", "밴드 서스테인 라이브", "Band Sustain live"],
+  ogImage,
+});
 
 export default async function LivePage() {
   const [upcoming, pastByYear] = await Promise.all([
@@ -86,7 +74,7 @@ export default async function LivePage() {
       )}
 
       {hasUpcoming && !hasPast && (
-        <p className="text-[var(--color-text-muted)] mt-12">지나간 공연 기록 준비 중.</p>
+        <p className="text-[var(--color-text-muted)] mt-12">吏?섍컙 怨듭뿰 湲곕줉 以鍮?以?</p>
       )}
     </section>
   );
