@@ -12,6 +12,7 @@
 #   PM2_NAME       (default bandsustain)
 #   HEALTH_URL     (default http://127.0.0.1:3100/)
 #   DB_CREDS       (default /var/www/html/_______site_BANDSUSTAIN/.db_credentials)
+#   ACTOR          (optional, set by caller; written to ## JOB START line)
 #
 # Exit codes: 0=ok, 1=deploy step failed, 2=smoke failed, 3=lock not acquired
 set -euo pipefail
@@ -54,6 +55,9 @@ if [[ "$(id -un)" != "ec2-user" ]]; then
   exec sudo -u ec2-user -- "$0" ${DRY_RUN:+--dry-run} "$JOB_ID" ${ROLLBACK_HASH:+--rollback "$ROLLBACK_HASH"}
 fi
 
+# Bootstrap log directory before redirecting output.
+mkdir -p "${DEPLOY_LOG_DIR}" || { echo "deploy.sh: cannot create log dir: ${DEPLOY_LOG_DIR}" >&2; exit 1; }
+
 LOG_FILE="${DEPLOY_LOG_DIR}/${JOB_ID}.log"
 LOCK_FILE="${DEPLOY_LOG_DIR}/lock"
 
@@ -71,7 +75,49 @@ run() {
 now_ts() { date +%s; }
 START_TS="$(now_ts)"
 
-trap 'rc=$?; if ! grep -q "^## RESULT " "${LOG_FILE}"; then echo "## RESULT INTERRUPTED total=$(( $(now_ts) - START_TS ))s"; fi; exit "$rc"' EXIT
+db_update_from_log() {
+  local result_line db_status fail_step dur sql post_head_sql pre_head_sql fail_step_sql
+  result_line="$(tac "${LOG_FILE}" | grep -m1 '^## RESULT ' || true)"
+  case "$result_line" in
+    *"RESULT SUCCESS"*) db_status="success"; fail_step="" ;;
+    *"RESULT FAIL"*)    db_status="fail";    fail_step="$(echo "$result_line" | sed -nE 's/.*step=([a-z_]+).*/\1/p')" ;;
+    *)                  db_status="interrupted"; fail_step="" ;;
+  esac
+  dur=$(( $(now_ts) - START_TS ))
+
+  # Defensive: if creds file missing, skip without breaking the trap.
+  [[ -r "$DB_CREDS" ]] || return 0
+
+  local DB_HOST="" DB_USER="" DB_PASS="" DB_NAME=""
+  # shellcheck disable=SC1090
+  # Disable nounset temporarily: creds file contains $2b-style bcrypt hashes that
+  # would throw "unbound variable" under set -u.
+  set +u; set -a; . "$DB_CREDS"; set +a; set -u
+
+  command -v mysql >/dev/null 2>&1 || return 0
+
+  post_head_sql="$( [[ -n "${POST_HEAD:-}" ]] && printf "'%s'" "${POST_HEAD}" || printf NULL )"
+  pre_head_sql="$(  [[ -n "${PRE_HEAD:-}"  ]] && printf "'%s'" "${PRE_HEAD}"  || printf NULL )"
+  fail_step_sql="$( [[ -n "$fail_step" ]] && printf "'%s'" "${fail_step}" || printf NULL )"
+  sql="UPDATE deploy_history
+       SET status='${db_status}',
+           fail_step=${fail_step_sql},
+           pre_head=${pre_head_sql},
+           post_head=${post_head_sql},
+           ended_at=NOW(),
+           duration_sec=${dur}
+       WHERE job_id='${JOB_ID}';"
+  if [[ "$DRY_RUN" == "1" ]]; then
+    echo "[dry-run] mysql UPDATE: ${sql//$'\n'/ }"
+  else
+    echo "$sql" | mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" 2>&1 || echo "## DB_WARN mysql UPDATE failed"
+  fi
+}
+
+# Trap: ensure every log ends with a ## RESULT line so the parser sees a terminal state
+# even on abnormal exit (kill, OOM, pm2 restart killing this child mid-flight).
+# Also runs db_update_from_log on ALL exit paths (success, fail, interrupted).
+trap 'rc=$?; if ! grep -q "^## RESULT " "${LOG_FILE}"; then echo "## RESULT INTERRUPTED total=$(( $(now_ts) - START_TS ))s"; fi; db_update_from_log; exit "$rc"' EXIT
 
 # Acquire lock (non-blocking). If lost, do not write any RESULT — caller will sweep us.
 exec {LOCKFD}>"${LOCK_FILE}"
@@ -83,6 +129,88 @@ fi
 
 echo "## JOB ${JOB_ID} START kind=${KIND} actor=${ACTOR:-unknown}"
 
-# (Steps fill in later tasks.)
-# Placeholder so the skeleton exits cleanly:
+cd "$APP_DIR"
+
+step_ok() { local name="$1" t0="$2"; echo "## STEP_OK ${name} $(( $(now_ts) - t0 ))s"; }
+step_fail() {
+  local name="$1" rc="$2" t0="$3"
+  echo "## STEP_FAIL ${name} exit=${rc} elapsed=$(( $(now_ts) - t0 ))s"
+  echo "## RESULT FAIL step=${name} total=$(( $(now_ts) - START_TS ))s"
+  exit 1
+}
+
+# 1. git fetch
+echo "## STEP git_fetch"
+T0="$(now_ts)"
+if ! run git fetch origin main; then step_fail git_fetch $? "$T0"; fi
+step_ok git_fetch "$T0"
+
+# 2. PRE_HEAD
+PRE_HEAD="$(git rev-parse HEAD)"
+echo "## PRE_HEAD ${PRE_HEAD}"
+
+# 3. pull or reset
+if [[ "$KIND" == "rollback" ]]; then
+  echo "## STEP git_reset target=${ROLLBACK_HASH}"
+  T0="$(now_ts)"
+  if ! run git reset --hard "$ROLLBACK_HASH"; then step_fail git_reset $? "$T0"; fi
+  step_ok git_reset "$T0"
+else
+  echo "## STEP git_pull"
+  T0="$(now_ts)"
+  if ! run git pull --ff-only origin main; then step_fail git_pull $? "$T0"; fi
+  step_ok git_pull "$T0"
+fi
+
+# 4. pnpm install (only if lockfile changed in this pull/reset)
+LOCKFILE_CHANGED=0
+if git diff --name-only "$PRE_HEAD" HEAD | grep -q '^pnpm-lock.yaml$'; then
+  LOCKFILE_CHANGED=1
+fi
+
+if [[ "$LOCKFILE_CHANGED" == "1" ]]; then
+  echo "## STEP pnpm_install"
+  T0="$(now_ts)"
+  if ! run pnpm install --frozen-lockfile; then step_fail pnpm_install $? "$T0"; fi
+  step_ok pnpm_install "$T0"
+else
+  echo "## STEP pnpm_install skipped reason=lockfile_unchanged"
+fi
+
+# 5. pnpm build
+echo "## STEP pnpm_build"
+T0="$(now_ts)"
+if ! run pnpm build; then step_fail pnpm_build $? "$T0"; fi
+step_ok pnpm_build "$T0"
+
+# 6. POST_HEAD
+POST_HEAD="$(git rev-parse HEAD)"
+echo "## POST_HEAD ${POST_HEAD}"
+
+# 7. pm2 restart
+echo "## STEP pm2_restart"
+T0="$(now_ts)"
+if ! run pm2 restart "$PM2_NAME" --update-env; then step_fail pm2_restart $? "$T0"; fi
+step_ok pm2_restart "$T0"
+
+# 8. smoke (after first 5s warmup, retry 3 times)
+echo "## STEP smoke"
+T0="$(now_ts)"
+sleep 5
+SMOKE_OK=0
+LAST_HTTP=""
+for delay in 0 8 13; do
+  if [[ "$delay" -gt 0 ]]; then sleep "$delay"; fi
+  LAST_HTTP="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 5 "$HEALTH_URL" || echo 000)"
+  if [[ "$LAST_HTTP" == "200" ]]; then SMOKE_OK=1; break; fi
+done
+if [[ "$SMOKE_OK" != "1" ]]; then
+  echo "HTTP ${LAST_HTTP} (failed after retries)"
+  echo "## STEP_FAIL smoke exit=2 elapsed=$(( $(now_ts) - T0 ))s last_http=${LAST_HTTP}"
+  echo "## RESULT FAIL step=smoke last_http=${LAST_HTTP} total=$(( $(now_ts) - START_TS ))s"
+  exit 2
+fi
+echo "HTTP 200"
+step_ok smoke "$T0"
+
 echo "## RESULT SUCCESS total=$(( $(now_ts) - START_TS ))s"
