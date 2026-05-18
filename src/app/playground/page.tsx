@@ -5,7 +5,7 @@ import { buildPageMetadata } from "@/lib/seo";
 import { playgroundFeatures, type PlaygroundFeature } from "@/lib/playground";
 
 const description =
-  "?쒖뒪?뚯씤??留뚮뱺 ?묒? ??댄꽣. ?댁긽?섍퀬 洹?쎄퀬 ?몃뜲?놁?留?臾섑븯寃?利먭굅??寃껊뱾??紐⑥븘??怨듦컙?낅땲??";
+  "서스테인이 만든 작은 놀이터. 이상하고 귀엽고 쓸데없지만 묘하게 즐거운 것들을 모아둔 공간입니다.";
 const ogImage = "/slides/hero-b4d9e516.jpg";
 
 export const metadata: Metadata = buildPageMetadata({
@@ -63,7 +63,7 @@ function PlaygroundCard({ feature }: { feature: PlaygroundFeature }) {
             className="inline-block w-2 h-2 bg-[var(--color-border-strong)]"
             aria-hidden
           />
-          怨?怨듦컻
+          곧 공개
         </span>
       )}
     </li>
