@@ -55,9 +55,7 @@ export function buildRootMetadata(): Metadata {
 
   return {
     metadataBase: new URL(SITE_URL),
-    title: {
-      default: title,
-    },
+    title,
     description,
     keywords: BRAND_KEYWORDS,
     alternates: {

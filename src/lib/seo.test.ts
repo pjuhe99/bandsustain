@@ -5,7 +5,7 @@ import { buildPageMetadata, buildRootMetadata } from "./seo";
 test("buildRootMetadata emphasizes the Korean band brand on the homepage", () => {
   const metadata = buildRootMetadata();
 
-  assert.equal(metadata.title?.default, "밴드 서스테인 | Band Sustain 공식 사이트");
+  assert.equal(metadata.title, "밴드 서스테인 | Band Sustain 공식 사이트");
   assert.equal(
     metadata.description,
     "밴드 서스테인(Band Sustain) 공식 사이트. 서스테인 음악, 공연 일정, 멤버 소개, 뉴스, 플레이그라운드 콘텐츠를 확인하세요.",
