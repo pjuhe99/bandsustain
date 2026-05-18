@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 const subItems = [
   { href: "/admin/yeongmin-bot", label: "Dashboard" },
   { href: "/admin/yeongmin-bot/prompt", label: "Prompt" },
+  { href: "/admin/yeongmin-bot/corpus", label: "Corpus" },
   { href: "/admin/yeongmin-bot/api-key", label: "API Key" },
   { href: "/admin/yeongmin-bot/profile", label: "Profile" },
 ];

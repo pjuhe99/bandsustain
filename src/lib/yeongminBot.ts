@@ -22,6 +22,7 @@ export type YeongminSettings = {
   sectionForbidden: string | null;
   sectionUnknownHandling: string | null;
   sectionExamples: string | null;
+  voiceCorpusJson: string | null;
 };
 
 type SettingsRow = RowDataPacket & {
@@ -43,6 +44,7 @@ type SettingsRow = RowDataPacket & {
   section_forbidden: string | null;
   section_unknown_handling: string | null;
   section_examples: string | null;
+  voice_corpus_json: string | null;
 };
 
 function rowToSettings(r: SettingsRow): YeongminSettings {
@@ -65,6 +67,7 @@ function rowToSettings(r: SettingsRow): YeongminSettings {
     sectionForbidden: r.section_forbidden,
     sectionUnknownHandling: r.section_unknown_handling,
     sectionExamples: r.section_examples,
+    voiceCorpusJson: r.voice_corpus_json,
   };
 }
 
@@ -95,6 +98,7 @@ export type UpdatableSettings = Partial<{
   sectionForbidden: string;
   sectionUnknownHandling: string;
   sectionExamples: string;
+  voiceCorpusJson: string;
 }>;
 
 const COLUMN_MAP: Record<keyof UpdatableSettings, string> = {
@@ -114,6 +118,7 @@ const COLUMN_MAP: Record<keyof UpdatableSettings, string> = {
   sectionForbidden: "section_forbidden",
   sectionUnknownHandling: "section_unknown_handling",
   sectionExamples: "section_examples",
+  voiceCorpusJson: "voice_corpus_json",
 };
 
 export async function updateSettings(patch: UpdatableSettings): Promise<void> {
@@ -147,6 +152,54 @@ export function getDecryptedApiKey(settings: YeongminSettings): string {
   return decryptApiKey(settings.apiKeyEncrypted);
 }
 
+export type VoiceCorpusEntry = {
+  category: string;
+  user: string;
+  assistant: string;
+  notes: string[];
+};
+
+function isVoiceCorpusEntry(value: unknown): value is VoiceCorpusEntry {
+  if (typeof value !== "object" || value === null) return false;
+  const entry = value as Record<string, unknown>;
+  return (
+    typeof entry.category === "string" &&
+    typeof entry.user === "string" &&
+    typeof entry.assistant === "string" &&
+    Array.isArray(entry.notes) &&
+    entry.notes.every((note) => typeof note === "string")
+  );
+}
+
+export function parseVoiceCorpusJson(raw: string | null | undefined): VoiceCorpusEntry[] {
+  if (!raw || raw.trim().length === 0) return [];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(parsed)) return [];
+  return parsed.filter(isVoiceCorpusEntry);
+}
+
+export function assertValidVoiceCorpusJson(raw: string): void {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error("voiceCorpusJson must be valid JSON");
+  }
+  if (!Array.isArray(parsed)) {
+    throw new Error("voiceCorpusJson must be a JSON array");
+  }
+  for (const entry of parsed) {
+    if (!isVoiceCorpusEntry(entry)) {
+      throw new Error("voiceCorpusJson entries must include category, user, assistant, notes[]");
+    }
+  }
+}
+
 const PROMPT_HEADER =
   '너는 밴드 서스테인의 리더 김영민을 모티브로 만든 AI 캐릭터 챗봇이다. 실제 김영민 본인은 아니며, 카카오톡 대화에서 보이는 김영민의 말투와 농담 방식, 음악/기타 장비/역사 지식을 참고해 대화한다.\n\n이 봇의 목적은 밴드 홍보보다 "진짜 김영민과 카톡하는 것 같은 재미"를 주는 것이다.';
 
@@ -163,6 +216,25 @@ const SECTION_ORDER: Array<{ heading: string; key: keyof YeongminSettings }> = [
   { heading: "10. 답변 예시", key: "sectionExamples" },
 ];
 
+function formatVoiceCorpus(entries: VoiceCorpusEntry[]): string | null {
+  if (entries.length === 0) return null;
+  return entries
+    .map((entry, index) => {
+      const category = entry.category.trim() || "Untitled";
+      const notes = entry.notes.map((note) => note.trim()).filter(Boolean);
+      const lines = [
+        `### Corpus ${index + 1} - ${category}`,
+        `- user: ${entry.user.trim()}`,
+        `- assistant: ${entry.assistant.trim()}`,
+      ];
+      if (notes.length > 0) {
+        lines.push(`- notes: ${notes.join(", ")}`);
+      }
+      return lines.join("\n");
+    })
+    .join("\n\n");
+}
+
 export function assemblePrompt(settings: YeongminSettings): string {
   const parts: string[] = [PROMPT_HEADER];
   for (const { heading, key } of SECTION_ORDER) {
@@ -170,6 +242,10 @@ export function assemblePrompt(settings: YeongminSettings): string {
     if (typeof value === "string" && value.trim().length > 0) {
       parts.push(`## ${heading}\n${value.trim()}`);
     }
+  }
+  const voiceCorpus = formatVoiceCorpus(parseVoiceCorpusJson(settings.voiceCorpusJson));
+  if (voiceCorpus) {
+    parts.push(`## 11. Voice Corpus\n${voiceCorpus}`);
   }
   return parts.join("\n\n");
 }

@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS yeongmin_settings (
   section_forbidden        TEXT         NULL,
   section_unknown_handling TEXT         NULL,
   section_examples         MEDIUMTEXT   NULL,
+  voice_corpus_json        MEDIUMTEXT   NULL,
   updated_at               TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT chk_yeongmin_settings_singleton CHECK (id = 1)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

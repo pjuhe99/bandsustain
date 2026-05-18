@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { readSession } from "@/lib/auth";
-import { getSettings, updateSettings, type UpdatableSettings } from "@/lib/yeongminBot";
+import {
+  assertValidVoiceCorpusJson,
+  getSettings,
+  updateSettings,
+  type UpdatableSettings,
+} from "@/lib/yeongminBot";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,6 +22,7 @@ const STRING_KEYS = new Set<keyof UpdatableSettings>([
   "sectionForbidden",
   "sectionUnknownHandling",
   "sectionExamples",
+  "voiceCorpusJson",
 ]);
 
 const NUMBER_KEYS = new Set<keyof UpdatableSettings>([
@@ -50,6 +56,7 @@ export async function GET() {
     sectionForbidden: s.sectionForbidden,
     sectionUnknownHandling: s.sectionUnknownHandling,
     sectionExamples: s.sectionExamples,
+    voiceCorpusJson: s.voiceCorpusJson,
   });
 }
 
@@ -69,6 +76,14 @@ export async function PATCH(req: Request) {
     if (STRING_KEYS.has(k as keyof UpdatableSettings)) {
       if (typeof v !== "string") {
         return NextResponse.json({ error: `${k} must be string` }, { status: 400 });
+      }
+      if (k === "voiceCorpusJson") {
+        try {
+          assertValidVoiceCorpusJson(v);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "invalid voiceCorpusJson";
+          return NextResponse.json({ error: message }, { status: 400 });
+        }
       }
       (patch as Record<string, unknown>)[k] = v;
     } else if (NUMBER_KEYS.has(k as keyof UpdatableSettings)) {
