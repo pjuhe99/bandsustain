@@ -67,13 +67,17 @@ export default function YeongminBotCorpusPage() {
       .then((r) => r.json())
       .then((data) => {
         const nextEntries = parseEntries(data.voiceCorpusJson);
-        setEntries(nextEntries.length > 0 ? nextEntries : [{ ...EXAMPLE_ENTRY }]);
+        setEntries(
+          nextEntries.length > 0
+            ? [...nextEntries].reverse()
+            : [{ ...EXAMPLE_ENTRY }],
+        );
       })
       .catch(() => setErr("로드 실패"));
   }, []);
 
   const jsonPreview = useMemo(
-    () => JSON.stringify(normalizeEntries(entries), null, 2),
+    () => JSON.stringify(normalizeEntries([...entries].reverse()), null, 2),
     [entries],
   );
 
@@ -100,7 +104,7 @@ export default function YeongminBotCorpusPage() {
   }
 
   function addEntry() {
-    setEntries((current) => [...current, { ...EMPTY_ENTRY, notes: [""] }]);
+    setEntries((current) => [{ ...EMPTY_ENTRY, notes: [""] }, ...current]);
   }
 
   function removeEntry(index: number) {
