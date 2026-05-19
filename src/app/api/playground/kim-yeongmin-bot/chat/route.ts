@@ -89,6 +89,7 @@ export async function POST(req: Request) {
       0,
       true,
       false,
+      true,
     );
   }
   if (!settings.apiKeyEncrypted) {
@@ -99,6 +100,7 @@ export async function POST(req: Request) {
       0,
       true,
       false,
+      true,
     );
   }
 
@@ -111,6 +113,7 @@ export async function POST(req: Request) {
       isNewSession,
       0,
       false,
+      true,
       true,
     );
   }
@@ -125,6 +128,7 @@ export async function POST(req: Request) {
       settings.sessionMsgCap - sessionCount,
       true,
       false,
+      true,
     );
   }
 
@@ -140,6 +144,7 @@ export async function POST(req: Request) {
       0,
       true,
       false,
+      true,
     );
   }
 
@@ -161,6 +166,7 @@ export async function POST(req: Request) {
       Math.max(settings.sessionMsgCap - sessionCount, 0),
       false,
       false,
+      true,
     );
   }
 
@@ -219,6 +225,7 @@ export async function POST(req: Request) {
       Math.max(remaining, 0),
       false,
       false,
+      false,
     );
   } catch (err) {
     console.error("[yeongmin-bot] OpenAI error:", err);
@@ -229,6 +236,7 @@ export async function POST(req: Request) {
       Math.max(settings.sessionMsgCap - sessionCount, 0),
       false,
       false,
+      true,
     );
   }
 }
@@ -240,12 +248,14 @@ function replyJson(
   sessionRemaining: number,
   dailyLimitReached: boolean,
   sessionLimitReached: boolean,
+  isFallback: boolean,
 ) {
   const res = NextResponse.json({
     reply,
     sessionRemaining,
     dailyLimitReached,
     sessionLimitReached,
+    isFallback,
   });
   if (setCookie) {
     res.cookies.set(COOKIE_NAME, sessionId, {

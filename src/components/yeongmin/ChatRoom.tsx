@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { remainingDelayMs } from "@/lib/yeongminDelay";
 import { buildUserNameContext, normalizeUserNameInput } from "@/lib/yeongminUserName";
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
@@ -16,7 +17,10 @@ type ChatResponse = {
   sessionRemaining: number;
   dailyLimitReached: boolean;
   sessionLimitReached: boolean;
+  isFallback: boolean;
 };
+
+const FALLBACK_TYPING_MS = 2000;
 
 const INITIAL_NAME_PROMPT: Msg = {
   role: "assistant",
@@ -77,6 +81,7 @@ export default function ChatRoom({ profileImagePath }: Props) {
     setMessages(next);
     setInput("");
     setSending(true);
+    const startedAt = Date.now();
     try {
       const res = await fetch("/api/playground/kim-yeongmin-bot/chat", {
         method: "POST",
@@ -89,6 +94,12 @@ export default function ChatRoom({ profileImagePath }: Props) {
         }),
       });
       const data = (await res.json()) as ChatResponse;
+      if (data.isFallback) {
+        const waitMs = remainingDelayMs(Date.now() - startedAt, FALLBACK_TYPING_MS);
+        if (waitMs > 0) {
+          await new Promise((resolve) => setTimeout(resolve, waitMs));
+        }
+      }
       setMessages((prev) => [...prev, { role: "assistant", phase: "chat", content: data.reply }]);
       if (data.sessionLimitReached || data.dailyLimitReached) {
         setDisabled(true);
