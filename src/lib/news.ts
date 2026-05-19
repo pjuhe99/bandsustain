@@ -70,11 +70,19 @@ export async function countNews(): Promise<number> {
   return rows[0]?.c ?? 0;
 }
 
+function formatDateOnly(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 export function formatNewsDate(d: Date): string {
-  return d.toISOString().slice(0, 10);
+  return formatDateOnly(d);
 }
 
 export function excerpt(body: string, max: number): string {
   const flat = body.replace(/\s+/g, " ").trim();
-  return flat.length <= max ? flat : flat.slice(0, max - 1) + "…";
+  if (max <= 0) return "";
+  if (flat.length <= max) return flat;
+  if (max <= 3) return flat.slice(0, max);
+  return `${flat.slice(0, max - 3).trimEnd()}...`;
 }

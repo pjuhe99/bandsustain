@@ -11,6 +11,7 @@ import {
   sumTodayTokens,
   calcCostUsd,
 } from "@/lib/yeongminBot";
+import { buildYeongminOfficialContext } from "@/lib/yeongminBotContext";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -133,7 +134,17 @@ export async function POST(req: Request) {
   }
 
   const client = new OpenAI({ apiKey, timeout: 45_000 });
-  const systemPrompt = assemblePrompt(settings);
+  const basePrompt = assemblePrompt(settings);
+  const latestUserMessage = history[history.length - 1].content;
+  let officialContext: string | null = null;
+  try {
+    officialContext = await buildYeongminOfficialContext(latestUserMessage);
+  } catch (err) {
+    console.warn("[yeongmin-bot] official context load failed:", err);
+  }
+  const systemPrompt = officialContext
+    ? `${basePrompt}\n\n${officialContext}`
+    : basePrompt;
 
   try {
     const completion = await client.chat.completions.create({
