@@ -127,6 +127,47 @@ test("classifyOfficialContextNeeds ignores broad generic words", async () => {
   });
 });
 
+test("buildYeongminOfficialContext loads member context when a member name is mentioned directly", async () => {
+  const { buildYeongminOfficialContext } = await getYeongminBotContextModule();
+  const calls: string[] = [];
+
+  const context = await buildYeongminOfficialContext("김상준이 누구야?", {
+    getUpcomingEvents: async () => {
+      calls.push("live");
+      return [];
+    },
+    getPublishedMembers: async () => {
+      calls.push("members");
+      return [
+        {
+          id: 1,
+          nameKr: "김상준",
+          nameEn: "Sangjun Kim",
+          position: "Bass",
+          photoUrl: "https://example.com/member.jpg",
+          favoriteArtist: "Blur",
+          favoriteSong: "Coffee & TV",
+          displayOrder: 1,
+          published: true,
+        },
+      ];
+    },
+    getPublishedSongs: async () => {
+      calls.push("songs");
+      return [];
+    },
+    getPublishedNews: async () => {
+      calls.push("news");
+      return [];
+    },
+  });
+
+  assert.equal(calls.join(","), "members");
+  assert.match(context ?? "", /### Members/);
+  assert.match(context ?? "", /김상준/);
+  assert.doesNotMatch(context ?? "", /### Songs/);
+});
+
 test("formatNewsDate preserves local calendar date components", async () => {
   const { formatNewsDate } = await getNewsModule();
   const date = makeDateLike(2026, 4, 2, "2026-05-01T15:00:00.000Z");
@@ -145,6 +186,16 @@ test("formatOfficialContext returns null when there is no relevant data", async 
     }),
     null,
   );
+});
+
+test("buildYeongminRuntimeContext includes the local current date and song release guidance", async () => {
+  const { buildYeongminRuntimeContext } = await getYeongminBotContextModule();
+  const runtimeContext = buildYeongminRuntimeContext(
+    makeDateLike(2026, 4, 19, "2026-05-18T15:00:00.000Z"),
+  );
+
+  assert.match(runtimeContext, /Today is 2026-05-19 in Asia\/Seoul\./);
+  assert.match(runtimeContext, /published songs listed in official context are already released/i);
 });
 
 test("buildYeongminOfficialContext formats only relevant official data", async () => {
@@ -223,9 +274,10 @@ test("buildYeongminOfficialContext formats only relevant official data", async (
   );
 
   assert.equal(context !== null, true);
-  assert.equal(calls.join(","), "live,members,songs,news");
+  assert.deepEqual([...calls].sort(), ["live", "members", "news", "songs"]);
   assert.match(context ?? "", /^## Official Bandsustain Context/m);
   assert.match(context ?? "", /playful, fictional, or exaggerated editorial writing/i);
+  assert.match(context ?? "", /published songs listed here are already released/i);
   assert.match(context ?? "", /Band Opens Secret Portal/);
   assert.doesNotMatch(context ?? "", /The raw article text should not appear verbatim in the prompt\./);
   assert.match(context ?? "", /First Light/);

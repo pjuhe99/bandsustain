@@ -11,7 +11,7 @@ import {
   sumTodayTokens,
   calcCostUsd,
 } from "@/lib/yeongminBot";
-import { buildYeongminOfficialContext } from "@/lib/yeongminBotContext";
+import { buildYeongminOfficialContext, buildYeongminRuntimeContext } from "@/lib/yeongminBotContext";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -142,9 +142,10 @@ export async function POST(req: Request) {
   } catch (err) {
     console.warn("[yeongmin-bot] official context load failed:", err);
   }
+  const runtimeContext = buildYeongminRuntimeContext();
   const systemPrompt = officialContext
-    ? `${basePrompt}\n\n${officialContext}`
-    : basePrompt;
+    ? `${basePrompt}\n\n${runtimeContext}\n\n${officialContext}`
+    : `${basePrompt}\n\n${runtimeContext}`;
 
   try {
     const completion = await client.chat.completions.create({

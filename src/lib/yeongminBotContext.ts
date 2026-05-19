@@ -160,6 +160,19 @@ function formatDateOnly(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+function normalizeForLooseMatch(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9가-힣]+/g, "");
+}
+
+function messageMentionsMemberName(message: string, members: { nameKr: string; nameEn: string }[]): boolean {
+  const normalizedMessage = normalizeForLooseMatch(message);
+  if (!normalizedMessage) return false;
+  return members.some((member) => {
+    const candidates = [member.nameKr, member.nameEn].map(normalizeForLooseMatch).filter(Boolean);
+    return candidates.some((candidate) => normalizedMessage.includes(candidate));
+  });
+}
+
 function excerptFallback(body: string, max: number): string {
   const flat = body.replace(/\s+/g, " ").trim();
   if (max <= 0) return "";
@@ -229,9 +242,18 @@ export function formatOfficialContext(data: OfficialContextData): string | null 
     "## Official Bandsustain Context",
     "Use this context only when it is relevant to the user's question.",
     "Members, songs, and live items are official site-backed facts.",
+    "Any published songs listed here are already released songs, not upcoming releases.",
     "News items are site content but may be playful, fictional, or exaggerated editorial writing.",
     "",
     ...sections,
+  ].join("\n");
+}
+
+export function buildYeongminRuntimeContext(now: Date = new Date()): string {
+  return [
+    "## Runtime Context",
+    `Today is ${formatDateOnly(now)} in Asia/Seoul.`,
+    "Published songs listed in official context are already released unless explicitly marked upcoming.",
   ].join("\n");
 }
 
@@ -330,13 +352,24 @@ export async function buildYeongminOfficialContext(
   deps: BuildDeps = {},
 ): Promise<string | null> {
   const needs = classifyOfficialContextNeeds(message);
+  let membersForNameMatch: Awaited<ReturnType<NonNullable<BuildDeps["getPublishedMembers"]>>> | null = null;
+
+  if (!needs.members) {
+    membersForNameMatch = await loadMemberContext(deps);
+    if (messageMentionsMemberName(message, membersForNameMatch)) {
+      needs.members = true;
+    }
+  }
+
   if (!needs.live && !needs.members && !needs.songs && !needs.news) {
     return null;
   }
 
   const [live, members, songs, news] = await Promise.all([
     needs.live ? loadLiveContext(deps) : Promise.resolve([]),
-    needs.members ? loadMemberContext(deps) : Promise.resolve([]),
+    needs.members
+      ? Promise.resolve(membersForNameMatch ?? null).then((items) => items ?? loadMemberContext(deps))
+      : Promise.resolve([]),
     needs.songs ? loadSongContext(deps) : Promise.resolve([]),
     needs.news ? loadNewsContext(deps) : Promise.resolve([]),
   ]);

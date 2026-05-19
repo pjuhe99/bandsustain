@@ -11,7 +11,7 @@ type SettingsView = {
   apiKeyConfigured: boolean;
 };
 
-const MODEL_OPTIONS = ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo"];
+const MODEL_OPTIONS = ["gpt-4.1-mini", "gpt-4o-mini", "gpt-4.1", "gpt-4o", "o4-mini", "gpt-4-turbo"];
 
 export default function ApiKeyPage() {
   const [view, setView] = useState<SettingsView | null>(null);
@@ -20,16 +20,16 @@ export default function ApiKeyPage() {
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
 
-  useEffect(() => {
-    refresh();
-  }, []);
-
-  function refresh() {
+  const refresh = () => {
     fetch("/api/admin/yeongmin-bot/settings", { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => setView(d))
       .catch(() => setErr("로드 실패"));
-  }
+  };
+
+  useEffect(() => {
+    refresh();
+  }, []);
 
   async function saveKey() {
     if (newKey.length < 20) {
@@ -86,14 +86,14 @@ export default function ApiKeyPage() {
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-3">
         <h2 className="text-sm uppercase tracking-wider text-[var(--color-text-muted)]">
-          OpenAI API 키
+          OpenAI API Key
         </h2>
         <p className="text-sm">
           현재 상태:{" "}
           <span className={view.apiKeyConfigured ? "text-[var(--color-text)]" : "text-red-600"}>
             {view.apiKeyConfigured ? "설정됨" : "미설정"}
           </span>{" "}
-          <span className="text-[var(--color-text-muted)] text-xs">(평문은 표시하지 않음)</span>
+          <span className="text-[var(--color-text-muted)] text-xs">(원문은 표시하지 않음)</span>
         </p>
         <input
           type="password"
@@ -105,7 +105,7 @@ export default function ApiKeyPage() {
         <button
           onClick={saveKey}
           disabled={saving}
-          className="self-start px-5 py-2.5 text-sm font-semibold uppercase tracking-wider bg-[var(--color-text)] text-[var(--color-bg)] border border-[var(--color-text)] disabled:opacity-50"
+          className="self-start border border-[var(--color-text)] bg-[var(--color-text)] px-5 py-2.5 text-sm font-semibold uppercase tracking-wider text-[var(--color-bg)] disabled:opacity-50"
         >
           {saving ? "저장 중..." : "API 키 저장 / 교체"}
         </button>
@@ -119,19 +119,21 @@ export default function ApiKeyPage() {
           className="self-start border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 py-2 text-sm"
         >
           {MODEL_OPTIONS.map((m) => (
-            <option key={m} value={m}>{m}</option>
+            <option key={m} value={m}>
+              {m}
+            </option>
           ))}
           {!MODEL_OPTIONS.includes(view.modelName) && (
             <option value={view.modelName}>{view.modelName}</option>
           )}
         </select>
         <p className="text-xs text-[var(--color-text-muted)]">
-          모델 변경 시 입출력 단가도 함께 갱신해야 비용 표시가 정확해요.
+          모델을 바꾸면 입력/출력 단가도 함께 갱신해야 비용 표시가 정확합니다.
         </p>
         <button
           onClick={() => saveSettings({ modelName: view.modelName })}
           disabled={saving}
-          className="self-start px-5 py-2.5 text-sm font-semibold uppercase tracking-wider bg-transparent text-[var(--color-text)] border border-[var(--color-text)] disabled:opacity-50"
+          className="self-start border border-[var(--color-text)] bg-transparent px-5 py-2.5 text-sm font-semibold uppercase tracking-wider text-[var(--color-text)] disabled:opacity-50"
         >
           모델 저장
         </button>
@@ -169,7 +171,7 @@ export default function ApiKeyPage() {
             })
           }
           disabled={saving}
-          className="self-start px-5 py-2.5 text-sm font-semibold uppercase tracking-wider bg-transparent text-[var(--color-text)] border border-[var(--color-text)] disabled:opacity-50"
+          className="self-start border border-[var(--color-text)] bg-transparent px-5 py-2.5 text-sm font-semibold uppercase tracking-wider text-[var(--color-text)] disabled:opacity-50"
         >
           단가 저장
         </button>
@@ -207,7 +209,7 @@ export default function ApiKeyPage() {
             })
           }
           disabled={saving}
-          className="self-start px-5 py-2.5 text-sm font-semibold uppercase tracking-wider bg-transparent text-[var(--color-text)] border border-[var(--color-text)] disabled:opacity-50"
+          className="self-start border border-[var(--color-text)] bg-transparent px-5 py-2.5 text-sm font-semibold uppercase tracking-wider text-[var(--color-text)] disabled:opacity-50"
         >
           한도 저장
         </button>
