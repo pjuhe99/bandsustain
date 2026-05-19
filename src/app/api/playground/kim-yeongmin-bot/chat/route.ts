@@ -12,6 +12,7 @@ import {
   calcCostUsd,
 } from "@/lib/yeongminBot";
 import { buildYeongminOfficialContext, buildYeongminRuntimeContext } from "@/lib/yeongminBotContext";
+import { clampReply, isInputTooLong } from "@/lib/yeongminBotLimits";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,7 +38,7 @@ function isChatMessage(v: unknown): v is ChatMessage {
     (o.role === "user" || o.role === "assistant") &&
     typeof o.content === "string" &&
     o.content.length >= 1 &&
-    o.content.length <= 2000
+    o.content.length <= 8000
   );
 }
 
@@ -136,13 +137,34 @@ export async function POST(req: Request) {
   const client = new OpenAI({ apiKey, timeout: 45_000 });
   const basePrompt = assemblePrompt(settings);
   const latestUserMessage = history[history.length - 1].content;
+  if (isInputTooLong(latestUserMessage, settings.inputCharLimit)) {
+    const reply = clampReply(
+      settings.longInputFallbackReply?.trim() || "지금은 너무 긴 말을 다 읽지 않고 있어. 핵심만 짧게 다시 말해줘.",
+      {
+        outputMaxChars: settings.outputMaxChars,
+        outputMaxLines: settings.outputMaxLines,
+      },
+    );
+    return replyJson(
+      reply,
+      sessionId,
+      isNewSession,
+      Math.max(settings.sessionMsgCap - sessionCount, 0),
+      false,
+      false,
+    );
+  }
+
   let officialContext: string | null = null;
   try {
     officialContext = await buildYeongminOfficialContext(latestUserMessage);
   } catch (err) {
     console.warn("[yeongmin-bot] official context load failed:", err);
   }
-  const runtimeContext = buildYeongminRuntimeContext();
+  const runtimeContext = buildYeongminRuntimeContext(new Date(), {
+    outputMaxChars: settings.outputMaxChars,
+    outputMaxLines: settings.outputMaxLines,
+  });
   const systemPrompt = officialContext
     ? `${basePrompt}\n\n${runtimeContext}\n\n${officialContext}`
     : `${basePrompt}\n\n${runtimeContext}`;
@@ -155,10 +177,14 @@ export async function POST(req: Request) {
         ...history,
       ],
       temperature: 0.9,
-      max_tokens: 800,
+      max_tokens: settings.outputMaxTokens,
     });
-    const reply =
+    const rawReply =
       completion.choices[0]?.message?.content?.trim() ?? FALLBACK_OPENAI_ERROR;
+    const reply = clampReply(rawReply, {
+      outputMaxChars: settings.outputMaxChars,
+      outputMaxLines: settings.outputMaxLines,
+    });
     const usage = completion.usage ?? { prompt_tokens: 0, completion_tokens: 0 };
     const inputTokens = usage.prompt_tokens ?? 0;
     const outputTokens = usage.completion_tokens ?? 0;

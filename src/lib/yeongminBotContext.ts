@@ -249,12 +249,22 @@ export function formatOfficialContext(data: OfficialContextData): string | null 
   ].join("\n");
 }
 
-export function buildYeongminRuntimeContext(now: Date = new Date()): string {
+export function buildYeongminRuntimeContext(
+  now: Date = new Date(),
+  options?: { outputMaxChars?: number; outputMaxLines?: number },
+): string {
+  const outputRule =
+    options?.outputMaxChars && options?.outputMaxLines
+      ? `Keep every reply within ${options.outputMaxChars} characters and ${options.outputMaxLines} lines, even if the user asks for a longer answer.`
+      : null;
+
   return [
     "## Runtime Context",
     `Today is ${formatDateOnly(now)} in Asia/Seoul.`,
     "Published songs listed in official context are already released unless explicitly marked upcoming.",
-  ].join("\n");
+    outputRule,
+    "If the user asks for a longer answer, keep the same concise style instead of expanding past the limits.",
+  ].filter(Boolean).join("\n");
 }
 
 async function loadLiveContext(deps: BuildDeps): Promise<OfficialLiveContextItem[]> {

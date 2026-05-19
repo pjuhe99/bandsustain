@@ -8,6 +8,11 @@ type SettingsView = {
   outputRatePer1mUsd: number;
   dailyTokenCap: number;
   sessionMsgCap: number;
+  inputCharLimit: number;
+  longInputFallbackReply: string | null;
+  outputMaxChars: number;
+  outputMaxLines: number;
+  outputMaxTokens: number;
   apiKeyConfigured: boolean;
 };
 
@@ -33,7 +38,7 @@ export default function ApiKeyPage() {
 
   async function saveKey() {
     if (newKey.length < 20) {
-      setErr("API 키가 너무 짧음");
+      setErr("API 키가 너무 짧습니다.");
       return;
     }
     setSaving(true);
@@ -93,7 +98,7 @@ export default function ApiKeyPage() {
           <span className={view.apiKeyConfigured ? "text-[var(--color-text)]" : "text-red-600"}>
             {view.apiKeyConfigured ? "설정됨" : "미설정"}
           </span>{" "}
-          <span className="text-[var(--color-text-muted)] text-xs">(원문은 표시하지 않음)</span>
+          <span className="text-[var(--color-text-muted)] text-xs">(평문은 표시하지 않음)</span>
         </p>
         <input
           type="password"
@@ -178,7 +183,7 @@ export default function ApiKeyPage() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm uppercase tracking-wider text-[var(--color-text-muted)]">한도</h2>
+        <h2 className="text-sm uppercase tracking-wider text-[var(--color-text-muted)]">토큰 한도</h2>
         <label className="flex items-center gap-3 text-sm">
           <span className="w-40">일일 토큰 한도</span>
           <input
@@ -211,7 +216,82 @@ export default function ApiKeyPage() {
           disabled={saving}
           className="self-start border border-[var(--color-text)] bg-transparent px-5 py-2.5 text-sm font-semibold uppercase tracking-wider text-[var(--color-text)] disabled:opacity-50"
         >
-          한도 저장
+          토큰 한도 저장
+        </button>
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-sm uppercase tracking-wider text-[var(--color-text-muted)]">입출력 길이 제어</h2>
+        <label className="flex items-center gap-3 text-sm">
+          <span className="w-48">입력 글자수 한도</span>
+          <input
+            type="number"
+            step="1"
+            min="1"
+            value={view.inputCharLimit}
+            onChange={(e) => setView({ ...view, inputCharLimit: Number(e.target.value) })}
+            className="w-40 border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-2 py-1 text-sm"
+          />
+        </label>
+        <label className="flex items-center gap-3 text-sm">
+          <span className="w-48">출력 최대 글자수</span>
+          <input
+            type="number"
+            step="1"
+            min="1"
+            value={view.outputMaxChars}
+            onChange={(e) => setView({ ...view, outputMaxChars: Number(e.target.value) })}
+            className="w-40 border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-2 py-1 text-sm"
+          />
+        </label>
+        <label className="flex items-center gap-3 text-sm">
+          <span className="w-48">출력 최대 줄 수</span>
+          <input
+            type="number"
+            step="1"
+            min="1"
+            value={view.outputMaxLines}
+            onChange={(e) => setView({ ...view, outputMaxLines: Number(e.target.value) })}
+            className="w-40 border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-2 py-1 text-sm"
+          />
+        </label>
+        <label className="flex items-center gap-3 text-sm">
+          <span className="w-48">출력 최대 토큰</span>
+          <input
+            type="number"
+            step="1"
+            min="1"
+            value={view.outputMaxTokens}
+            onChange={(e) => setView({ ...view, outputMaxTokens: Number(e.target.value) })}
+            className="w-40 border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-2 py-1 text-sm"
+          />
+        </label>
+        <label className="flex flex-col gap-2 text-sm">
+          <span>장문 입력 fallback 답변</span>
+          <textarea
+            value={view.longInputFallbackReply ?? ""}
+            onChange={(e) => setView({ ...view, longInputFallbackReply: e.target.value })}
+            rows={5}
+            className="min-h-28 w-full max-w-3xl border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 py-2 text-sm"
+          />
+        </label>
+        <p className="text-xs text-[var(--color-text-muted)]">
+          입력 한도를 넘기면 모델을 호출하지 않고 위 답변을 그대로 반환합니다. 출력은 프롬프트 규칙과 서버 후처리 둘 다 적용됩니다.
+        </p>
+        <button
+          onClick={() =>
+            saveSettings({
+              inputCharLimit: view.inputCharLimit,
+              outputMaxChars: view.outputMaxChars,
+              outputMaxLines: view.outputMaxLines,
+              outputMaxTokens: view.outputMaxTokens,
+              longInputFallbackReply: view.longInputFallbackReply ?? "",
+            })
+          }
+          disabled={saving}
+          className="self-start border border-[var(--color-text)] bg-transparent px-5 py-2.5 text-sm font-semibold uppercase tracking-wider text-[var(--color-text)] disabled:opacity-50"
+        >
+          길이 제어 저장
         </button>
       </section>
 

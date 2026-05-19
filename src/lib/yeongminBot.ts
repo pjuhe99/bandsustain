@@ -11,6 +11,11 @@ export type YeongminSettings = {
   outputRatePer1mUsd: number;
   dailyTokenCap: number;
   sessionMsgCap: number;
+  inputCharLimit: number;
+  longInputFallbackReply: string | null;
+  outputMaxChars: number;
+  outputMaxLines: number;
+  outputMaxTokens: number;
   profileImagePath: string | null;
   sectionIdentity: string | null;
   sectionRole: string | null;
@@ -33,6 +38,11 @@ type SettingsRow = RowDataPacket & {
   output_rate_per_1m_usd: string;
   daily_token_cap: number;
   session_msg_cap: number;
+  input_char_limit: number;
+  long_input_fallback_reply: string | null;
+  output_max_chars: number;
+  output_max_lines: number;
+  output_max_tokens: number;
   profile_image_path: string | null;
   section_identity: string | null;
   section_role: string | null;
@@ -56,6 +66,11 @@ function rowToSettings(r: SettingsRow): YeongminSettings {
     outputRatePer1mUsd: Number(r.output_rate_per_1m_usd),
     dailyTokenCap: r.daily_token_cap,
     sessionMsgCap: r.session_msg_cap,
+    inputCharLimit: r.input_char_limit,
+    longInputFallbackReply: r.long_input_fallback_reply,
+    outputMaxChars: r.output_max_chars,
+    outputMaxLines: r.output_max_lines,
+    outputMaxTokens: r.output_max_tokens,
     profileImagePath: r.profile_image_path,
     sectionIdentity: r.section_identity,
     sectionRole: r.section_role,
@@ -87,6 +102,11 @@ export type UpdatableSettings = Partial<{
   outputRatePer1mUsd: number;
   dailyTokenCap: number;
   sessionMsgCap: number;
+  inputCharLimit: number;
+  longInputFallbackReply: string;
+  outputMaxChars: number;
+  outputMaxLines: number;
+  outputMaxTokens: number;
   profileImagePath: string | null;
   sectionIdentity: string;
   sectionRole: string;
@@ -107,6 +127,11 @@ const COLUMN_MAP: Record<keyof UpdatableSettings, string> = {
   outputRatePer1mUsd: "output_rate_per_1m_usd",
   dailyTokenCap: "daily_token_cap",
   sessionMsgCap: "session_msg_cap",
+  inputCharLimit: "input_char_limit",
+  longInputFallbackReply: "long_input_fallback_reply",
+  outputMaxChars: "output_max_chars",
+  outputMaxLines: "output_max_lines",
+  outputMaxTokens: "output_max_tokens",
   profileImagePath: "profile_image_path",
   sectionIdentity: "section_identity",
   sectionRole: "section_role",

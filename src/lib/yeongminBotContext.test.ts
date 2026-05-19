@@ -192,10 +192,12 @@ test("buildYeongminRuntimeContext includes the local current date and song relea
   const { buildYeongminRuntimeContext } = await getYeongminBotContextModule();
   const runtimeContext = buildYeongminRuntimeContext(
     makeDateLike(2026, 4, 19, "2026-05-18T15:00:00.000Z"),
+    { outputMaxChars: 240, outputMaxLines: 6 },
   );
 
   assert.match(runtimeContext, /Today is 2026-05-19 in Asia\/Seoul\./);
   assert.match(runtimeContext, /published songs listed in official context are already released/i);
+  assert.match(runtimeContext, /within 240 characters and 6 lines/i);
 });
 
 test("buildYeongminOfficialContext formats only relevant official data", async () => {

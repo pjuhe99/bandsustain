@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 
 const STRING_KEYS = new Set<keyof UpdatableSettings>([
   "modelName",
+  "longInputFallbackReply",
   "sectionIdentity",
   "sectionRole",
   "sectionTone",
@@ -30,6 +31,17 @@ const NUMBER_KEYS = new Set<keyof UpdatableSettings>([
   "outputRatePer1mUsd",
   "dailyTokenCap",
   "sessionMsgCap",
+  "inputCharLimit",
+  "outputMaxChars",
+  "outputMaxLines",
+  "outputMaxTokens",
+]);
+
+const POSITIVE_NUMBER_KEYS = new Set<keyof UpdatableSettings>([
+  "inputCharLimit",
+  "outputMaxChars",
+  "outputMaxLines",
+  "outputMaxTokens",
 ]);
 
 const NULLABLE_STRING_KEYS = new Set<keyof UpdatableSettings>(["profileImagePath"]);
@@ -44,6 +56,11 @@ export async function GET() {
     outputRatePer1mUsd: s.outputRatePer1mUsd,
     dailyTokenCap: s.dailyTokenCap,
     sessionMsgCap: s.sessionMsgCap,
+    inputCharLimit: s.inputCharLimit,
+    longInputFallbackReply: s.longInputFallbackReply,
+    outputMaxChars: s.outputMaxChars,
+    outputMaxLines: s.outputMaxLines,
+    outputMaxTokens: s.outputMaxTokens,
     profileImagePath: s.profileImagePath,
     apiKeyConfigured: Boolean(s.apiKeyEncrypted),
     sectionIdentity: s.sectionIdentity,
@@ -90,6 +107,9 @@ export async function PATCH(req: Request) {
       const n = Number(v);
       if (!Number.isFinite(n) || n < 0) {
         return NextResponse.json({ error: `${k} must be non-negative number` }, { status: 400 });
+      }
+      if (POSITIVE_NUMBER_KEYS.has(k as keyof UpdatableSettings) && n < 1) {
+        return NextResponse.json({ error: `${k} must be positive number` }, { status: 400 });
       }
       (patch as Record<string, unknown>)[k] = n;
     } else if (NULLABLE_STRING_KEYS.has(k as keyof UpdatableSettings)) {

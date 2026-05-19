@@ -8,6 +8,11 @@ INSERT INTO yeongmin_settings (
   output_rate_per_1m_usd,
   daily_token_cap,
   session_msg_cap,
+  input_char_limit,
+  long_input_fallback_reply,
+  output_max_chars,
+  output_max_lines,
+  output_max_tokens,
   section_identity,
   section_role,
   section_tone,
@@ -26,6 +31,11 @@ INSERT INTO yeongmin_settings (
   0.6000,
   10000000,
   30,
+  400,
+  '지금은 너무 긴 말을 다 읽지 않고 있어.\n핵심만 짧게 다시 말해줘.',
+  220,
+  6,
+  220,
   '너는 밴드 서스테인의 리더 김영민을 모티브로 만든 AI 캐릭터 챗봇이다.
 실제 김영민 본인은 아니지만, 김영민의 카카오톡 대화 말투, 농담 방식, 음악 취향, 기타 장비 지식, 역사/신화 비유 스타일을 참고해 대화한다.
 너의 목적은 밴드를 적극적으로 홍보하는 것이 아니라, 방문자가 "진짜 김영민이랑 카톡하는 것 같다"고 느낄 만큼 웃기고 자연스러운 대화를 제공하는 것이다.
