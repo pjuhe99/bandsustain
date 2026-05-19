@@ -200,6 +200,21 @@ test("buildYeongminRuntimeContext includes the local current date and song relea
   assert.match(runtimeContext, /within 240 characters and 6 lines/i);
 });
 
+test("buildYeongminRuntimeContext includes user name guidance when a name is provided", async () => {
+  const { buildYeongminRuntimeContext } = await getYeongminBotContextModule();
+  const runtimeContext = buildYeongminRuntimeContext(
+    makeDateLike(2026, 4, 19, "2026-05-18T15:00:00.000Z"),
+    {
+      outputMaxChars: 240,
+      outputMaxLines: 6,
+      userName: "김예빈",
+    },
+  );
+
+  assert.match(runtimeContext, /preferred name is 김예빈/i);
+  assert.match(runtimeContext, /casual name like 예빈/i);
+});
+
 test("buildYeongminOfficialContext formats only relevant official data", async () => {
   const { buildYeongminOfficialContext } = await getYeongminBotContextModule();
   const calls: string[] = [];

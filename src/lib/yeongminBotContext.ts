@@ -2,6 +2,7 @@ import type { getUpcomingEvents } from "./live";
 import type { getPublishedMembers } from "./members";
 import type { getPublishedNews } from "./news";
 import type { getPublishedSongs } from "./songs";
+import { buildUserNameContext } from "./yeongminUserName";
 
 import "server-only";
 
@@ -251,18 +252,24 @@ export function formatOfficialContext(data: OfficialContextData): string | null 
 
 export function buildYeongminRuntimeContext(
   now: Date = new Date(),
-  options?: { outputMaxChars?: number; outputMaxLines?: number },
+  options?: { outputMaxChars?: number; outputMaxLines?: number; userName?: string | null },
 ): string {
   const outputRule =
     options?.outputMaxChars && options?.outputMaxLines
       ? `Keep every reply within ${options.outputMaxChars} characters and ${options.outputMaxLines} lines, even if the user asks for a longer answer.`
       : null;
+  const userNameContext = options?.userName ? buildUserNameContext(options.userName) : null;
+  const nameRule = userNameContext
+    ? `The user's preferred name is ${userNameContext.preferredName}. A casual name like ${userNameContext.casualName} is okay when it feels natural.`
+    : null;
 
   return [
     "## Runtime Context",
     `Today is ${formatDateOnly(now)} in Asia/Seoul.`,
     "Published songs listed in official context are already released unless explicitly marked upcoming.",
+    nameRule,
     outputRule,
+    "If you use the user's name, do it sparingly and naturally rather than forcing it into every reply.",
     "If the user asks for a longer answer, keep the same concise style instead of expanding past the limits.",
   ].filter(Boolean).join("\n");
 }

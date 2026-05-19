@@ -13,6 +13,7 @@ import {
 } from "@/lib/yeongminBot";
 import { buildYeongminOfficialContext, buildYeongminRuntimeContext } from "@/lib/yeongminBotContext";
 import { clampReply, isInputTooLong } from "@/lib/yeongminBotLimits";
+import { normalizeUserNameInput } from "@/lib/yeongminUserName";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -51,12 +52,20 @@ export async function POST(req: Request) {
   }
 
   const messages = (body as { messages?: unknown }).messages;
+  const rawUserName = (body as { userName?: unknown }).userName;
+  const userName =
+    typeof rawUserName === "string"
+      ? normalizeUserNameInput(rawUserName)
+      : rawUserName == null
+        ? null
+        : "__invalid__";
   if (
     !Array.isArray(messages) ||
     messages.length < 1 ||
     messages.length > 64 ||
     !messages.every(isChatMessage) ||
-    messages[messages.length - 1].role !== "user"
+    messages[messages.length - 1].role !== "user" ||
+    userName === "__invalid__"
   ) {
     return NextResponse.json({ error: "invalid messages" }, { status: 400 });
   }
@@ -164,6 +173,7 @@ export async function POST(req: Request) {
   const runtimeContext = buildYeongminRuntimeContext(new Date(), {
     outputMaxChars: settings.outputMaxChars,
     outputMaxLines: settings.outputMaxLines,
+    userName,
   });
   const systemPrompt = officialContext
     ? `${basePrompt}\n\n${runtimeContext}\n\n${officialContext}`
