@@ -352,7 +352,7 @@ export async function buildYeongminOfficialContext(
   deps: BuildDeps = {},
 ): Promise<string | null> {
   const needs = classifyOfficialContextNeeds(message);
-  let membersForNameMatch: Awaited<ReturnType<NonNullable<BuildDeps["getPublishedMembers"]>>> | null = null;
+  let membersForNameMatch: OfficialMemberContextItem[] | null = null;
 
   if (!needs.members) {
     membersForNameMatch = await loadMemberContext(deps);
