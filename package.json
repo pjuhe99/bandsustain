@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "playground:import-catalog": "tsx scripts/import-pedalplayground-catalog.ts"
+    "playground:import-catalog": "tsx scripts/import-pedalplayground-catalog.ts",
+    "playground:invariants": "tsx scripts/playground-invariants.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
