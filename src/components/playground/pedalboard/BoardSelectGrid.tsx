@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useTransition } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 interface BoardRow {
@@ -17,7 +18,7 @@ export function BoardSelectGrid({ initialBrands, initialBoards }: {
   const [brandId, setBrandId] = useState<number | null>(null);
   const [boards, setBoards] = useState<BoardRow[]>(initialBoards);
   const [loading, setLoading] = useState(false);
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     const handle = setTimeout(async () => {
@@ -55,8 +56,8 @@ export function BoardSelectGrid({ initialBrands, initialBoards }: {
         <h1 className="font-display font-black uppercase tracking-tight text-3xl md:text-5xl">Pedalboard Planner</h1>
         <p className="mt-3 text-sm md:text-base text-[var(--color-text-muted)]">시작할 보드를 고르세요.</p>
         <nav className="mt-4 flex gap-4 text-xs uppercase tracking-wider">
-          <a href="/playground/pedalboard-planner/me" className="underline">내 보드</a>
-          <a href="/playground/pedalboard-planner/gallery" className="underline">갤러리</a>
+          <Link href="/playground/pedalboard-planner/me" className="underline">내 보드</Link>
+          <Link href="/playground/pedalboard-planner/gallery" className="underline">갤러리</Link>
         </nav>
       </header>
 
@@ -87,7 +88,7 @@ export function BoardSelectGrid({ initialBrands, initialBoards }: {
       <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
         {boards.map((b) => (
           <li key={b.id}>
-            <button onClick={() => pick(b.id)} className="text-left w-full">
+            <button onClick={() => pick(b.id)} disabled={isPending} className="text-left w-full disabled:opacity-50">
               <div className="aspect-[3/1] bg-[var(--color-bg-muted)] relative overflow-hidden">
                 {b.image_filename && (
                   <Image src={`/playground/images/pedalboards/${b.image_filename}`}
