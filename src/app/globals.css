@@ -16,8 +16,6 @@
   --color-border-strong: #0a0a0a;
   --color-accent: #2563FF;
   --color-accent-ink: #ffffff;
-
-  --editor-topbar-h: 3.5rem; /* 56px — matches TopBar min height; consumed by PedalSearchSheet */
 }
 
 /* Dark mode will be enabled via a manual toggle (future).
