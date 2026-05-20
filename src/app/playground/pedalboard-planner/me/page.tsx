@@ -33,11 +33,17 @@ export default async function Page() {
   const items = owner ? await loadMine(owner) : [];
   return (
     <section className="max-w-7xl mx-auto px-6 md:px-12 py-12">
-      <header className="mb-8">
+      <header className="mb-8 md:flex md:items-end md:justify-between md:gap-8">
         <h1 className="font-display font-black uppercase tracking-tight text-3xl md:text-5xl">내 페달보드</h1>
-        <nav className="mt-3 flex gap-4 text-xs uppercase tracking-wider">
-          <Link href="/playground/pedalboard-planner" className="underline">보드 고르기</Link>
-          <Link href="/playground/pedalboard-planner/gallery" className="underline">갤러리</Link>
+        <nav className="mt-5 md:mt-0 flex flex-wrap gap-3 md:shrink-0">
+          <Link href="/playground/pedalboard-planner"
+            className="inline-flex items-center px-5 py-2.5 text-sm font-semibold uppercase tracking-wider border border-[var(--color-border-strong)] hover:bg-[var(--color-text)] hover:text-[var(--color-bg)] transition-colors">
+            보드 고르기
+          </Link>
+          <Link href="/playground/pedalboard-planner/gallery"
+            className="inline-flex items-center px-5 py-2.5 text-sm font-semibold uppercase tracking-wider border border-[var(--color-border-strong)] hover:bg-[var(--color-text)] hover:text-[var(--color-bg)] transition-colors">
+            갤러리
+          </Link>
         </nav>
       </header>
       <LayoutGrid items={items}
