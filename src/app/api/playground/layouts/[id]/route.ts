@@ -35,7 +35,18 @@ export async function GET(_req: Request, ctx: Ctx) {
       WHERE li.layout_id = ?
       ORDER BY li.z_order ASC, li.id ASC`, [id]);
 
-  return NextResponse.json({ layout, items });
+  const safeLayout = {
+    id: layout.id,
+    title: layout.title,
+    board_kind: layout.board_kind,
+    catalog_board_id: layout.catalog_board_id,
+    visibility: layout.visibility,
+    share_token: layout.share_token,
+    snapshot_json: layout.snapshot_json,
+    created_at: layout.created_at,
+    updated_at: layout.updated_at,
+  };
+  return NextResponse.json({ layout: safeLayout, items });
 }
 
 export async function DELETE(_req: Request, ctx: Ctx) {
