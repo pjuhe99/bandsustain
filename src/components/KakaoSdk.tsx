@@ -19,9 +19,7 @@ export default function KakaoSdk() {
   if (!key) return null;
   return (
     <Script
-      src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.share.min.js"
-      integrity="sha384-tCBjXqLAY3pj8GFDD/q1JltKGwntUMOmm5IPLqshqkrhgD3IiAGSFnTHEEhUgo/V"
-      crossOrigin="anonymous"
+      src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"
       strategy="afterInteractive"
       onLoad={() => {
         if (window.Kakao && !window.Kakao.isInitialized()) {
