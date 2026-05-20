@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
+const PAGE_SIZE = 50;
+
 export interface PedalRow {
   id: number; brand_name: string; name: string;
   width_in: number; height_in: number; image_filename: string | null;
@@ -14,6 +16,9 @@ export function PedalSearchSheet({ onAdd }: { onAdd: (p: PedalRow) => void }) {
   const [q, setQ] = useState("");
   const [brandId, setBrandId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -25,16 +30,41 @@ export function PedalSearchSheet({ onAdd }: { onAdd: (p: PedalRow) => void }) {
   useEffect(() => {
     const t = setTimeout(async () => {
       setLoading(true);
+      setOffset(0);
       const url = new URL("/api/playground/pedals", window.location.origin);
       if (q.trim()) url.searchParams.set("q", q.trim());
       if (brandId) url.searchParams.set("brand_id", String(brandId));
-      url.searchParams.set("limit", "50");
+      url.searchParams.set("limit", String(PAGE_SIZE));
+      url.searchParams.set("offset", "0");
       const res = await fetch(url.toString());
-      if (res.ok) setPedals((await res.json()).items);
+      if (res.ok) {
+        const j = (await res.json()) as { items: PedalRow[] };
+        setPedals(j.items);
+        setHasMore(j.items.length === PAGE_SIZE);
+      }
       setLoading(false);
     }, 250);
     return () => clearTimeout(t);
   }, [q, brandId]);
+
+  async function loadMore() {
+    if (loadingMore) return;
+    setLoadingMore(true);
+    const nextOffset = offset + PAGE_SIZE;
+    const url = new URL("/api/playground/pedals", window.location.origin);
+    if (q.trim()) url.searchParams.set("q", q.trim());
+    if (brandId) url.searchParams.set("brand_id", String(brandId));
+    url.searchParams.set("limit", String(PAGE_SIZE));
+    url.searchParams.set("offset", String(nextOffset));
+    const res = await fetch(url.toString());
+    if (res.ok) {
+      const j = (await res.json()) as { items: PedalRow[] };
+      setPedals((prev) => [...prev, ...j.items]);
+      setOffset(nextOffset);
+      setHasMore(j.items.length === PAGE_SIZE);
+    }
+    setLoadingMore(false);
+  }
 
   return (
     <aside className="fixed bottom-0 left-0 right-0 h-[50vh] lg:h-auto lg:top-14 lg:bottom-0 lg:left-auto lg:right-0 lg:w-[360px] z-20
@@ -77,6 +107,15 @@ export function PedalSearchSheet({ onAdd }: { onAdd: (p: PedalRow) => void }) {
             </li>
           ))}
         </ul>
+        {!loading && hasMore && pedals.length > 0 && (
+          <button
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="mt-2 w-full py-2 text-xs uppercase tracking-wider border border-[var(--color-border-strong)] disabled:opacity-50"
+          >
+            {loadingMore ? "불러오는 중…" : "더 보기"}
+          </button>
+        )}
       </div>
     </aside>
   );

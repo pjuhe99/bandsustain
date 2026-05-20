@@ -101,7 +101,7 @@ async function listBrandsForActive(
     WHERE EXISTS (SELECT 1 FROM ${itemTable} p WHERE p.brand_id = b.id AND p.is_active = 1)
     ${whereClause}
     ORDER BY b.search_name ASC
-    LIMIT 200
+    LIMIT 1000
   `;
   const [rows] = await pool.query<RowDataPacket[]>(sql, args);
   return rows.map((r) => ({

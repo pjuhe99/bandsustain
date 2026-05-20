@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+const PAGE_SIZE = 50;
+
 interface BoardRow {
   id: number; brand_name: string; name: string;
   width_in: number; height_in: number; image_filename: string | null;
@@ -19,23 +21,48 @@ export function BoardSelectGrid({ initialBrands, initialBoards }: {
   const [boards, setBoards] = useState<BoardRow[]>(initialBoards);
   const [loading, setLoading] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(initialBoards.length === PAGE_SIZE);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     const handle = setTimeout(async () => {
       setLoading(true);
+      setOffset(0);
       const url = new URL("/api/playground/boards", window.location.origin);
       if (q.trim()) url.searchParams.set("q", q.trim());
       if (brandId) url.searchParams.set("brand_id", String(brandId));
-      url.searchParams.set("limit", "50");
+      url.searchParams.set("limit", String(PAGE_SIZE));
+      url.searchParams.set("offset", "0");
       const res = await fetch(url.toString());
       if (res.ok) {
-        const j = await res.json();
+        const j = (await res.json()) as { items: BoardRow[] };
         setBoards(j.items);
+        setHasMore(j.items.length === PAGE_SIZE);
       }
       setLoading(false);
     }, 250);
     return () => clearTimeout(handle);
   }, [q, brandId]);
+
+  async function loadMore() {
+    if (loadingMore) return;
+    setLoadingMore(true);
+    const nextOffset = offset + PAGE_SIZE;
+    const url = new URL("/api/playground/boards", window.location.origin);
+    if (q.trim()) url.searchParams.set("q", q.trim());
+    if (brandId) url.searchParams.set("brand_id", String(brandId));
+    url.searchParams.set("limit", String(PAGE_SIZE));
+    url.searchParams.set("offset", String(nextOffset));
+    const res = await fetch(url.toString());
+    if (res.ok) {
+      const j = (await res.json()) as { items: BoardRow[] };
+      setBoards((prev) => [...prev, ...j.items]);
+      setOffset(nextOffset);
+      setHasMore(j.items.length === PAGE_SIZE);
+    }
+    setLoadingMore(false);
+  }
 
   function pick(id: number) {
     startTransition(async () => {
@@ -103,6 +130,15 @@ export function BoardSelectGrid({ initialBrands, initialBoards }: {
           </li>
         ))}
       </ul>
+      {!loading && hasMore && boards.length > 0 && (
+        <button
+          onClick={loadMore}
+          disabled={loadingMore}
+          className="mt-2 w-full py-2 text-xs uppercase tracking-wider border border-[var(--color-border-strong)] disabled:opacity-50"
+        >
+          {loadingMore ? "불러오는 중…" : "더 보기"}
+        </button>
+      )}
     </section>
   );
 }
