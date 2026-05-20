@@ -35,3 +35,9 @@ test("parseSnapshot rejects wrong version", () => {
 test("parseSnapshot rejects malformed JSON", () => {
   assert.throws(() => parseSnapshot("not json"));
 });
+
+test("parseSnapshot rejects invalid rot value", () => {
+  const obj = JSON.parse(serializeLayout(sample));
+  obj.items[0].rot = 45;
+  assert.throws(() => parseSnapshot(JSON.stringify(obj)));
+});

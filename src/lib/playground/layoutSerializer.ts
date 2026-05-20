@@ -31,8 +31,7 @@ const SnapshotSchema = z.object({
   items: z.array(ItemSchema),
 });
 
-const LayoutSchema = SnapshotSchema.omit({ v: true });
-export type Layout = z.infer<typeof LayoutSchema>;
+export type Layout = Omit<z.infer<typeof SnapshotSchema>, "v">;
 export type LayoutItem = z.infer<typeof ItemSchema>;
 export type LayoutBoard = z.infer<typeof BoardSchema>;
 
@@ -41,7 +40,6 @@ export function serializeLayout(layout: Layout): string {
 }
 
 export function parseSnapshot(json: string): Layout {
-  const parsed = SnapshotSchema.parse(JSON.parse(json));
-  const { v: _v, ...rest } = parsed;
-  return rest;
+  const snap = SnapshotSchema.parse(JSON.parse(json));
+  return { title: snap.title, board: snap.board, items: snap.items };
 }
