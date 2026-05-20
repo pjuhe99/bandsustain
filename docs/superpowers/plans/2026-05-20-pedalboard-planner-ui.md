@@ -86,7 +86,7 @@ test("snapTo025 rounds to nearest 0.25", () => {
   assert.equal(snapTo025(0.25), 0.25);
   assert.equal(snapTo025(0.37), 0.25);
   assert.equal(snapTo025(0.38), 0.5);
-  assert.equal(snapTo025(-0.13), 0);
+  assert.equal(snapTo025(-0.13), -0.25);
   assert.equal(snapTo025(-0.37), -0.25);
   assert.equal(snapTo025(-0.38), -0.5);
 });
@@ -103,10 +103,10 @@ Expected: FAIL with `Cannot find module './snap'`
 
 ```ts
 // src/lib/playground/snap.ts
-export const SNAP_STEP_IN = 0.25;
+export const SNAP_STEP_INCHES = 0.25;
 
 export function snapTo025(value: number): number {
-  return Math.round(value / SNAP_STEP_IN) * SNAP_STEP_IN;
+  return Math.round(value / SNAP_STEP_INCHES) * SNAP_STEP_INCHES;
 }
 ```
 
