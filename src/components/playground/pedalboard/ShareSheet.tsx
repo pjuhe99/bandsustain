@@ -3,9 +3,11 @@ import { useState } from "react";
 import type { Visibility } from "@/lib/playground/visibility";
 
 export function ShareSheet({
-  shareToken, visibility, onVisibilityChange, onClose,
+  shareToken, title, visibility, onVisibilityChange, onClose,
 }: {
-  shareToken: string; visibility: Visibility;
+  shareToken: string;
+  title: string;
+  visibility: Visibility;
   onVisibilityChange: (v: Visibility) => void;
   onClose: () => void;
 }) {
@@ -21,11 +23,16 @@ export function ShareSheet({
   }
 
   function kakao() {
-    const w = window as unknown as { Kakao?: { Share?: { sendDefault: (a: unknown) => void } } };
-    if (w.Kakao?.Share) {
-      w.Kakao.Share.sendDefault({
+    const Kakao = (window as { Kakao?: { isInitialized: () => boolean; Share?: { sendDefault: (args: object) => void } } }).Kakao;
+    if (Kakao && Kakao.isInitialized() && Kakao.Share) {
+      Kakao.Share.sendDefault({
         objectType: "feed",
-        content: { title: "Pedalboard", description: "내 페달보드 레이아웃", link: { mobileWebUrl: url, webUrl: url } },
+        content: {
+          title: title || "Pedalboard",
+          description: "내 페달보드 레이아웃",
+          imageUrl: `${window.location.origin}/slides/hero-b4d9e516.jpg`,
+          link: { mobileWebUrl: url, webUrl: url },
+        },
       });
     } else if (navigator.share) {
       navigator.share({ url });
@@ -69,7 +76,7 @@ export function ShareSheet({
               </button>
               <button onClick={kakao}
                 className="px-4 py-2.5 text-sm font-semibold uppercase tracking-wider bg-[#FEE500] text-black border border-[#FEE500]">
-                카카오
+                카톡 공유
               </button>
             </div>
           </>

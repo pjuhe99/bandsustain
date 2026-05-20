@@ -122,7 +122,7 @@ export function EditorClient(props: Props) {
       <PedalSearchSheet onAdd={add} />
       <SelectedInspector item={selected} onRotate={rotateOne} onDelete={deleteOne} onZ={bumpZ} />
       {shareOpen && (
-        <ShareSheet shareToken={props.shareToken} visibility={visibility}
+        <ShareSheet shareToken={props.shareToken} title={title} visibility={visibility}
           onVisibilityChange={onVisibility} onClose={() => setShareOpen(false)} />
       )}
     </div>
