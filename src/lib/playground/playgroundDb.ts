@@ -22,6 +22,8 @@ export interface CatalogPedal {
 }
 export type CatalogBoard = CatalogPedal;
 
+import { buildSearchName } from "../playgroundCatalogImport";
+
 function escapeLike(s: string): string {
   return s.replace(/[%_\\]/g, (m) => "\\" + m);
 }
@@ -35,8 +37,12 @@ async function searchItems(
   const where: string[] = [`p.is_active = 1`];
   const args: (string | number)[] = [];
   if (opts.q && opts.q.trim().length > 0) {
-    where.push(`p.search_name LIKE ? ESCAPE '\\\\'`);
-    args.push(`%${escapeLike(opts.q.trim().toLowerCase())}%`);
+    const normalized = buildSearchName(opts.q);
+    if (normalized.length > 0) {
+      const pattern = `%${escapeLike(normalized)}%`;
+      where.push(`(p.search_name LIKE ? ESCAPE '\\\\' OR b.search_name LIKE ? ESCAPE '\\\\')`);
+      args.push(pattern, pattern);
+    }
   }
   if (opts.brand_id) {
     where.push(`p.brand_id = ?`);
@@ -91,8 +97,11 @@ async function listBrandsForActive(
   const where: string[] = [];
   const args: (string | number)[] = [];
   if (q && q.trim().length > 0) {
-    where.push(`b.search_name LIKE ? ESCAPE '\\\\'`);
-    args.push(`%${escapeLike(q.trim().toLowerCase())}%`);
+    const normalized = buildSearchName(q);
+    if (normalized.length > 0) {
+      where.push(`b.search_name LIKE ? ESCAPE '\\\\'`);
+      args.push(`%${escapeLike(normalized)}%`);
+    }
   }
   const whereClause = where.length ? `AND ${where.join(" AND ")}` : "";
   const sql = `
