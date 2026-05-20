@@ -9,7 +9,8 @@ export function TopBar({
   onShareClick: () => void;
 }) {
   return (
-    <header className="sticky top-0 z-30 bg-[var(--color-bg)] border-b border-[var(--color-border)] px-4 md:px-6 py-3 flex items-center gap-3">
+    <header className="sticky top-0 z-30 bg-[var(--color-bg)] border-b border-[var(--color-border)] px-4 md:px-6 flex items-center gap-3"
+      style={{ minHeight: "var(--editor-topbar-h)" }}>
       <Link href="/playground/pedalboard-planner"
         className="text-sm font-semibold uppercase tracking-wider underline">
         ← 다른 보드

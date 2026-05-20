@@ -37,7 +37,7 @@ export function PedalSearchSheet({ onAdd }: { onAdd: (p: PedalRow) => void }) {
   }, [q, brandId]);
 
   return (
-    <aside className="fixed bottom-0 left-0 right-0 h-[50vh] lg:h-auto lg:top-[57px] lg:bottom-0 lg:left-auto lg:right-0 lg:w-[360px] z-20
+    <aside className="fixed bottom-0 left-0 right-0 h-[50vh] lg:h-auto lg:top-[var(--editor-topbar-h)] lg:bottom-0 lg:left-auto lg:right-0 lg:w-[360px] z-20
                        bg-[var(--color-bg)] border-t lg:border-t-0 lg:border-l border-[var(--color-border-strong)] flex flex-col">
       <div className="p-3 border-b border-[var(--color-border)] sticky top-0 bg-[var(--color-bg)]">
         <input value={q} onChange={(e) => setQ(e.target.value)}
