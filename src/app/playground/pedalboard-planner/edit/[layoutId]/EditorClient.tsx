@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { BoardCanvas } from "@/components/playground/pedalboard/BoardCanvas";
 import { PedalSearchSheet, type PedalRow } from "@/components/playground/pedalboard/PedalSearchSheet";
 import { SelectedInspector } from "@/components/playground/pedalboard/SelectedInspector";
@@ -25,8 +25,6 @@ export function EditorClient(props: Props) {
   const [shareOpen, setShareOpen] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
-  const nextLocalId = useRef(-1);
-
   function add(p: PedalRow) {
     const board = props.initialBoard;
     const x = Math.max(0, (board.width_in - p.width_in) / 2);
@@ -60,12 +58,13 @@ export function EditorClient(props: Props) {
     setItems((arr) => {
       const idx = arr.findIndex((it) => it.id === id);
       if (idx < 0) return arr;
-      const next = [...arr];
-      const target = next[idx];
       const swapIdx = idx + delta;
-      if (swapIdx < 0 || swapIdx >= next.length) return arr;
-      next[idx] = { ...next[swapIdx], z: target.z };
-      next[swapIdx] = { ...target, z: next[idx].z + delta };
+      if (swapIdx < 0 || swapIdx >= arr.length) return arr;
+      const next = [...arr];
+      const a = next[idx];
+      const b = next[swapIdx];
+      next[idx] = { ...b, z: a.z };
+      next[swapIdx] = { ...a, z: b.z };
       return next;
     });
     setDirty(true);
@@ -111,8 +110,6 @@ export function EditorClient(props: Props) {
   }, [dirty, title, visibility, items, props.initialBoard, props.layoutId]);
 
   const selected = items.find((it) => it.id === selectedId) ?? null;
-
-  void nextLocalId; // placeholder for future custom pedal support
 
   return (
     <div>
