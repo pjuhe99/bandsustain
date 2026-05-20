@@ -49,6 +49,10 @@ yarn-error.log*
 # public/ files known at build time; served via dynamic route handler.
 /uploaded-assets/
 
+# pedalplayground catalog images (~3GB) bundled on the server.
+# Sync separately on each host; do not bloat the repo.
+/public/playground/images/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
