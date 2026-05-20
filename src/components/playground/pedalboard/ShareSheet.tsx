@@ -30,7 +30,7 @@ export function ShareSheet({
         content: {
           title: title || "Pedalboard",
           description: "내 페달보드 레이아웃",
-          imageUrl: `${window.location.origin}/slides/hero-b4d9e516.jpg`,
+          imageUrl: `${window.location.origin}/playground/p/${shareToken}/opengraph-image`,
           link: { mobileWebUrl: url, webUrl: url },
         },
       });

@@ -27,13 +27,13 @@ export async function generateMetadata({ params }: { params: Promise<{ shareToke
     title: "Pedalboard",
     path: `/playground/p/${shareToken}`,
     description: "공유된 페달보드 레이아웃",
-    ogImage: "/slides/hero-b4d9e516.jpg",
+    ogImage: `/playground/p/${shareToken}/opengraph-image`,
   });
   return buildPageMetadata({
     title: loaded.layout.title,
     path: `/playground/p/${shareToken}`,
     description: `${loaded.layout.board.brand} ${loaded.layout.board.name} · 페달 ${loaded.layout.items.length}개`,
-    ogImage: "/slides/hero-b4d9e516.jpg",
+    ogImage: `/playground/p/${shareToken}/opengraph-image`,
   });
 }
 
