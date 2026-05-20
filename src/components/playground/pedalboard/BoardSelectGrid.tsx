@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -24,8 +24,13 @@ export function BoardSelectGrid({ initialBrands, initialBoards }: {
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(initialBoards.length === PAGE_SIZE);
   const [loadingMore, setLoadingMore] = useState(false);
+  const initialMountRef = useRef(true);
 
   useEffect(() => {
+    if (initialMountRef.current) {
+      initialMountRef.current = false;
+      return;
+    }
     const handle = setTimeout(async () => {
       setLoading(true);
       setOffset(0);
@@ -115,10 +120,10 @@ export function BoardSelectGrid({ initialBrands, initialBoards }: {
         ))}
       </div>
 
-      {loading && <p className="text-sm text-[var(--color-text-muted)] mb-4">불러오는 중…</p>}
-      {!loading && boards.length === 0 && (
-        <p className="text-sm text-[var(--color-text-muted)]">검색 결과 없음. 다른 키워드/브랜드를 시도해보세요.</p>
-      )}
+      <p className="text-sm text-[var(--color-text-muted)] mb-4 min-h-5">
+        {loading ? "불러오는 중…" : ""}
+        {!loading && boards.length === 0 ? "검색 결과 없음. 다른 키워드/브랜드를 시도해보세요." : ""}
+      </p>
 
       <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
         {boards.map((b) => (
