@@ -126,8 +126,8 @@ export interface LayoutRow {
   visibility: Visibility;
   share_token: string;
   snapshot_json: string | null;
-  created_at: string;
-  updated_at: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export async function createLayout(input: {
