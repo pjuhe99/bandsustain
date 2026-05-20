@@ -17,6 +17,14 @@ export const playgroundFeatures: PlaygroundFeature[] = [
     href: "/playground/kim-yeongmin-bot",
   },
   {
+    slug: "pedalboard-planner",
+    title: "페달보드 플래너",
+    description: "원하는 보드를 고르고 페달을 배치해 나만의 페달보드를 공유해보세요.",
+    cta: "보드 만들러 가기",
+    eyebrow: "이상한 도구",
+    href: "/playground/pedalboard-planner",
+  },
+  {
     slug: "band-name-generator",
     title: "밴드 이름 생성기",
     description: "몇 가지 취향을 고르면 나만의 인디밴드 이름을 만들어드려요.",
