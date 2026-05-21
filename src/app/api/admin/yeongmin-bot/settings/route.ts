@@ -13,6 +13,8 @@ export const dynamic = "force-dynamic";
 const STRING_KEYS = new Set<keyof UpdatableSettings>([
   "modelName",
   "longInputFallbackReply",
+  "sessionCapFallbackReply",
+  "dailyCapFallbackReply",
   "sectionIdentity",
   "sectionRole",
   "sectionTone",
@@ -58,6 +60,8 @@ export async function GET() {
     sessionMsgCap: s.sessionMsgCap,
     inputCharLimit: s.inputCharLimit,
     longInputFallbackReply: s.longInputFallbackReply,
+    sessionCapFallbackReply: s.sessionCapFallbackReply,
+    dailyCapFallbackReply: s.dailyCapFallbackReply,
     outputMaxChars: s.outputMaxChars,
     outputMaxLines: s.outputMaxLines,
     outputMaxTokens: s.outputMaxTokens,
