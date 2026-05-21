@@ -13,6 +13,8 @@ type Sections = {
   sectionForbidden: string;
   sectionUnknownHandling: string;
   sectionExamples: string;
+  sessionCapFallbackReply: string;
+  dailyCapFallbackReply: string;
 };
 
 const SECTION_LABELS: Array<{ key: keyof Sections; label: string }> = [
@@ -64,6 +66,8 @@ export default function PromptEditorPage() {
           sectionForbidden: data.sectionForbidden ?? "",
           sectionUnknownHandling: data.sectionUnknownHandling ?? "",
           sectionExamples: data.sectionExamples ?? "",
+          sessionCapFallbackReply: data.sessionCapFallbackReply ?? "",
+          dailyCapFallbackReply: data.dailyCapFallbackReply ?? "",
         };
         setSections(s);
       })
@@ -106,6 +110,44 @@ export default function PromptEditorPage() {
           />
         </div>
       ))}
+
+      <div className="flex flex-col gap-4 border-t border-[var(--color-border)] pt-6">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-sm uppercase tracking-wider text-[var(--color-text-muted)]">
+            한도 메시지
+          </h2>
+          <p className="text-xs text-[var(--color-text-muted)]">
+            비워두면 기본 응답이 사용됩니다. 입력값은 영민봇 출력 한도(문자·줄 수)
+            안에서 자동으로 잘립니다.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-semibold">세션 한도 도달 시</label>
+          <textarea
+            value={sections.sessionCapFallbackReply}
+            onChange={(e) =>
+              setSections({ ...sections, sessionCapFallbackReply: e.target.value })
+            }
+            rows={4}
+            placeholder="아\n오늘은 너랑 좀 떠들었네\n내일 또 와라"
+            className="w-full resize-y border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 py-2 text-sm font-mono"
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-semibold">일일 토큰 한도 도달 시</label>
+          <textarea
+            value={sections.dailyCapFallbackReply}
+            onChange={(e) =>
+              setSections({ ...sections, dailyCapFallbackReply: e.target.value })
+            }
+            rows={4}
+            placeholder="흠\n오늘 다 같이 너무 떠들었는지\n머리가 좀 식어야겠다\n내일 보자"
+            className="w-full resize-y border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 py-2 text-sm font-mono"
+          />
+        </div>
+      </div>
 
       <div className="flex items-center gap-3 flex-wrap">
         <button
