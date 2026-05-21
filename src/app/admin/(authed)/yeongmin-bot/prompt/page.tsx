@@ -13,6 +13,7 @@ type Sections = {
   sectionForbidden: string;
   sectionUnknownHandling: string;
   sectionExamples: string;
+  sectionUserAddress: string;
   sessionCapFallbackReply: string;
   dailyCapFallbackReply: string;
 };
@@ -28,6 +29,7 @@ const SECTION_LABELS: Array<{ key: keyof Sections; label: string }> = [
   { key: "sectionForbidden", label: "8. 금지사항" },
   { key: "sectionUnknownHandling", label: "9. 모르는 질문 대응 방식" },
   { key: "sectionExamples", label: "10. 답변 예시" },
+  { key: "sectionUserAddress", label: "11. 사용자 호칭" },
 ];
 
 const HEADER_TEXT =
@@ -66,6 +68,7 @@ export default function PromptEditorPage() {
           sectionForbidden: data.sectionForbidden ?? "",
           sectionUnknownHandling: data.sectionUnknownHandling ?? "",
           sectionExamples: data.sectionExamples ?? "",
+          sectionUserAddress: data.sectionUserAddress ?? "",
           sessionCapFallbackReply: data.sessionCapFallbackReply ?? "",
           dailyCapFallbackReply: data.dailyCapFallbackReply ?? "",
         };
