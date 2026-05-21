@@ -13,6 +13,7 @@ import {
 } from "@/lib/yeongminBot";
 import { buildYeongminOfficialContext, buildYeongminRuntimeContext } from "@/lib/yeongminBotContext";
 import { clampReply, isInputTooLong } from "@/lib/yeongminBotLimits";
+import { selectCapFallbackReply } from "@/lib/yeongminBotFallbackSelect";
 import { normalizeUserNameInput } from "@/lib/yeongminUserName";
 
 export const runtime = "nodejs";
@@ -108,7 +109,10 @@ export async function POST(req: Request) {
   const sessionCount = await countSessionMessagesLast24h(sessionId);
   if (sessionCount >= settings.sessionMsgCap) {
     return replyJson(
-      FALLBACK_SESSION_CAP,
+      selectCapFallbackReply(settings.sessionCapFallbackReply, FALLBACK_SESSION_CAP, {
+        outputMaxChars: settings.outputMaxChars,
+        outputMaxLines: settings.outputMaxLines,
+      }),
       sessionId,
       isNewSession,
       0,
@@ -122,7 +126,10 @@ export async function POST(req: Request) {
   const todayTokens = await sumTodayTokens();
   if (todayTokens >= settings.dailyTokenCap) {
     return replyJson(
-      FALLBACK_DAILY_CAP,
+      selectCapFallbackReply(settings.dailyCapFallbackReply, FALLBACK_DAILY_CAP, {
+        outputMaxChars: settings.outputMaxChars,
+        outputMaxLines: settings.outputMaxLines,
+      }),
       sessionId,
       isNewSession,
       settings.sessionMsgCap - sessionCount,
