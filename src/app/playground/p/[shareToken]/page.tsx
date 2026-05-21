@@ -4,6 +4,7 @@ import { getLayoutByShareToken } from "@/lib/playground/playgroundDb";
 import { parseSnapshot } from "@/lib/playground/layoutSerializer";
 import { ShareView } from "@/components/playground/pedalboard/ShareView";
 import { isValidToken } from "@/lib/playground/tokens";
+import { isLayoutPinned } from "@/lib/playground/memberPins";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const runtime = "nodejs";
@@ -13,8 +14,11 @@ async function loadLayout(token: string) {
   if (!isValidToken(token)) return null;
   const row = await getLayoutByShareToken(token);
   if (!row) return null;
-  if (row.visibility === "private") return null;
   if (!row.snapshot_json) return null;
+  if (row.visibility === "private") {
+    const pinned = await isLayoutPinned(Number(row.id));
+    if (!pinned) return null;
+  }
   try {
     return { row, layout: parseSnapshot(row.snapshot_json) };
   } catch { return null; }
