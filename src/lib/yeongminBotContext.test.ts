@@ -211,8 +211,20 @@ test("buildYeongminRuntimeContext includes user name guidance when a name is pro
     },
   );
 
-  assert.match(runtimeContext, /preferred name is 김예빈/i);
-  assert.match(runtimeContext, /casual name like 예빈/i);
+  assert.match(runtimeContext, /사용자의 이름은 "김예빈"/);
+  assert.match(runtimeContext, /친근하게 부를 때는 "예빈"/);
+  assert.match(runtimeContext, /11\. 사용자 호칭/);
+});
+
+test("buildYeongminRuntimeContext omits name guidance when no name provided", async () => {
+  const { buildYeongminRuntimeContext } = await getYeongminBotContextModule();
+  const runtimeContext = buildYeongminRuntimeContext(
+    makeDateLike(2026, 4, 19, "2026-05-18T15:00:00.000Z"),
+    { outputMaxChars: 240, outputMaxLines: 6 },
+  );
+
+  assert.ok(!runtimeContext.includes("사용자의 이름은"), "no name line when name absent");
+  assert.ok(!runtimeContext.includes("11. 사용자 호칭"), "no section 11 reference when name absent");
 });
 
 test("buildYeongminOfficialContext formats only relevant official data", async () => {

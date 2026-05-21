@@ -260,7 +260,7 @@ export function buildYeongminRuntimeContext(
       : null;
   const userNameContext = options?.userName ? buildUserNameContext(options.userName) : null;
   const nameRule = userNameContext
-    ? `The user's preferred name is ${userNameContext.preferredName}. A casual name like ${userNameContext.casualName} is okay when it feels natural.`
+    ? `지금 대화 중인 사용자의 이름은 "${userNameContext.preferredName}"이고, 친근하게 부를 때는 "${userNameContext.casualName}"이라고 부른다. 호칭 사용 빈도와 방식은 "11. 사용자 호칭" 섹션 규칙을 따른다.`
     : null;
 
   return [
@@ -269,7 +269,6 @@ export function buildYeongminRuntimeContext(
     "Published songs listed in official context are already released unless explicitly marked upcoming.",
     nameRule,
     outputRule,
-    "If you use the user's name, do it sparingly and naturally rather than forcing it into every reply.",
     "If the user asks for a longer answer, keep the same concise style instead of expanding past the limits.",
   ].filter(Boolean).join("\n");
 }
