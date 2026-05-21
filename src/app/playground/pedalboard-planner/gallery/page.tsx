@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getPool } from "@/lib/db";
 import type { RowDataPacket } from "mysql2";
 import { LayoutGrid, type LayoutCard } from "@/components/playground/pedalboard/LayoutGrid";
+import { MemberPinSection } from "@/components/playground/pedalboard/MemberPinSection";
+import { getPublishedMemberPins } from "@/lib/playground/memberPins";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const runtime = "nodejs";
@@ -15,7 +17,7 @@ export const metadata: Metadata = buildPageMetadata({
   ogImage: "/slides/hero-b4d9e516.jpg",
 });
 
-async function loadPublic(): Promise<LayoutCard[]> {
+async function loadPublicExcludingPins(): Promise<LayoutCard[]> {
   const pool = getPool();
   const [rows] = await pool.query<RowDataPacket[]>(
     `SELECT l.id, l.title, l.share_token, l.visibility, l.updated_at,
@@ -23,12 +25,18 @@ async function loadPublic(): Promise<LayoutCard[]> {
        FROM playground_layouts l
        LEFT JOIN playground_boards b ON b.id = l.catalog_board_id
        LEFT JOIN playground_board_brands br ON br.id = b.brand_id
-      WHERE l.visibility = 'public' ORDER BY l.updated_at DESC LIMIT 50`);
+      WHERE l.visibility = 'public'
+        AND l.id NOT IN (SELECT layout_id FROM playground_member_pins)
+      ORDER BY l.updated_at DESC LIMIT 50`);
   return rows as unknown as LayoutCard[];
 }
 
 export default async function Page() {
-  const items = await loadPublic();
+  const [pins, items] = await Promise.all([
+    getPublishedMemberPins(),
+    loadPublicExcludingPins(),
+  ]);
+  const hasPins = pins.length > 0;
   return (
     <section className="max-w-7xl mx-auto px-6 md:px-12 py-12">
       <header className="mb-8 md:flex md:items-end md:justify-between md:gap-8">
@@ -44,6 +52,17 @@ export default async function Page() {
           </Link>
         </nav>
       </header>
+
+      {hasPins && (
+        <>
+          <MemberPinSection pins={pins} />
+          <hr className="my-12 border-[var(--color-border)]" />
+          <h2 className="font-display font-black uppercase tracking-tight text-2xl md:text-3xl mb-6">
+            최근 공개 보드
+          </h2>
+        </>
+      )}
+
       <LayoutGrid items={items}
         hrefBuilder={(it) => `/playground/p/${it.share_token}`}
         emptyMessage="공개 보드가 아직 없습니다." />
