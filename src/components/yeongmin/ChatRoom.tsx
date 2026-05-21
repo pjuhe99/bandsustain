@@ -182,9 +182,14 @@ export default function ChatRoom({ profileImagePath }: Props) {
       </div>
 
       {modalOpen && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 px-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="yeongmin-name-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+        >
           <div className="w-full max-w-md border border-[var(--color-border-strong)] bg-[var(--color-bg)] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
-            <h2 className="font-display text-lg font-bold">이름 먼저 알려줘</h2>
+            <h2 id="yeongmin-name-modal-title" className="font-display text-lg font-bold">이름 먼저 알려줘</h2>
             <p className="mt-2 text-sm text-[var(--color-text-muted)]">
               대화 중에 자연스럽게 부를 수 있게, 편한 이름 하나만 적어줘.
             </p>

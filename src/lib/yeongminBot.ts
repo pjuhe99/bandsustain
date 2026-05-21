@@ -1,6 +1,13 @@
 import "server-only";
 import { getPool } from "./db";
 import { decryptApiKey, encryptApiKey } from "./yeongminCrypto";
+import {
+  assemblePrompt as assemblePromptPure,
+  assertValidVoiceCorpusJson as assertValidVoiceCorpusJsonPure,
+  parseVoiceCorpusJson as parseVoiceCorpusJsonPure,
+  type PromptSettings,
+  type VoiceCorpusEntry as VoiceCorpusEntryPure,
+} from "./yeongminPrompt";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
 
 export type YeongminSettings = {
@@ -177,102 +184,26 @@ export function getDecryptedApiKey(settings: YeongminSettings): string {
   return decryptApiKey(settings.apiKeyEncrypted);
 }
 
-export type VoiceCorpusEntry = {
-  category: string;
-  user: string;
-  assistant: string;
-  notes: string[];
-};
+export type VoiceCorpusEntry = VoiceCorpusEntryPure;
 
-function isVoiceCorpusEntry(value: unknown): value is VoiceCorpusEntry {
-  if (typeof value !== "object" || value === null) return false;
-  const entry = value as Record<string, unknown>;
-  return (
-    typeof entry.category === "string" &&
-    typeof entry.user === "string" &&
-    typeof entry.assistant === "string" &&
-    Array.isArray(entry.notes) &&
-    entry.notes.every((note) => typeof note === "string")
-  );
-}
-
-export function parseVoiceCorpusJson(raw: string | null | undefined): VoiceCorpusEntry[] {
-  if (!raw || raw.trim().length === 0) return [];
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return [];
-  }
-  if (!Array.isArray(parsed)) return [];
-  return parsed.filter(isVoiceCorpusEntry);
-}
-
-export function assertValidVoiceCorpusJson(raw: string): void {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    throw new Error("voiceCorpusJson must be valid JSON");
-  }
-  if (!Array.isArray(parsed)) {
-    throw new Error("voiceCorpusJson must be a JSON array");
-  }
-  for (const entry of parsed) {
-    if (!isVoiceCorpusEntry(entry)) {
-      throw new Error("voiceCorpusJson entries must include category, user, assistant, notes[]");
-    }
-  }
-}
-
-const PROMPT_HEADER =
-  '너는 밴드 서스테인의 리더 김영민을 모티브로 만든 AI 캐릭터 챗봇이다. 실제 김영민 본인은 아니며, 카카오톡 대화에서 보이는 김영민의 말투와 농담 방식, 음악/기타 장비/역사 지식을 참고해 대화한다.\n\n이 봇의 목적은 밴드 홍보보다 "진짜 김영민과 카톡하는 것 같은 재미"를 주는 것이다.';
-
-const SECTION_ORDER: Array<{ heading: string; key: keyof YeongminSettings }> = [
-  { heading: "1. 정체성", key: "sectionIdentity" },
-  { heading: "2. 역할", key: "sectionRole" },
-  { heading: "3. 말투", key: "sectionTone" },
-  { heading: "4. 성격", key: "sectionPersonality" },
-  { heading: "5. 주요 지식", key: "sectionKnowledge" },
-  { heading: "6. 좋아하는 것", key: "sectionLikes" },
-  { heading: "7. 싫어하는 것", key: "sectionDislikes" },
-  { heading: "8. 금지사항", key: "sectionForbidden" },
-  { heading: "9. 모르는 질문 대응 방식", key: "sectionUnknownHandling" },
-  { heading: "10. 답변 예시", key: "sectionExamples" },
-];
-
-function formatVoiceCorpus(entries: VoiceCorpusEntry[]): string | null {
-  if (entries.length === 0) return null;
-  return entries
-    .map((entry, index) => {
-      const category = entry.category.trim() || "Untitled";
-      const notes = entry.notes.map((note) => note.trim()).filter(Boolean);
-      const lines = [
-        `### Corpus ${index + 1} - ${category}`,
-        `- user: ${entry.user.trim()}`,
-        `- assistant: ${entry.assistant.trim()}`,
-      ];
-      if (notes.length > 0) {
-        lines.push(`- notes: ${notes.join(", ")}`);
-      }
-      return lines.join("\n");
-    })
-    .join("\n\n");
-}
+export const parseVoiceCorpusJson = parseVoiceCorpusJsonPure;
+export const assertValidVoiceCorpusJson = assertValidVoiceCorpusJsonPure;
 
 export function assemblePrompt(settings: YeongminSettings): string {
-  const parts: string[] = [PROMPT_HEADER];
-  for (const { heading, key } of SECTION_ORDER) {
-    const value = settings[key];
-    if (typeof value === "string" && value.trim().length > 0) {
-      parts.push(`## ${heading}\n${value.trim()}`);
-    }
-  }
-  const voiceCorpus = formatVoiceCorpus(parseVoiceCorpusJson(settings.voiceCorpusJson));
-  if (voiceCorpus) {
-    parts.push(`## 11. Voice Corpus\n${voiceCorpus}`);
-  }
-  return parts.join("\n\n");
+  const promptSettings: PromptSettings = {
+    sectionIdentity: settings.sectionIdentity,
+    sectionRole: settings.sectionRole,
+    sectionTone: settings.sectionTone,
+    sectionPersonality: settings.sectionPersonality,
+    sectionKnowledge: settings.sectionKnowledge,
+    sectionLikes: settings.sectionLikes,
+    sectionDislikes: settings.sectionDislikes,
+    sectionForbidden: settings.sectionForbidden,
+    sectionUnknownHandling: settings.sectionUnknownHandling,
+    sectionExamples: settings.sectionExamples,
+    voiceCorpusJson: settings.voiceCorpusJson,
+  };
+  return assemblePromptPure(promptSettings);
 }
 
 export function calcCostUsd(
