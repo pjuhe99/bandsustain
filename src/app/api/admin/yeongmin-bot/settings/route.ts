@@ -25,6 +25,7 @@ const STRING_KEYS = new Set<keyof UpdatableSettings>([
   "sectionForbidden",
   "sectionUnknownHandling",
   "sectionExamples",
+  "sectionUserAddress",
   "voiceCorpusJson",
 ]);
 
@@ -77,6 +78,7 @@ export async function GET() {
     sectionForbidden: s.sectionForbidden,
     sectionUnknownHandling: s.sectionUnknownHandling,
     sectionExamples: s.sectionExamples,
+    sectionUserAddress: s.sectionUserAddress,
     voiceCorpusJson: s.voiceCorpusJson,
   });
 }
