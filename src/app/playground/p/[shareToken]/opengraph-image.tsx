@@ -4,6 +4,7 @@ import path from "node:path";
 import { getLayoutByShareToken } from "@/lib/playground/playgroundDb";
 import { parseSnapshot } from "@/lib/playground/layoutSerializer";
 import { isValidToken } from "@/lib/playground/tokens";
+import { isLayoutPinned } from "@/lib/playground/memberPins";
 
 export const runtime = "nodejs";
 export const contentType = "image/png";
@@ -23,7 +24,10 @@ export default async function Image({ params }: { params: Promise<{ shareToken: 
   try {
     if (isValidToken(shareToken)) {
       const row = await getLayoutByShareToken(shareToken);
-      if (row && row.visibility !== "private" && row.snapshot_json) {
+      const allowPrivate = row && row.visibility === "private"
+        ? await isLayoutPinned(Number(row.id))
+        : false;
+      if (row && row.snapshot_json && (row.visibility !== "private" || allowPrivate)) {
         const layout = parseSnapshot(row.snapshot_json);
         title = layout.title || "Pedalboard";
         board = {
