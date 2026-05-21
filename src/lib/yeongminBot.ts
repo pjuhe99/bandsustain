@@ -20,6 +20,8 @@ export type YeongminSettings = {
   sessionMsgCap: number;
   inputCharLimit: number;
   longInputFallbackReply: string | null;
+  sessionCapFallbackReply: string | null;
+  dailyCapFallbackReply: string | null;
   outputMaxChars: number;
   outputMaxLines: number;
   outputMaxTokens: number;
@@ -47,6 +49,8 @@ type SettingsRow = RowDataPacket & {
   session_msg_cap: number;
   input_char_limit: number;
   long_input_fallback_reply: string | null;
+  session_cap_fallback_reply: string | null;
+  daily_cap_fallback_reply: string | null;
   output_max_chars: number;
   output_max_lines: number;
   output_max_tokens: number;
@@ -75,6 +79,8 @@ function rowToSettings(r: SettingsRow): YeongminSettings {
     sessionMsgCap: r.session_msg_cap,
     inputCharLimit: r.input_char_limit,
     longInputFallbackReply: r.long_input_fallback_reply,
+    sessionCapFallbackReply: r.session_cap_fallback_reply,
+    dailyCapFallbackReply: r.daily_cap_fallback_reply,
     outputMaxChars: r.output_max_chars,
     outputMaxLines: r.output_max_lines,
     outputMaxTokens: r.output_max_tokens,
@@ -111,6 +117,8 @@ export type UpdatableSettings = Partial<{
   sessionMsgCap: number;
   inputCharLimit: number;
   longInputFallbackReply: string;
+  sessionCapFallbackReply: string;
+  dailyCapFallbackReply: string;
   outputMaxChars: number;
   outputMaxLines: number;
   outputMaxTokens: number;
@@ -136,6 +144,8 @@ const COLUMN_MAP: Record<keyof UpdatableSettings, string> = {
   sessionMsgCap: "session_msg_cap",
   inputCharLimit: "input_char_limit",
   longInputFallbackReply: "long_input_fallback_reply",
+  sessionCapFallbackReply: "session_cap_fallback_reply",
+  dailyCapFallbackReply: "daily_cap_fallback_reply",
   outputMaxChars: "output_max_chars",
   outputMaxLines: "output_max_lines",
   outputMaxTokens: "output_max_tokens",
