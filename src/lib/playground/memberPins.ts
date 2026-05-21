@@ -363,6 +363,57 @@ export async function deleteMemberPin(pinId: number): Promise<void> {
   );
 }
 
+export async function getMemberPinByIdForAdmin(pinId: number): Promise<AdminPinRow | null> {
+  const [rows] = await getPool().query<AdminPinSqlRow[]>(
+    `SELECT p.id           AS pin_id,
+            p.layout_id,
+            p.override_title,
+            p.caption,
+            p.pin_order,
+            p.updated_at,
+            l.share_token,
+            l.title        AS layout_title,
+            b.name           AS board_name,
+            br.name          AS board_brand,
+            b.image_filename AS board_image_filename,
+            m.id             AS member_id,
+            m.name_kr        AS member_name_kr,
+            m.name_en        AS member_name_en,
+            m.position       AS member_position,
+            m.photo_url      AS member_photo_url,
+            m.published      AS member_published
+       FROM playground_member_pins p
+       JOIN playground_layouts l       ON l.id = p.layout_id
+       JOIN members m                  ON m.id = p.member_id
+       LEFT JOIN playground_boards b   ON b.id = l.catalog_board_id
+       LEFT JOIN playground_board_brands br ON br.id = b.brand_id
+      WHERE p.id = ?
+      LIMIT 1`,
+    [pinId],
+  );
+  if (rows.length === 0) return null;
+  const r = rows[0];
+  return {
+    pin_id: Number(r.pin_id),
+    layout_id: Number(r.layout_id),
+    member_id: Number(r.member_id),
+    member_name_kr: String(r.member_name_kr),
+    member_name_en: String(r.member_name_en),
+    member_position: String(r.member_position),
+    member_photo_url: String(r.member_photo_url),
+    member_published: r.member_published === 1,
+    override_title: r.override_title,
+    caption: r.caption,
+    pin_order: Number(r.pin_order),
+    share_token: String(r.share_token),
+    layout_title: String(r.layout_title),
+    board_name: r.board_name ? String(r.board_name) : "보드 정보 없음",
+    board_brand: r.board_brand ? String(r.board_brand) : "",
+    board_image_filename: r.board_image_filename ? String(r.board_image_filename) : null,
+    updated_at: new Date(r.updated_at),
+  };
+}
+
 /** Swaps pin_order with the adjacent pin (up=lower order, down=higher). No-op at edges. */
 export async function swapMemberPinOrder(pinId: number, direction: "up" | "down"): Promise<void> {
   const pool = getPool();
