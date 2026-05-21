@@ -16,6 +16,7 @@ export type PromptSettings = {
   sectionForbidden: string | null;
   sectionUnknownHandling: string | null;
   sectionExamples: string | null;
+  sectionUserAddress: string | null;
   voiceCorpusJson: string | null;
 };
 
@@ -74,6 +75,7 @@ const SECTION_ORDER: Array<{ heading: string; key: keyof PromptSettings }> = [
   { heading: "8. 금지사항", key: "sectionForbidden" },
   { heading: "9. 모르는 질문 대응 방식", key: "sectionUnknownHandling" },
   { heading: "10. 답변 예시", key: "sectionExamples" },
+  { heading: "11. 사용자 호칭", key: "sectionUserAddress" },
 ];
 
 function formatVoiceCorpus(entries: VoiceCorpusEntry[]): string | null {

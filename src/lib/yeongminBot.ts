@@ -36,6 +36,7 @@ export type YeongminSettings = {
   sectionForbidden: string | null;
   sectionUnknownHandling: string | null;
   sectionExamples: string | null;
+  sectionUserAddress: string | null;
   voiceCorpusJson: string | null;
 };
 
@@ -65,6 +66,7 @@ type SettingsRow = RowDataPacket & {
   section_forbidden: string | null;
   section_unknown_handling: string | null;
   section_examples: string | null;
+  section_user_address: string | null;
   voice_corpus_json: string | null;
 };
 
@@ -95,6 +97,7 @@ function rowToSettings(r: SettingsRow): YeongminSettings {
     sectionForbidden: r.section_forbidden,
     sectionUnknownHandling: r.section_unknown_handling,
     sectionExamples: r.section_examples,
+    sectionUserAddress: r.section_user_address,
     voiceCorpusJson: r.voice_corpus_json,
   };
 }
@@ -133,6 +136,7 @@ export type UpdatableSettings = Partial<{
   sectionForbidden: string;
   sectionUnknownHandling: string;
   sectionExamples: string;
+  sectionUserAddress: string;
   voiceCorpusJson: string;
 }>;
 
@@ -160,6 +164,7 @@ const COLUMN_MAP: Record<keyof UpdatableSettings, string> = {
   sectionForbidden: "section_forbidden",
   sectionUnknownHandling: "section_unknown_handling",
   sectionExamples: "section_examples",
+  sectionUserAddress: "section_user_address",
   voiceCorpusJson: "voice_corpus_json",
 };
 
@@ -211,6 +216,7 @@ export function assemblePrompt(settings: YeongminSettings): string {
     sectionForbidden: settings.sectionForbidden,
     sectionUnknownHandling: settings.sectionUnknownHandling,
     sectionExamples: settings.sectionExamples,
+    sectionUserAddress: settings.sectionUserAddress,
     voiceCorpusJson: settings.voiceCorpusJson,
   };
   return assemblePromptPure(promptSettings);

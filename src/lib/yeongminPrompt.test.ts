@@ -15,6 +15,7 @@ function baseSettings(corpusJson: string | null): PromptSettings {
     sectionForbidden: null,
     sectionUnknownHandling: null,
     sectionExamples: null,
+    sectionUserAddress: null,
     voiceCorpusJson: corpusJson,
   };
 }
@@ -80,4 +81,21 @@ test("assemblePrompt omits voice-corpus section when no entries exist", () => {
   assert.ok(!promptEmpty.includes("답변 톤 참고"), "header should not appear when corpus empty");
   const promptInvalid = assemblePrompt(baseSettings("not-json"));
   assert.ok(!promptInvalid.includes("답변 톤 참고"), "header should not appear when corpus invalid JSON");
+});
+
+test("assemblePrompt emits 11. 사용자 호칭 heading when sectionUserAddress is set", () => {
+  const settings = baseSettings(null);
+  settings.sectionUserAddress = "- 2~3턴마다 이름을 부른다.\n- 매 답마다는 피한다.";
+  const prompt = assemblePrompt(settings);
+  assert.ok(prompt.includes("## 11. 사용자 호칭"), "heading must be rendered");
+  assert.ok(prompt.includes("2~3턴마다 이름을 부른다"), "section body must be rendered");
+});
+
+test("assemblePrompt omits 11. 사용자 호칭 heading when sectionUserAddress is null or empty", () => {
+  const promptNull = assemblePrompt(baseSettings(null));
+  assert.ok(!promptNull.includes("11. 사용자 호칭"), "heading must not appear when null");
+  const settings = baseSettings(null);
+  settings.sectionUserAddress = "   ";
+  const promptBlank = assemblePrompt(settings);
+  assert.ok(!promptBlank.includes("11. 사용자 호칭"), "heading must not appear when whitespace-only");
 });
