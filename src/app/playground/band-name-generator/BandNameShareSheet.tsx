@@ -21,7 +21,8 @@ export default function BandNameShareSheet({
   const token = encodeShare({ name: result.name, scene: result.scene, mood: result.mood });
   const origin = typeof window !== "undefined" ? window.location.origin : "https://bandsustain.com";
   const url = `${origin}/playground/band-name-generator/share/${token}`;
-  const imageUrl = `${url}/opengraph-image`;
+  // 카톡 피드는 와이드 이미지를 잘라 보여줘서 정사각형 전용 이미지를 쓴다.
+  const kakaoImageUrl = `${url}/kakao-image`;
   const description = `${result.tags.join(" · ")} · 밴드 이름 생성기`;
   const canWebShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
 
@@ -43,7 +44,9 @@ export default function BandNameShareSheet({
         content: {
           title: result.name,
           description,
-          imageUrl,
+          imageUrl: kakaoImageUrl,
+          imageWidth: 1200,
+          imageHeight: 1200,
           link: { mobileWebUrl: url, webUrl: url },
         },
         buttons: [
