@@ -9,6 +9,7 @@ export const sceneOptions: { value: Scene; label: string; description: string }[
   { value: "citypop", label: "시티팝", description: "네온, 드라이브, 바다, 여름밤의 느낌" },
   { value: "emo", label: "이모 / 슈게이즈", description: "몽환적이고 쓸쓸하고 노이즈가 많은 느낌" },
   { value: "campus", label: "대학축제 청춘록", description: "친근하고 같이 따라 부를 수 있는 느낌" },
+  { value: "metal", label: "메탈 / 헤비록", description: "철, 화염, 심연, 폭풍처럼 무겁고 강렬한 느낌" },
 ];
 
 export const moodOptions: { value: Mood; label: string }[] = [

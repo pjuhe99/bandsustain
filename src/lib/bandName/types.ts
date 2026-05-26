@@ -7,7 +7,8 @@ export type Scene =
   | "punk"
   | "citypop"
   | "emo"
-  | "campus";
+  | "campus"
+  | "metal";
 
 export type Mood =
   | "fresh"
@@ -46,7 +47,11 @@ export type WordCategory =
   | "movement"
   | "odd"
   | "food"
-  | "suffix";
+  | "suffix"
+  | "metalMaterial"
+  | "doom"
+  | "ritual"
+  | "beast";
 
 // 패턴은 언어별 목록으로 분리해서 들고 있으므로 language 배열 필드는 두지 않는다.
 // 혼합(mixed)은 한국어 패턴을 런타임에 차용하며 첫 슬롯만 영어로 채운다.

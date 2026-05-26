@@ -34,7 +34,7 @@ test("malformed or hostile tokens decode to null (never throw)", () => {
 });
 
 test("invalid scene/mood rejected", () => {
-  const badScene = encodeShare({ name: "x", scene: "metal" as never, mood: "fresh" });
+  const badScene = encodeShare({ name: "x", scene: "jazz" as never, mood: "fresh" });
   const badMood = encodeShare({ name: "x", scene: "jrock", mood: "angry" as never });
   assert.equal(decodeShare(badScene), null);
   assert.equal(decodeShare(badMood), null);

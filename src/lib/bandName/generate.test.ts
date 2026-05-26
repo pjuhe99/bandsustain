@@ -159,6 +159,84 @@ test("selectDiverseResults dedupes and limits shared first words", () => {
   assert.equal(new Set(firstWords).size, 3, "first words should be distinct");
 });
 
+// --- 메탈 / 헤비록 씬 ---
+const METAL_PATTERN_IDS = new Set(
+  [...koreanPatterns, ...englishPatterns].filter((p) => p.scenes.includes("metal")).map((p) => p.id),
+);
+const FUNNY_METAL_IDS = new Set([
+  "ko_machine_ritual_metal", "ko_odd_doom_metal", "ko_food_ritual_metal",
+  "en_machine_ritual_metal", "en_odd_doom_metal", "en_food_ritual_metal",
+]);
+
+test("metal scene only yields metal patterns (no other-scene leakage)", () => {
+  for (const lang of ["korean", "english", "mixed"] as const) {
+    for (let seed = 0; seed < 50; seed++) {
+      for (const r of generateBandNames(
+        { scene: "metal", mood: "rough", language: lang, weirdness: 3 },
+        makeSeededRng(seed),
+      )) {
+        assert.ok(METAL_PATTERN_IDS.has(r.patternId), `non-metal pattern ${r.patternId} (${lang}) → ${r.name}`);
+      }
+    }
+  }
+});
+
+test("metal weirdness 1-2 stays serious (no funny food/odd/machine patterns)", () => {
+  for (const w of [1, 2] as const) {
+    for (let seed = 0; seed < 50; seed++) {
+      for (const r of generateBandNames(
+        { scene: "metal", mood: "rough", language: "korean", weirdness: w },
+        makeSeededRng(seed),
+      )) {
+        assert.ok(!FUNNY_METAL_IDS.has(r.patternId), `funny metal pattern leaked at w${w}: ${r.patternId} (${r.name})`);
+      }
+    }
+  }
+});
+
+test("metal funny patterns DO appear at weirdness 5 / funny mood", () => {
+  let funnyHits = 0;
+  for (let seed = 0; seed < 60; seed++) {
+    for (const r of generateBandNames(
+      { scene: "metal", mood: "funny", language: "korean", weirdness: 5 },
+      makeSeededRng(seed),
+    )) {
+      if (FUNNY_METAL_IDS.has(r.patternId)) funnyHits++;
+    }
+  }
+  assert.ok(funnyHits > 0, "expected some funny metal patterns at weirdness 5 / funny");
+});
+
+test("korean metal names stay compact and never emit a real band name", () => {
+  for (const w of [1, 3, 5] as const) {
+    for (let seed = 0; seed < 60; seed++) {
+      for (const r of generateBandNames(
+        { scene: "metal", mood: w === 5 ? "funny" : "rough", language: "korean", weirdness: w },
+        makeSeededRng(seed),
+      )) {
+        assert.ok(r.name.length <= 10, `korean metal name too long: ${r.name} (w${w})`);
+        assert.ok(
+          !blockedExactNames.has(r.name) && !blockedExactNames.has(r.name.toUpperCase()),
+          `blocked metal band name leaked: ${r.name}`,
+        );
+      }
+    }
+  }
+});
+
+test("english metal names are 2-3 words and never a real band name", () => {
+  for (let seed = 0; seed < 60; seed++) {
+    for (const r of generateBandNames(
+      { scene: "metal", mood: "rough", language: "english", weirdness: 2 },
+      makeSeededRng(seed),
+    )) {
+      const wc = r.name.split(" ").length;
+      assert.ok(wc >= 2 && wc <= 3, `unexpected word count for metal "${r.name}"`);
+      assert.ok(!blockedExactNames.has(r.name.toUpperCase()), `blocked metal band name: ${r.name}`);
+    }
+  }
+});
+
 function patternById(id: string) {
   const p = [...koreanPatterns, ...englishPatterns].find((x) => x.id === id);
   if (!p) throw new Error(`unknown pattern ${id}`);

@@ -123,6 +123,33 @@ export const koreanWords: Record<WordCategory, string[]> = {
     "생활", "동맹", "연합", "구조대", "야간반", "유랑단", "백화점", "상회",
     "서비스센터", "문제집",
   ],
+
+  // --- 메탈 / 헤비록 전용 카테고리 (철·화염·심연·의식·괴수) ---
+  metalMaterial: [
+    "철", "강철", "쇳물", "철갑", "철권", "철창", "쇠사슬", "사슬", "갑옷",
+    "칼날", "검", "대검", "도끼", "망치", "철퇴", "창", "방패", "전차",
+    "기관차", "용광로", "제철소", "엔진", "톱니", "기어", "강철문", "탄환",
+    "대포", "화약", "철골", "금속성", "쇠파이프", "철탑", "검날", "철마", "철심",
+  ],
+  doom: [
+    "심연", "파멸", "멸망", "종말", "지옥", "화염", "불길", "폭풍", "천둥",
+    "번개", "분노", "광기", "저주", "죽음", "절망", "혼돈", "폐허", "재앙",
+    "어둠", "암흑", "피", "핏빛", "붉은밤", "전쟁", "학살", "처형", "추락",
+    "붕괴", "폭발", "검은불", "잿더미", "비명", "단죄", "복수", "멸절", "잔해",
+    "폭군", "전율", "소멸", "악몽",
+  ],
+  ritual: [
+    "제단", "왕관", "교단", "성전", "의식", "묘지", "무덤", "장례식", "성배",
+    "성벽", "왕좌", "신전", "성당", "십자가", "문장", "예언", "심판", "기도",
+    "성가대", "순례자", "군단", "기사단", "수도회", "황제", "왕국", "제국",
+    "사도", "대성당", "장막", "봉인", "계시", "성흔", "탑", "관", "깃발",
+  ],
+  beast: [
+    "용", "검은용", "늑대", "까마귀", "독수리", "뱀", "박쥐", "해골", "악마",
+    "괴물", "거인", "전갈", "망령", "유령", "사신", "마왕", "야수", "광견",
+    "불사조", "키메라", "미노타우로스", "크라켄", "괴수", "마녀", "망자",
+    "좀비", "흡혈귀", "사냥개", "도깨비", "괴인",
+  ],
 };
 
 // ---------------------------------------------------------------------------
@@ -202,6 +229,36 @@ const englishBase: Partial<Record<WordCategory, string[]>> = {
     "SYNDROME", "SOCIETY", "STATION", "SERVICE", "RADIO", "MOTEL",
     "DEPARTMENT", "UNION",
   ],
+
+  // --- 메탈 / 헤비록 전용 카테고리 ---
+  metalMaterial: [
+    "IRON", "STEEL", "METAL", "CHAIN", "BLADE", "SWORD", "AXE", "HAMMER",
+    "ARMOR", "SHIELD", "FURNACE", "ANVIL", "ENGINE", "GEAR", "TANK", "BULLET",
+    "CANNON", "RAZOR", "SPIKE", "THRONE", "MACHINE", "FORGE", "RUST", "NAIL",
+    "BARBED WIRE", "WARHAMMER", "STEEL HORSE", "IRON FIST", "METAL HEART",
+    "BATTLE AXE",
+  ],
+  doom: [
+    "DOOM", "HELL", "ABYSS", "DEATH", "FIRE", "FLAME", "THUNDER", "STORM",
+    "WRATH", "RAGE", "CHAOS", "CURSE", "RUIN", "DISASTER", "DARKNESS", "BLOOD",
+    "CRIMSON", "WAR", "SLAUGHTER", "EXECUTION", "FALLEN", "COLLAPSE",
+    "EXPLOSION", "BLACK FIRE", "ASHES", "SCREAM", "JUDGEMENT", "REVENGE",
+    "NIGHTMARE", "OBLIVION", "APOCALYPSE", "INFERNO", "TORMENT",
+    "ANNIHILATION", "BURIAL",
+  ],
+  ritual: [
+    "ALTAR", "CROWN", "CULT", "RITUAL", "GRAVE", "GRAVEYARD", "FUNERAL",
+    "CHALICE", "THRONE", "TEMPLE", "CATHEDRAL", "CROSS", "PROPHECY",
+    "JUDGEMENT", "PRAYER", "LEGION", "ORDER", "EMPIRE", "KINGDOM", "APOSTLE",
+    "REQUIEM", "SEAL", "REVELATION", "BANNER", "CRYPT", "TOMB", "SANCTUARY",
+    "CEREMONY", "MONASTERY", "HOLY WAR",
+  ],
+  beast: [
+    "DRAGON", "BLACK DRAGON", "WOLF", "RAVEN", "EAGLE", "SNAKE", "BAT",
+    "SKULL", "DEMON", "MONSTER", "GIANT", "SCORPION", "GHOST", "REAPER",
+    "BEAST", "PHOENIX", "CHIMERA", "KRAKEN", "WITCH", "VAMPIRE", "ZOMBIE",
+    "HELLHOUND", "SERPENT", "GOLEM", "TITAN",
+  ],
 };
 
 export const englishWords: Partial<Record<WordCategory, string[]>> = englishBase;
@@ -239,6 +296,22 @@ export const koreanPatterns: Pattern[] = [
   { id: "ko_machine_movement", slots: ["machine", "movement"], separator: "", scenes: ["punk", "hongdae"], moods: ["rough", "funny"], minWeirdness: 3, maxWeirdness: 5, weight: 8 },
   { id: "ko_three_word_poetic", slots: ["time", "color", "place"], separator: "", scenes: ["jrock", "emo"], moods: ["dreamy", "wistful"], minWeirdness: 1, maxWeirdness: 3, weight: 4 },
   { id: "ko_three_word_weird", slots: ["city", "odd", "suffix"], separator: "", scenes: ["hongdae", "punk"], moods: ["funny"], minWeirdness: 4, maxWeirdness: 5, weight: 3 },
+
+  // --- 메탈 / 헤비록 (mixed 도 이 2슬롯 패턴에서 첫 슬롯 영어로 파생됨) ---
+  { id: "ko_metalMaterial_doom", slots: ["metalMaterial", "doom"], separator: "", scenes: ["metal"], moods: ["rough", "wistful"], minWeirdness: 1, maxWeirdness: 4, weight: 16 },
+  { id: "ko_doom_metalMaterial", slots: ["doom", "metalMaterial"], separator: "", scenes: ["metal"], moods: ["rough", "dreamy"], minWeirdness: 1, maxWeirdness: 4, weight: 15 },
+  { id: "ko_doom_ritual", slots: ["doom", "ritual"], separator: "", scenes: ["metal"], moods: ["rough", "wistful", "dreamy"], minWeirdness: 1, maxWeirdness: 4, weight: 16 },
+  { id: "ko_color_metalMaterial", slots: ["color", "metalMaterial"], separator: "", scenes: ["metal"], moods: ["rough", "dreamy"], minWeirdness: 1, maxWeirdness: 3, weight: 13 },
+  { id: "ko_color_ritual", slots: ["color", "ritual"], separator: "", scenes: ["metal"], moods: ["dreamy", "wistful", "rough"], minWeirdness: 1, maxWeirdness: 3, weight: 12 },
+  { id: "ko_beast_metalMaterial", slots: ["beast", "metalMaterial"], separator: "", scenes: ["metal"], moods: ["rough"], minWeirdness: 1, maxWeirdness: 4, weight: 13 },
+  { id: "ko_beast_doom", slots: ["beast", "doom"], separator: "", scenes: ["metal"], moods: ["rough", "dreamy"], minWeirdness: 2, maxWeirdness: 5, weight: 12 },
+  { id: "ko_metalMaterial_ritual", slots: ["metalMaterial", "ritual"], separator: "", scenes: ["metal"], moods: ["rough", "dreamy"], minWeirdness: 1, maxWeirdness: 4, weight: 14 },
+  { id: "ko_fire_beast", slots: ["doom", "beast"], separator: "", scenes: ["metal"], moods: ["rough", "dreamy"], minWeirdness: 2, maxWeirdness: 4, weight: 12 },
+  { id: "ko_metal_sound", slots: ["metalMaterial", "sound"], separator: "", scenes: ["metal"], moods: ["rough"], minWeirdness: 2, maxWeirdness: 4, weight: 10 },
+  { id: "ko_doom_movement", slots: ["doom", "movement"], separator: "", scenes: ["metal"], moods: ["rough"], minWeirdness: 2, maxWeirdness: 5, weight: 10 },
+  { id: "ko_machine_ritual_metal", slots: ["machine", "ritual"], separator: "", scenes: ["metal"], moods: ["funny", "rough"], minWeirdness: 3, maxWeirdness: 5, weight: 11 },
+  { id: "ko_odd_doom_metal", slots: ["odd", "doom"], separator: "", scenes: ["metal"], moods: ["funny", "rough"], minWeirdness: 4, maxWeirdness: 5, weight: 9 },
+  { id: "ko_food_ritual_metal", slots: ["food", "ritual"], separator: "", scenes: ["metal"], moods: ["funny"], minWeirdness: 4, maxWeirdness: 5, weight: 8 },
 ];
 
 // ---------------------------------------------------------------------------
@@ -258,6 +331,18 @@ export const englishPatterns: Pattern[] = [
   { id: "en_color_machine", slots: ["color", "machine"], separator: " ", scenes: ["punk", "hongdae"], moods: ["rough", "funny"], minWeirdness: 3, maxWeirdness: 5, weight: 9 },
   { id: "en_sound_place", slots: ["sound", "place"], separator: " ", scenes: ["punk", "emo"], moods: ["rough", "dreamy"], minWeirdness: 2, maxWeirdness: 5, weight: 9 },
   { id: "en_color_youth", slots: ["color", "youth"], separator: " ", scenes: ["punk", "jrock"], moods: ["rough", "fresh"], minWeirdness: 2, maxWeirdness: 4, weight: 8 },
+
+  // --- 메탈 / 헤비록 ---
+  { id: "en_metalMaterial_doom", slots: ["metalMaterial", "doom"], separator: " ", scenes: ["metal"], moods: ["rough", "wistful"], minWeirdness: 1, maxWeirdness: 4, weight: 16 },
+  { id: "en_doom_metalMaterial", slots: ["doom", "metalMaterial"], separator: " ", scenes: ["metal"], moods: ["rough", "dreamy"], minWeirdness: 1, maxWeirdness: 4, weight: 15 },
+  { id: "en_color_ritual_metal", slots: ["color", "ritual"], separator: " ", scenes: ["metal"], moods: ["rough", "dreamy", "wistful"], minWeirdness: 1, maxWeirdness: 3, weight: 13 },
+  { id: "en_doom_ritual", slots: ["doom", "ritual"], separator: " ", scenes: ["metal"], moods: ["rough", "dreamy"], minWeirdness: 1, maxWeirdness: 4, weight: 16 },
+  { id: "en_beast_metalMaterial", slots: ["beast", "metalMaterial"], separator: " ", scenes: ["metal"], moods: ["rough"], minWeirdness: 1, maxWeirdness: 4, weight: 13 },
+  { id: "en_beast_doom", slots: ["beast", "doom"], separator: " ", scenes: ["metal"], moods: ["rough", "dreamy"], minWeirdness: 2, maxWeirdness: 5, weight: 12 },
+  { id: "en_metalMaterial_ritual", slots: ["metalMaterial", "ritual"], separator: " ", scenes: ["metal"], moods: ["rough", "dreamy"], minWeirdness: 1, maxWeirdness: 4, weight: 14 },
+  { id: "en_machine_ritual_metal", slots: ["machine", "ritual"], separator: " ", scenes: ["metal"], moods: ["funny", "rough"], minWeirdness: 3, maxWeirdness: 5, weight: 10 },
+  { id: "en_odd_doom_metal", slots: ["odd", "doom"], separator: " ", scenes: ["metal"], moods: ["funny", "rough"], minWeirdness: 4, maxWeirdness: 5, weight: 8 },
+  { id: "en_food_ritual_metal", slots: ["food", "ritual"], separator: " ", scenes: ["metal"], moods: ["funny"], minWeirdness: 4, maxWeirdness: 5, weight: 7 },
 ];
 
 // ---------------------------------------------------------------------------
@@ -270,6 +355,11 @@ export const sceneCategoryBoosts: Record<Scene, Partial<Record<WordCategory, num
   citypop: { light: 1.6, city: 1.4, analog: 1.4, nature: 1.2, time: 1.1, odd: 0.3, machine: 0.6 },
   emo: { emotion: 1.6, sound: 1.5, weather: 1.3, time: 1.3, light: 1.1, odd: 0.3, food: 0.2 },
   campus: { youth: 1.5, season: 1.4, place: 1.2, food: 1.0, analog: 1.0, odd: 0.7, machine: 0.5 },
+  metal: {
+    metalMaterial: 1.8, doom: 1.8, ritual: 1.5, beast: 1.4, sound: 1.2,
+    machine: 1.1, movement: 1.1, color: 0.9, light: 0.8, emotion: 0.6,
+    season: 0.2, food: 0.2, odd: 0.3, youth: 0.2, nature: 0.3,
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -303,6 +393,26 @@ export const preferredPairs: [string, string][] = [
   ["냉장고", "청춘"], ["세탁기", "소년"], ["자판기", "유령"], ["전자레인지", "클럽"],
   ["양말", "클럽"], ["두부", "소년단"], ["김밥", "레코즈"], ["라면", "클럽"],
   ["붕어빵", "합창단"], ["실내화", "소년단"], ["급식판", "클럽"],
+
+  // --- 메탈 / 헤비록 좋은 조합 ---
+  ["검은", "용광로"], ["검정", "제단"], ["붉은", "사슬"], ["핏빛", "왕관"],
+  ["철", "폭풍"], ["강철", "심장"], ["철갑", "폭풍"], ["철갑", "군단"],
+  ["쇠사슬", "제단"], ["칼날", "왕관"], ["도끼", "제단"], ["망치", "군단"],
+  ["용광로", "심연"], ["용광로", "폭풍"], ["엔진", "파멸"], ["기관차", "화염"],
+  ["전차", "폭풍"], ["심연", "제단"], ["심연", "왕관"], ["심연", "군단"],
+  ["파멸", "기관차"], ["파멸", "제단"], ["지옥", "전차"], ["지옥", "사냥개"],
+  ["화염", "용"], ["화염", "왕관"], ["폭풍", "기사단"], ["천둥", "망치"],
+  ["폐허", "왕관"], ["폐허", "제단"], ["어둠", "성전"], ["암흑", "교단"],
+  ["검은불", "성가대"], ["악몽", "군단"], ["용", "철갑"], ["검은용", "제단"],
+  ["늑대", "사슬"], ["까마귀", "왕관"], ["해골", "엔진"], ["악마", "기관차"],
+  ["사신", "군단"], ["야수", "폭풍"], ["멀티탭", "교단"], ["냉장고", "파멸"],
+  ["전기밥솥", "제단"], ["급식판", "폭풍"], ["고무장갑", "학살"],
+  ["IRON", "TEMPEST"], ["IRON", "ALTAR"], ["STEEL", "THUNDER"],
+  ["STEEL", "LEGION"], ["BLACK", "ALTAR"], ["BLACK", "FURNACE"],
+  ["CRIMSON", "CHAIN"], ["BLOOD", "CROWN"], ["DOOM", "ENGINE"], ["DOOM", "CULT"],
+  ["HELL", "FURNACE"], ["HELL", "HOUND"], ["ABYSS", "ALTAR"], ["ABYSS", "THRONE"],
+  ["THUNDER", "HAMMER"], ["FIRE", "DRAGON"], ["RUIN", "CROWN"], ["RAVEN", "THRONE"],
+  ["SKULL", "ENGINE"], ["DEMON", "LEGION"], ["MICROWAVE", "CULT"], ["SOCKS", "DOOM"],
 ];
 
 export const blockedPairs: [string, string][] = [
@@ -312,6 +422,17 @@ export const blockedPairs: [string, string][] = [
   ["호텔", "모텔"], ["김밥", "삼각김밥"], ["냉장고", "전자레인지"],
   ["세탁기", "세탁소"], ["편의점", "삼각김밥"], ["정류장", "승강장"],
   ["출구", "비상구"], ["오후", "자정"],
+
+  // --- 메탈 / 헤비록 의미 중복·어색 조합 ---
+  ["철", "강철"], ["철", "철갑"], ["강철", "철갑"], ["사슬", "쇠사슬"],
+  ["검", "대검"], ["칼날", "검날"], ["화염", "불길"], ["어둠", "암흑"],
+  ["파멸", "멸망"], ["종말", "멸망"], ["죽음", "사신"], ["무덤", "묘지"],
+  ["성전", "기사단"], ["왕관", "왕좌"], ["용", "검은용"], ["괴물", "괴수"],
+  ["악마", "마왕"],
+  ["IRON", "STEEL"], ["CHAIN", "BARBED WIRE"], ["BLADE", "SWORD"],
+  ["FIRE", "FLAME"], ["DOOM", "DEATH"], ["HELL", "INFERNO"],
+  ["DARKNESS", "BLACK FIRE"], ["GRAVE", "GRAVEYARD"], ["CROWN", "THRONE"],
+  ["DRAGON", "BLACK DRAGON"], ["DEMON", "HELLHOUND"],
 ];
 
 export const blockedExactNames = new Set([
@@ -321,6 +442,12 @@ export const blockedExactNames = new Set([
   "SILICA GEL", "RADWIMPS", "ONE OK ROCK", "YOASOBI", "YORUSHIKA",
   "ASIAN KUNG-FU GENERATION", "TOKYO JIHEN", "THE 1975", "RADIOHEAD",
   "OASIS", "BLUR", "GREEN DAY", "PARAMORE", "MUSE", "COLDPLAY",
+  // 메탈 / 헤비록 (대문자 통일 비교 — isBlockedExactName 이 toUpperCase 도 검사)
+  "METALLICA", "SLIPKNOT", "MEGADETH", "IRON MAIDEN", "BLACK SABBATH",
+  "JUDAS PRIEST", "SLAYER", "PANTERA", "ANTHRAX", "KORN", "SYSTEM OF A DOWN",
+  "LINKIN PARK", "LIMP BIZKIT", "RAMMSTEIN", "AVENGED SEVENFOLD",
+  "BRING ME THE HORIZON", "BABYMETAL", "X JAPAN", "LOUDNESS", "DIR EN GREY",
+  "MAXIMUM THE HORMONE", "부활", "시나위", "백두산", "크래쉬", "블랙홀",
 ]);
 
 // ---------------------------------------------------------------------------
@@ -333,6 +460,7 @@ export const sceneLabels: Record<Scene, string> = {
   citypop: "시티팝",
   emo: "이모 / 슈게이즈",
   campus: "청춘록",
+  metal: "메탈 / 헤비록",
 };
 
 export const moodLabels: Record<Mood, string> = {

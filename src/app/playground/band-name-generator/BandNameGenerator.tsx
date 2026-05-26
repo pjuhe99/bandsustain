@@ -100,7 +100,8 @@ export default function BandNameGenerator() {
       <div className="border border-[var(--color-border-strong)] p-6 md:p-8">
         <fieldset className="mb-10">
           <SectionLabel>씬 / 장르</SectionLabel>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {/* 7개 항목 — auto-rows-fr 로 행이 달라도(예: 3+3+1) 카드 높이를 균일하게 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr gap-3">
             {sceneOptions.map((opt) => {
               const active = scene === opt.value;
               return (
