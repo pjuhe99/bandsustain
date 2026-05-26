@@ -240,6 +240,32 @@ test("english metal names are 2-3 words and never a real band name", () => {
   }
 });
 
+test("each scene's results are dominated by its own patterns (scene identity)", () => {
+  const byId = new Map([...koreanPatterns, ...englishPatterns].map((p) => [p.id, p]));
+  const scenes: Scene[] = ["jrock", "hongdae", "punk", "citypop", "emo", "campus"];
+  const moods: Mood[] = ["fresh", "dreamy", "wistful", "funny", "rough", "romantic"];
+  for (const scene of scenes) {
+    let total = 0;
+    let onScene = 0;
+    for (const mood of moods) {
+      for (let seed = 0; seed < 8; seed++) {
+        for (const r of generateBandNames(
+          { scene, mood, language: "korean", weirdness: 3 },
+          defaultDataset,
+          makeSeededRng(seed),
+        )) {
+          total++;
+          const p = byId.get(r.patternId);
+          if (p && p.scenes.includes(scene)) onScene++;
+        }
+      }
+    }
+    const frac = onScene / total;
+    // 수정 전 punk ~2%, hongdae ~4% 였음. 씬 정체성 확보 회귀 가드.
+    assert.ok(frac >= 0.9, `scene ${scene}: only ${(100 * frac).toFixed(0)}% on-scene (expected >=90%)`);
+  }
+});
+
 test("metal patterns never leak into non-metal scenes (any language/mood)", () => {
   const nonMetalScenes: Scene[] = ["jrock", "hongdae", "punk", "citypop", "emo", "campus"];
   const moods: Mood[] = ["fresh", "dreamy", "wistful", "funny", "rough", "romantic"];

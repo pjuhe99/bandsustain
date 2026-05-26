@@ -250,6 +250,16 @@ export function scoreGeneratedName(
     score += 30;
   }
 
+  // 씬 정체성 보정 (메탈 외 6씬). base 항 pattern.weight*10 이 씬과 무관하게
+  // 고-weight 패턴(jrock 13~14)을 top-3 에 올려 모든 씬을 점령하던 문제를 바로잡는다.
+  // 선택 씬을 패턴이 명시하면 가산, 아니면 큰 감산 → 결과가 그 씬 패턴 위주가 된다.
+  // (씬에 맞는 패턴이 하나도 없으면 모두 동일 감산이라 자연히 off-scene 으로 폴백.)
+  // metal 씬은 아래 전용 블록이 처리.
+  if (input.scene !== "metal") {
+    if (pattern.scenes.includes(input.scene)) score += 40;
+    else score -= 80;
+  }
+
   // 메탈 씬 전용 보정
   if (input.scene === "metal") {
     score = applyMetalSceneScoreAdjustments(score, words, input, pattern);
