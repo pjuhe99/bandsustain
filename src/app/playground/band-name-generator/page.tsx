@@ -16,6 +16,8 @@ export const metadata: Metadata = buildPageMetadata({
   ogImage,
 });
 
+export const dynamic = "force-dynamic";
+
 export default async function BandNameGeneratorPage() {
   const dataset = await loadBandNameDataset();
   return (
