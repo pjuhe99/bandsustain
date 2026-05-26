@@ -4,7 +4,7 @@ import { buildPageMetadata } from "@/lib/seo";
 import BandNameGenerator from "./BandNameGenerator";
 
 const description =
-  "장르와 분위기를 고르면 어딘가 진짜 있을 것 같은 밴드 이름을 만들어드려요. 외부 AI 없이 단어 조합으로 즉석에서 짓는 인디밴드 작명기.";
+  "장르와 분위기를 고르면 어딘가 진짜 있을 것 같은 밴드 이름을 만들어드려요. 단어 조합으로 즉석에서 짓는 인디밴드 작명기.";
 const ogImage = "/slides/hero-b4d9e516.jpg";
 
 export const metadata: Metadata = buildPageMetadata({
