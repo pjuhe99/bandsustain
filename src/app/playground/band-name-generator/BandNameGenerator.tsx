@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { defaultDataset } from "@/lib/bandName/data";
 import { generateBandNames } from "@/lib/bandName/generate";
 import {
   defaultInput,
@@ -12,6 +11,7 @@ import {
   weirdnessLevels,
 } from "@/lib/bandName/options";
 import type {
+  BandNameDataset,
   BandNameInput,
   GeneratedBandName,
   LanguageStyle,
@@ -49,7 +49,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function BandNameGenerator() {
+export default function BandNameGenerator({ dataset }: { dataset: BandNameDataset }) {
   const [scene, setScene] = useState<Scene>(defaultInput.scene);
   const [mood, setMood] = useState<Mood>(defaultInput.mood);
   const [language, setLanguage] = useState<LanguageStyle>(defaultInput.language);
@@ -79,7 +79,7 @@ export default function BandNameGenerator() {
     // 살짝 기다리게 해서 "이름을 짓는 중" 느낌을 준다. (생성 자체는 즉시지만
     // 결과를 LOADING_MS 후에 노출.)
     timeoutRef.current = setTimeout(() => {
-      setResults(generateBandNames(input, defaultDataset));
+      setResults(generateBandNames(input, dataset));
       setLoading(false);
       timeoutRef.current = null;
     }, LOADING_MS);

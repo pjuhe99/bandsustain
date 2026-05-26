@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { buildPageMetadata } from "@/lib/seo";
+import { loadBandNameDataset } from "@/lib/bandName/dataset";
 import BandNameGenerator from "./BandNameGenerator";
 
 const description =
@@ -15,7 +16,8 @@ export const metadata: Metadata = buildPageMetadata({
   ogImage,
 });
 
-export default function BandNameGeneratorPage() {
+export default async function BandNameGeneratorPage() {
+  const dataset = await loadBandNameDataset();
   return (
     <section className="max-w-5xl mx-auto px-6 md:px-12 py-16 md:py-24 page-fade-in">
       <nav className="mb-8 flex items-center gap-2 text-xs uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
@@ -41,7 +43,7 @@ export default function BandNameGeneratorPage() {
         </p>
       </header>
 
-      <BandNameGenerator />
+      <BandNameGenerator dataset={dataset} />
     </section>
   );
 }
