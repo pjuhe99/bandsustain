@@ -31,6 +31,15 @@ function pillClass(active: boolean): string {
     : `${pillBase} border border-[var(--color-text)] bg-transparent text-[var(--color-text)] hover:bg-[var(--color-bg-muted)]`;
 }
 
+// 이름 길이에 따라 카드 제목 폰트 크기를 단계적으로 조정한다. 짧은 이름은 크게,
+// 긴 한글 이름은 한두 단계 줄여 카드 안에서 읽기 좋게 (임팩트는 유지).
+function nameSizeClass(name: string): string {
+  const len = name.length;
+  if (len <= 6) return "text-3xl md:text-[2.5rem]";
+  if (len <= 9) return "text-[1.7rem] md:text-[2.125rem]";
+  return "text-2xl md:text-3xl";
+}
+
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <h2 className="font-display font-bold text-lg md:text-xl text-[var(--color-text)] mb-4">
@@ -208,9 +217,9 @@ export default function BandNameGenerator() {
         </div>
       )}
 
-      {/* 결과 */}
+      {/* 결과 — @container 로 viewport 가 아닌 이 영역의 실제 폭에 반응 */}
       {!loading && results && (
-        <div className="mt-16 border-t border-[var(--color-border)] pt-12">
+        <div className="mt-16 border-t border-[var(--color-border)] pt-12 @container">
           <h2 className="font-display font-bold text-2xl md:text-3xl mb-8">
             당신의 밴드 이름은…
           </h2>
@@ -220,18 +229,22 @@ export default function BandNameGenerator() {
               조건에 맞는 이름을 찾지 못했어요. 다시 시도해 주세요.
             </p>
           ) : (
-            <ul className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            <ul className="grid grid-cols-1 @md:grid-cols-2 @4xl:grid-cols-3 gap-4 md:gap-6">
               {results.map((r, i) => (
                 <li
                   key={`${r.name}-${i}`}
                   style={{ animationDelay: `${i * 70}ms` }}
-                  className="bandname-pop border border-[var(--color-text)] p-6 md:p-7 flex flex-col"
+                  className="bandname-pop border border-[var(--color-text)] p-6 md:p-7 flex flex-col min-w-0"
                 >
                   <span className="text-xs font-semibold tracking-[0.1em] text-[var(--color-text-muted)]">
                     {String(i + 1).padStart(2, "0")}
                   </span>
 
-                  <p className="mt-3 mb-5 font-display font-black text-3xl md:text-[2.5rem] leading-[1.1] break-keep flex-1">
+                  <p
+                    className={`mt-3 mb-5 font-display font-black leading-[1.15] break-keep [overflow-wrap:anywhere] min-w-0 min-h-[2.3em] flex-1 ${nameSizeClass(
+                      r.name,
+                    )}`}
+                  >
                     {r.name}
                   </p>
 
@@ -246,7 +259,7 @@ export default function BandNameGenerator() {
                     ))}
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="mt-auto flex flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={() => copy(r.name, i)}

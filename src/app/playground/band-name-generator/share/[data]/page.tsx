@@ -73,7 +73,7 @@ export default async function BandNameSharePage({ params }: Props) {
       </p>
 
       <p className="text-sm text-[var(--color-text-muted)] mb-3">당신의 밴드 이름은…</p>
-      <h1 className="font-display font-black text-5xl md:text-7xl leading-[1.05] tracking-tight break-keep">
+      <h1 className="font-display font-black text-4xl sm:text-5xl md:text-7xl leading-[1.05] tracking-tight break-keep [overflow-wrap:anywhere]">
         {payload.name}
       </h1>
 

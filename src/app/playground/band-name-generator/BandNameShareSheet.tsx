@@ -83,7 +83,7 @@ export default function BandNameShareSheet({
           </button>
         </div>
 
-        <p className="font-display font-black text-3xl md:text-4xl leading-tight break-keep mb-2">
+        <p className="font-display font-black text-3xl md:text-4xl leading-tight break-keep [overflow-wrap:anywhere] mb-2">
           {result.name}
         </p>
         <div className="flex flex-wrap gap-1.5 mb-5">
