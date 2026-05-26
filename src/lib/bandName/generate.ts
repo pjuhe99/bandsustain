@@ -123,6 +123,14 @@ function pickOne<T>(items: T[], rng: Rng): T {
 
 // 씬/분위기 카테고리 보정 + 씬·분위기 직접 매칭 + 이상함 범위를 반영한 패턴 가중치.
 export function effectivePatternWeight(pattern: Pattern, input: BandNameInput): number {
+  // 메탈 패턴은 메탈 씬 전용. base weight 가 높고 mood 커버리지가 넓어서,
+  // 게이팅이 없으면 다른 씬에서도 weighted 선택을 압도해 점령한다(96%+ 누수).
+  // 자기 scenes 에 선택된 씬이 없으면 weight 0 으로 후보 생성에서 제외한다.
+  // (비-메탈 패턴끼리의 약한 cross-leak 은 의도된 다양성이라 그대로 둔다.)
+  if (pattern.scenes.includes("metal") && !pattern.scenes.includes(input.scene)) {
+    return 0;
+  }
+
   let w = pattern.weight;
 
   const sceneBoost = sceneCategoryBoosts[input.scene];

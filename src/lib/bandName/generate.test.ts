@@ -13,7 +13,7 @@ import {
   scoreGeneratedName,
   selectDiverseResults,
 } from "./generate";
-import type { BandNameInput, GeneratedBandName } from "./types";
+import type { BandNameInput, GeneratedBandName, LanguageStyle, Mood, Scene } from "./types";
 
 const SAMPLE_INPUTS: BandNameInput[] = [
   { scene: "jrock", mood: "fresh", language: "korean", weirdness: 2 },
@@ -236,6 +236,30 @@ test("english metal names are 2-3 words and never a real band name", () => {
       const wc = r.name.split(" ").length;
       assert.ok(wc >= 2 && wc <= 3, `unexpected word count for metal "${r.name}"`);
       assert.ok(!blockedExactNames.has(r.name.toUpperCase()), `blocked metal band name: ${r.name}`);
+    }
+  }
+});
+
+test("metal patterns never leak into non-metal scenes (any language/mood)", () => {
+  const nonMetalScenes: Scene[] = ["jrock", "hongdae", "punk", "citypop", "emo", "campus"];
+  const moods: Mood[] = ["fresh", "dreamy", "wistful", "funny", "rough", "romantic"];
+  const langs: LanguageStyle[] = ["korean", "english", "mixed"];
+  for (const scene of nonMetalScenes) {
+    for (const mood of moods) {
+      for (const language of langs) {
+        for (let seed = 0; seed < 8; seed++) {
+          for (const r of generateBandNames(
+            { scene, mood, language, weirdness: 3 },
+            defaultDataset,
+            makeSeededRng(seed),
+          )) {
+            assert.ok(
+              !METAL_PATTERN_IDS.has(r.patternId),
+              `metal pattern ${r.patternId} ("${r.name}") leaked into scene=${scene} mood=${mood} lang=${language} seed=${seed}`,
+            );
+          }
+        }
+      }
     }
   }
 });
