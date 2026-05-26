@@ -2,10 +2,7 @@
 // 1차 버전: 외부 AI 없이 이 데이터만으로 이름을 만든다.
 
 import type {
-  Mood,
-  Pattern,
-  Scene,
-  WordCategory,
+  BandNameDataset, Mood, Pattern, Scene, WordCategory,
 } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -470,4 +467,15 @@ export const moodLabels: Record<Mood, string> = {
   funny: "묘하게 웃김",
   rough: "거친 느낌",
   romantic: "낭만적",
+};
+
+// 기본 데이터셋 — DB 시드 원본 + DB 장애 시 폴백 + 테스트 픽스처.
+export const defaultDataset: BandNameDataset = {
+  koreanWords,
+  englishWords,
+  koreanPatterns,
+  englishPatterns,
+  preferredPairs,
+  blockedPairs,
+  blockedExactNames,
 };
