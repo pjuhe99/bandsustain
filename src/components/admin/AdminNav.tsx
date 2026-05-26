@@ -7,6 +7,7 @@ const items = [
   { href: "/admin/analytics", label: "Analytics" },
   { href: "/admin/members", label: "Members" },
   { href: "/admin/pedalboard-pins", label: "Pedalboard Pins" },
+  { href: "/admin/band-name", label: "Band Name" },
   { href: "/admin/songs", label: "Songs" },
   { href: "/admin/news", label: "News" },
   { href: "/admin/quotes", label: "Quotes" },
