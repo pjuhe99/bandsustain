@@ -44,3 +44,25 @@ body {
     animation: none;
   }
 }
+
+/* 밴드 이름 생성기 결과 카드 등장 (가벼운 페이드+슬라이드, 스태거는 인라인 delay). */
+@keyframes bandname-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bandname-pop {
+  animation: bandname-pop 260ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bandname-pop {
+    animation: none;
+  }
+}

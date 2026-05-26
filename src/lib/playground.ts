@@ -30,5 +30,6 @@ export const playgroundFeatures: PlaygroundFeature[] = [
     description: "몇 가지 취향을 고르면 나만의 인디밴드 이름을 만들어드려요.",
     cta: "이름 만들러 가기",
     eyebrow: "이상한 도구",
+    href: "/playground/band-name-generator",
   },
 ];
