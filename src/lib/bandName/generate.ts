@@ -208,7 +208,11 @@ export function scoreGeneratedName(
   pattern: Pattern,
   sets: PairSets,
 ): number {
-  let score = pattern.weight * 10;
+  // 점수는 "만들어진 이름의 품질"만 판단한다(길이·선호조합·씬매칭·웃김 적합도).
+  // 패턴 선호도(weight)는 effectivePatternWeight 의 선택 빈도에서 이미 반영되므로,
+  // 점수에까지 base 로 또 넣으면 고-weight 패턴이 이중으로 유리해져 한 씬이 소수
+  // 패턴에 쏠린다(이전: citypop/emo/campus top3 97~99%). base 를 빼 다양성을 회복.
+  let score = 0;
 
   // 길이 점수
   if (input.language === "korean") {

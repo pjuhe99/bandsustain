@@ -266,6 +266,33 @@ test("each scene's results are dominated by its own patterns (scene identity)", 
   }
 });
 
+test("no single pattern dominates a scene (variety guard)", () => {
+  // 이전엔 점수 base 항 pattern.weight*10 때문에 한 패턴이 한 씬의 97~99%를 차지했다.
+  // base 제거 후엔 다양한 패턴이 고르게 등장해야 한다.
+  const scenes: Scene[] = ["citypop", "emo", "campus", "metal"];
+  const moods: Mood[] = ["dreamy", "rough", "wistful"];
+  for (const scene of scenes) {
+    const counts: Record<string, number> = {};
+    let total = 0;
+    for (const mood of moods) {
+      for (let seed = 0; seed < 24; seed++) {
+        for (const r of generateBandNames(
+          { scene, mood, language: "korean", weirdness: 3 },
+          defaultDataset,
+          makeSeededRng(seed),
+        )) {
+          counts[r.patternId] = (counts[r.patternId] ?? 0) + 1;
+          total++;
+        }
+      }
+    }
+    const distinct = Object.keys(counts).length;
+    const top1 = Math.max(...Object.values(counts));
+    assert.ok(distinct >= 8, `${scene}: only ${distinct} distinct patterns (expected >=8)`);
+    assert.ok(top1 / total < 0.45, `${scene}: top pattern ${(100 * top1 / total).toFixed(0)}% (expected <45%)`);
+  }
+});
+
 test("metal patterns never leak into non-metal scenes (any language/mood)", () => {
   const nonMetalScenes: Scene[] = ["jrock", "hongdae", "punk", "citypop", "emo", "campus"];
   const moods: Mood[] = ["fresh", "dreamy", "wistful", "funny", "rough", "romantic"];
