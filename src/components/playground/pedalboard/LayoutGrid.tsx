@@ -1,5 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
+import { BoardThumbnail } from "./BoardThumbnail";
+import type { ThumbData } from "@/lib/playground/thumbnail";
 
 export interface LayoutCard {
   id: number; title: string; share_token: string;
@@ -7,6 +8,7 @@ export interface LayoutCard {
   updated_at: Date;
   board_image_filename: string | null;
   board_brand: string | null; board_name: string | null;
+  thumb: ThumbData | null;
 }
 
 export function LayoutGrid({ items, hrefBuilder, emptyMessage }: {
@@ -23,11 +25,8 @@ export function LayoutGrid({ items, hrefBuilder, emptyMessage }: {
         <li key={it.id}>
           <Link href={hrefBuilder(it)} className="block">
             <div className="aspect-[3/1] bg-[var(--color-bg-muted)] relative overflow-hidden">
-              {it.board_image_filename && (
-                <Image src={`/playground/images/pedalboards/${it.board_image_filename}`}
-                  alt={`${it.board_brand ?? ""} ${it.board_name ?? ""}`} fill className="object-contain"
-                  sizes="(max-width: 768px) 50vw, 25vw" />
-              )}
+              <BoardThumbnail thumb={it.thumb} fallbackImage={it.board_image_filename}
+                alt={`${it.board_brand ?? ""} ${it.board_name ?? ""}`} />
             </div>
             <div className="mt-2 text-xs uppercase tracking-wider text-[var(--color-text-muted)]">
               {it.board_brand} {it.board_name}

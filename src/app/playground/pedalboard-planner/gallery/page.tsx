@@ -5,6 +5,7 @@ import type { RowDataPacket } from "mysql2";
 import { LayoutGrid, type LayoutCard } from "@/components/playground/pedalboard/LayoutGrid";
 import { MemberPinSection } from "@/components/playground/pedalboard/MemberPinSection";
 import { getPublishedMemberPins } from "@/lib/playground/memberPins";
+import { toThumbnail } from "@/lib/playground/thumbnail";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const runtime = "nodejs";
@@ -20,7 +21,7 @@ export const metadata: Metadata = buildPageMetadata({
 async function loadPublicExcludingPins(): Promise<LayoutCard[]> {
   const pool = getPool();
   const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT l.id, l.title, l.share_token, l.visibility, l.updated_at,
+    `SELECT l.id, l.title, l.share_token, l.visibility, l.updated_at, l.snapshot_json,
             b.image_filename AS board_image_filename, b.name AS board_name, br.name AS board_brand
        FROM playground_layouts l
        LEFT JOIN playground_boards b ON b.id = l.catalog_board_id
@@ -28,7 +29,17 @@ async function loadPublicExcludingPins(): Promise<LayoutCard[]> {
       WHERE l.visibility = 'public'
         AND l.id NOT IN (SELECT layout_id FROM playground_member_pins)
       ORDER BY l.updated_at DESC LIMIT 50`);
-  return rows as unknown as LayoutCard[];
+  return rows.map((r) => ({
+    id: Number(r.id),
+    title: String(r.title),
+    share_token: String(r.share_token),
+    visibility: r.visibility as LayoutCard["visibility"],
+    updated_at: new Date(r.updated_at),
+    board_image_filename: r.board_image_filename ? String(r.board_image_filename) : null,
+    board_brand: r.board_brand ? String(r.board_brand) : null,
+    board_name: r.board_name ? String(r.board_name) : null,
+    thumb: toThumbnail(r.snapshot_json),
+  }));
 }
 
 export default async function Page() {

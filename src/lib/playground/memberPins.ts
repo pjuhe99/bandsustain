@@ -1,6 +1,7 @@
 import "server-only";
 import { getPool } from "@/lib/db";
 import type { RowDataPacket } from "mysql2";
+import { toThumbnail, type ThumbData } from "./thumbnail";
 
 export type MemberPinView = {
   pin_id: number;
@@ -21,6 +22,7 @@ export type MemberPinView = {
     name: string;
     brand: string;
   };
+  thumb: ThumbData | null;
   updated_at: Date;
 };
 
@@ -33,6 +35,7 @@ type PinRow = RowDataPacket & {
   updated_at: Date;
   share_token: string;
   layout_title: string;
+  snapshot_json: string | null;
   board_image_filename: string | null;
   board_name: string | null;
   board_brand: string | null;
@@ -58,6 +61,7 @@ export async function getPublishedMemberPins(): Promise<MemberPinView[]> {
             p.updated_at,
             l.share_token,
             l.title        AS layout_title,
+            l.snapshot_json,
             b.image_filename AS board_image_filename,
             b.name           AS board_name,
             br.name          AS board_brand,
@@ -98,6 +102,7 @@ export async function getPublishedMemberPins(): Promise<MemberPinView[]> {
         name: r.board_name ? String(r.board_name) : "보드 정보 없음",
         brand: r.board_brand ? String(r.board_brand) : "",
       },
+      thumb: toThumbnail(r.snapshot_json),
       updated_at: new Date(r.updated_at),
     };
   });
