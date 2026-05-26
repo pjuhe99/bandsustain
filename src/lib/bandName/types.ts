@@ -78,3 +78,25 @@ export type GeneratedBandName = {
 
 // 슬롯별 단어를 어느 언어 DB에서 뽑을지 결정하는 내부용 보조 타입.
 export type SlotLanguage = "korean" | "english";
+
+// 단어 맵은 DB에서 일부 카테고리만 채워질 수 있으므로 Partial 로 둔다.
+export type WordMap = Partial<Record<WordCategory, string[]>>;
+
+// 생성기에 주입되는 데이터셋. 운영자 관리 대상(단어/패턴/쌍/차단명)만 담는다.
+// (sceneCategoryBoosts/moodCategoryBoosts/labels 는 알고리즘 상수라 코드에 유지.)
+export type BandNameDataset = {
+  koreanWords: WordMap;
+  englishWords: WordMap;
+  koreanPatterns: Pattern[];
+  englishPatterns: Pattern[];
+  preferredPairs: [string, string][];
+  blockedPairs: [string, string][];
+  blockedExactNames: Set<string>;
+};
+
+// 런타임에서 카테고리를 열거해야 할 때(admin 드롭다운, 시드, 검증) 쓰는 단일 출처.
+export const ALL_WORD_CATEGORIES: WordCategory[] = [
+  "time", "season", "weather", "color", "light", "place", "city", "room",
+  "analog", "sound", "nature", "emotion", "youth", "machine", "movement",
+  "odd", "food", "suffix", "metalMaterial", "doom", "ritual", "beast",
+];
