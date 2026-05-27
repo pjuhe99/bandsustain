@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { buildPageMetadata } from "@/lib/seo";
 import { loadBandNameDataset } from "@/lib/bandName/dataset";
+import { parseInitialInput } from "@/lib/bandName/options";
 import BandNameGenerator from "./BandNameGenerator";
 
 const description =
@@ -18,8 +19,13 @@ export const metadata: Metadata = buildPageMetadata({
 
 export const dynamic = "force-dynamic";
 
-export default async function BandNameGeneratorPage() {
+type Props = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function BandNameGeneratorPage({ searchParams }: Props) {
   const dataset = await loadBandNameDataset();
+  const initialInput = parseInitialInput(await searchParams);
   return (
     <section className="max-w-5xl mx-auto px-6 md:px-12 py-16 md:py-24 page-fade-in">
       <nav className="mb-8 flex items-center gap-2 text-xs uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
@@ -45,7 +51,7 @@ export default async function BandNameGeneratorPage() {
         </p>
       </header>
 
-      <BandNameGenerator dataset={dataset} />
+      <BandNameGenerator dataset={dataset} initialInput={initialInput} />
     </section>
   );
 }

@@ -43,3 +43,16 @@ export const defaultInput: BandNameInput = {
   language: "korean",
   weirdness: 3,
 };
+
+// 외부(예: MBTI 캐스팅)에서 넘어온 query 로 초기 선택값을 만든다.
+// 알려진 값만 통과시키므로 잘못된 파라미터는 무시되어 기본 동작이 유지된다.
+export function parseInitialInput(
+  sp: Record<string, string | string[] | undefined>,
+): Partial<BandNameInput> {
+  const out: Partial<BandNameInput> = {};
+  const scene = typeof sp.scene === "string" ? sp.scene : undefined;
+  if (scene && sceneOptions.some((o) => o.value === scene)) out.scene = scene as Scene;
+  const mood = typeof sp.mood === "string" ? sp.mood : undefined;
+  if (mood && moodOptions.some((o) => o.value === mood)) out.mood = mood as Mood;
+  return out;
+}
