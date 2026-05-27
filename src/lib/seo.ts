@@ -21,7 +21,7 @@ export const BRAND_KEYWORDS = [
 
 const DEFAULT_OG_IMAGE = "/slides/hero-a7f3c1e2.jpg";
 const BAND_DESCRIPTION =
-  "감성적인 멜로디와 선명한 밴드 사운드로 오래 남는 소리와 계속 이어지는 감정을 전하는 대한민국 밴드 서스테인.";
+  "서스테인은 2021년부터 함께한 대한민국 밴드입니다. 산뜻한 팝 감각과 부드러운 멜로디로, 오래 남는 소리와 이어지는 감정을 전합니다.";
 
 const SOCIAL_URLS = [
   "https://www.instagram.com/band_sustain",
@@ -50,7 +50,7 @@ function uniqueKeywords(keywords: string[] = []): string[] {
 
 export function buildRootMetadata(): Metadata {
   const description =
-    "밴드 서스테인(Band Sustain) 공식 사이트. 서스테인 음악, 공연 일정, 멤버 소개, 뉴스, 플레이그라운드 콘텐츠를 확인하세요.";
+    "2021년부터 함께 음악을 만들어온 대한민국 밴드 서스테인의 공식 사이트입니다. 서스테인의 음악과 공연 일정, 멤버 소개, 뉴스, 플레이그라운드 콘텐츠까지 한 곳에서 만나보실 수 있습니다.";
   const title = `${BAND_NAME_KR_FULL} | ${BAND_NAME} 공식 사이트`;
 
   return {
