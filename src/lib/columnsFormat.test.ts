@@ -16,14 +16,24 @@ test("maskIp falls back for empty/garbage", () => {
 });
 
 test("excerptFromMarkdown strips markdown and truncates with ellipsis", () => {
-  const md = "# 제목\n\n**굵게** 그리고 [링크](https://x.com) 와 `코드`.\n\n![img](/uploads/columns/a.jpg)";
+  const md =
+    "# 제목입니다\n\n**굵게 강조한** 문장과 [링크 텍스트](https://x.com) 그리고 `인라인코드` 까지 포함합니다.\n\n![이미지설명](/uploads/columns/a.jpg)";
   const out = excerptFromMarkdown(md, 20);
   assert.ok(!out.includes("#"));
   assert.ok(!out.includes("!["));
   assert.ok(!out.includes("https://x.com"));
-  assert.ok(out.includes("링크"));
+  assert.ok(!out.includes("이미지설명")); // image alt text is NOT carried into the excerpt
   assert.ok(out.length <= 20);
   assert.ok(out.endsWith("..."));
+});
+
+test("excerptFromMarkdown keeps link text and inline-code content, drops image alt", () => {
+  const md = "[링크 텍스트](https://x.com) 와 `인라인코드` ![이미지설명](/u/a.jpg)";
+  const out = excerptFromMarkdown(md, 100);
+  assert.ok(out.includes("링크 텍스트"));
+  assert.ok(out.includes("인라인코드"));
+  assert.ok(!out.includes("이미지설명"));
+  assert.ok(!out.includes("https://x.com"));
 });
 
 test("excerptFromMarkdown returns whole string when short", () => {
