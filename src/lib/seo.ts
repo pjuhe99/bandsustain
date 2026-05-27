@@ -237,3 +237,36 @@ export function buildNewsArticleSchema(item: NewsItem) {
     },
   };
 }
+
+export function buildColumnArticleSchema(post: {
+  id: number;
+  title: string;
+  topicTitle: string;
+  authorName: string | null;
+  heroImage: string | null;
+  publishedAt: Date | null;
+  createdAt: Date;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    datePublished: dateOnly(post.publishedAt ?? post.createdAt),
+    ...(post.heroImage ? { image: [abs(post.heroImage)] } : {}),
+    author: {
+      "@type": post.authorName ? "Person" : "Organization",
+      name: post.authorName ?? BAND_NAME_KR_FULL,
+      url: SITE_URL,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: BAND_NAME_KR_FULL,
+      logo: { "@type": "ImageObject", url: abs("/icon.svg") },
+    },
+    articleSection: post.topicTitle,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${SITE_URL}/columns/${post.id}`,
+    },
+  };
+}
