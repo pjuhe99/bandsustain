@@ -5,6 +5,7 @@
 import type { GenreId } from "./types";
 import type { Mood, Scene } from "../bandName/types";
 
+// "campus" 씬은 대응되는 캐스팅 장르가 없어 의도적으로 매핑하지 않는다.
 export const GENRE_TO_SCENE: Record<GenreId, Scene> = {
   jPop: "jrock",
   jRock: "jrock",

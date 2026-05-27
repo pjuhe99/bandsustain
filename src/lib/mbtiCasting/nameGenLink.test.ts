@@ -31,3 +31,9 @@ test("unmapped mood tags omit the mood param", () => {
   const qs = new URLSearchParams(buildNameGenQuery("jRock", ["존재하지않는태그"]));
   assert.equal(qs.get("mood"), null);
 });
+
+test("first matching mood tag wins", () => {
+  // 몽환 → dreamy, 청춘 → fresh; 첫 매칭(dreamy)이 선택돼야 한다.
+  const qs = new URLSearchParams(buildNameGenQuery("jRock", ["몽환", "청춘"]));
+  assert.equal(qs.get("mood"), "dreamy");
+});
