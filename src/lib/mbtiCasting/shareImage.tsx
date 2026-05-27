@@ -88,7 +88,7 @@ export function renderCastingImage(
             {title}
           </div>
           {tags.length > 0 && (
-            <div style={{ display: "flex", gap: 12, justifyContent: square ? "center" : "flex-start", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 12, justifyContent: square ? "center" : "flex-start" }}>
               {tags.map((tag) => (
                 <div key={tag} style={{ display: "flex", fontSize: 24, color: "#555555", border: "1px solid #e5e5e5", padding: "8px 18px" }}>
                   {tag}
