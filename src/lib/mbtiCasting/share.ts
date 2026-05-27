@@ -42,8 +42,8 @@ export function decodeCasting(token: string): BandCastingInput | null {
     const parsed = JSON.parse(fromBase64Url(token));
     if (!Array.isArray(parsed) || parsed.length !== 6) return null;
     const [mbti, genre, stage, sound, experience, budget] = parsed;
-    if (typeof mbti !== "string" || !(mbti in MBTI_PROFILES)) return null;
-    if (typeof genre !== "string" || !(genre in GENRES)) return null;
+    if (typeof mbti !== "string" || !Object.hasOwn(MBTI_PROFILES, mbti)) return null;
+    if (typeof genre !== "string" || !Object.hasOwn(GENRES, genre)) return null;
     if (typeof stage !== "string" || !STAGE_IDS.has(stage as StagePreferenceId)) return null;
     if (typeof sound !== "string" || !SOUND_IDS.has(sound as SoundPreferenceId)) return null;
     if (typeof experience !== "string" || !EXPERIENCE_IDS.has(experience as ExperienceId)) return null;
