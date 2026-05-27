@@ -3,7 +3,7 @@ import Image from "next/image";
 import { useRef, useState } from "react";
 import { uploadImage } from "@/lib/upload";
 
-type Resource = "members" | "songs" | "news" | "quotes";
+type Resource = "members" | "songs" | "news" | "quotes" | "yeongmin" | "columns";
 
 export default function ImageUpload({
   name,
