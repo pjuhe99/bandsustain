@@ -42,8 +42,8 @@ export function decodeShare(token: string): SharePayload | null {
     if (typeof name !== "string" || name.length === 0 || name.length > MAX_NAME_LENGTH) {
       return null;
     }
-    if (typeof scene !== "string" || !(scene in sceneLabels)) return null;
-    if (typeof mood !== "string" || !(mood in moodLabels)) return null;
+    if (typeof scene !== "string" || !Object.hasOwn(sceneLabels, scene)) return null;
+    if (typeof mood !== "string" || !Object.hasOwn(moodLabels, mood)) return null;
     return { name, scene: scene as Scene, mood: mood as Mood };
   } catch {
     return null;

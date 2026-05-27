@@ -139,7 +139,7 @@ export default function MbtiBandCasting() {
 
           {/* 함께 잘 맞는 포지션 */}
           <p className="mt-6 text-sm text-[var(--color-text-muted)]">
-            함께 잘 맞는 포지션: <span className="text-[var(--color-text)] font-medium">{secondary.icon} {secondary.label}</span>
+            함께 잘 맞는 포지션: <span className="text-[var(--color-text)] font-medium"><span aria-hidden>{secondary.icon}</span> {secondary.label}</span>
           </p>
         </div>
 

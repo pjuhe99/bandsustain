@@ -64,7 +64,7 @@ export default async function CastingSharePage({ params }: Props) {
         <span className="px-3 py-1 text-xs uppercase tracking-[0.06em] font-medium border border-[var(--color-border)] text-[var(--color-text-muted)]">{GENRES[input.genre].label}</span>
       </div>
 
-      <p className="text-sm text-[var(--color-text-muted)] mb-3">{primary.icon} {primary.label}</p>
+      <p className="text-sm text-[var(--color-text-muted)] mb-3"><span aria-hidden>{primary.icon}</span> {primary.label}</p>
       <h1 className="font-display font-black text-3xl sm:text-4xl md:text-6xl leading-[1.05] tracking-tight break-keep [overflow-wrap:anywhere]">
         {result.title}
       </h1>
