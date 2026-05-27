@@ -32,4 +32,12 @@ export const playgroundFeatures: PlaygroundFeature[] = [
     eyebrow: "이상한 도구",
     href: "/playground/band-name-generator",
   },
+  {
+    slug: "sound-taste-test",
+    title: "사운드 취향 테스트",
+    description: "16개의 장면과 소리를 고르면, 당신과 닮은 밴드 음악과 추천곡을 찾아드려요.",
+    cta: "테스트 하러 가기",
+    eyebrow: "취향 실험",
+    href: "/playground/sound-taste-test",
+  },
 ];
