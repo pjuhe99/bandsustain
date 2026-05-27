@@ -10,6 +10,7 @@ const items = [
   { href: "/admin/band-name", label: "Band Name" },
   { href: "/admin/songs", label: "Songs" },
   { href: "/admin/news", label: "News" },
+  { href: "/admin/columns", label: "Columns" },
   { href: "/admin/quotes", label: "Quotes" },
   { href: "/admin/live", label: "Live" },
   { href: "/admin/yeongmin-bot", label: "Kim Yeong-min Bot" },
