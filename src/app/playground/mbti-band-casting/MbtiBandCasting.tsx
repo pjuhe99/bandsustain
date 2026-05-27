@@ -1,7 +1,7 @@
 // src/app/playground/mbti-band-casting/MbtiBandCasting.tsx
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   BUDGETS, EXPERIENCES, GENRES, MBTI_PROFILES, POSITIONS,
@@ -54,6 +54,12 @@ export default function MbtiBandCasting() {
   const [loading, setLoading] = useState(false);
   const [sharing, setSharing] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   const progress = ((step - 1) / TOTAL_STEPS) * 100;
 
@@ -215,7 +221,7 @@ export default function MbtiBandCasting() {
   // 마법사 화면 -------------------------------------------------------------
   return (
     <div>
-      <div className="h-1 w-full bg-[var(--color-border)] overflow-hidden mb-8" role="progressbar" aria-valuenow={step} aria-valuemin={1} aria-valuemax={TOTAL_STEPS}>
+      <div className="h-1 w-full bg-[var(--color-border)] overflow-hidden mb-8" role="progressbar" aria-valuenow={step} aria-valuemin={1} aria-valuemax={TOTAL_STEPS} aria-label="진행 단계">
         <div className="h-full bg-[var(--color-accent)] transition-[width] duration-300" style={{ width: `${progress}%` }} />
       </div>
 
