@@ -14,12 +14,18 @@ type SitemapLiveEvent = {
   updatedAt: Date;
 };
 
+type SitemapColumnItem = {
+  id: number;
+  lastModified: Date;
+};
+
 type BuildPublicSitemapInput = {
   siteUrl: string;
   now: Date;
   news: SitemapNewsItem[];
   songs: SitemapSongItem[];
   liveEvents: SitemapLiveEvent[];
+  columns?: SitemapColumnItem[];
 };
 
 function maxDate(dates: Array<Date | undefined>): Date | undefined {
@@ -37,6 +43,7 @@ export function buildPublicSitemap({
   news,
   songs,
   liveEvents,
+  columns = [],
 }: BuildPublicSitemapInput): MetadataRoute.Sitemap {
   const latestNewsDate = news[0]?.date;
   const latestSongDate = songs[0]?.releasedAt;
@@ -69,6 +76,12 @@ export function buildPublicSitemap({
       lastModified: latestNewsDate ?? now,
       changeFrequency: "weekly",
       priority: 0.8,
+    },
+    {
+      url: `${siteUrl}/columns`,
+      lastModified: columns[0]?.lastModified ?? now,
+      changeFrequency: "weekly",
+      priority: 0.7,
     },
     {
       url: `${siteUrl}/live`,
@@ -109,5 +122,12 @@ export function buildPublicSitemap({
     priority: 0.6,
   }));
 
-  return [...staticPages, ...newsPages];
+  const columnPages: MetadataRoute.Sitemap = columns.map((item) => ({
+    url: `${siteUrl}/columns/${item.id}`,
+    lastModified: item.lastModified,
+    changeFrequency: "monthly",
+    priority: 0.6,
+  }));
+
+  return [...staticPages, ...newsPages, ...columnPages];
 }
