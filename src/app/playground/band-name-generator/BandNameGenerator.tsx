@@ -49,15 +49,9 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function BandNameGenerator({
-  dataset,
-  initialInput,
-}: {
-  dataset: BandNameDataset;
-  initialInput?: Partial<BandNameInput>;
-}) {
-  const [scene, setScene] = useState<Scene>(initialInput?.scene ?? defaultInput.scene);
-  const [mood, setMood] = useState<Mood>(initialInput?.mood ?? defaultInput.mood);
+export default function BandNameGenerator({ dataset }: { dataset: BandNameDataset }) {
+  const [scene, setScene] = useState<Scene>(defaultInput.scene);
+  const [mood, setMood] = useState<Mood>(defaultInput.mood);
   const [language, setLanguage] = useState<LanguageStyle>(defaultInput.language);
   const [weirdness, setWeirdness] = useState<Weirdness>(defaultInput.weirdness);
   const [results, setResults] = useState<GeneratedBandName[] | null>(null);

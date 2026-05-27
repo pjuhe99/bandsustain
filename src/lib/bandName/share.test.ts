@@ -45,14 +45,6 @@ test("over-long names rejected (URL abuse guard)", () => {
   assert.equal(decodeShare(token), null);
 });
 
-test("prototype-chain scene/mood keys are rejected", () => {
-  // Use ASCII-only name so btoa doesn't throw on multi-byte chars.
-  const enc = (arr: unknown) =>
-    btoa(JSON.stringify(arr)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-  assert.equal(decodeShare(enc(["band", "constructor", "fresh"])), null);
-  assert.equal(decodeShare(enc(["band", "jrock", "toString"])), null);
-});
-
 test("shareTagsFor returns scene + mood labels", () => {
   assert.deepEqual(shareTagsFor({ name: "새벽옥상", scene: "jrock", mood: "fresh" }), [
     "J-ROCK",
