@@ -10,7 +10,7 @@ const navLinks = [
   { href: "/quote", label: "Quote" },
   { href: "/live", label: "Live" },
   { href: "/news", label: "News" },
-  { href: "/columns", label: "칼럼" },
+  { href: "/columns", label: "Columns" },
   { href: "/playground", label: "Playground" },
 ];
 
