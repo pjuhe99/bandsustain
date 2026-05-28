@@ -27,7 +27,7 @@ export default async function AdminColumnsPage() {
             <th className="py-2 w-28">공개일</th>
             <th className="py-2 w-16 text-right">조회</th>
             <th className="py-2 w-16 text-right">댓글</th>
-            <th className="py-2 w-24">공개</th>
+            <th className="py-2 w-24 pl-6">공개</th>
             <th className="py-2 w-16 text-right">동작</th>
           </tr>
         </thead>
@@ -40,7 +40,7 @@ export default async function AdminColumnsPage() {
               <td className="py-3 text-[var(--color-text-muted)] tabular-nums">{p.publishedAt ? formatColumnDate(p.publishedAt) : "—"}</td>
               <td className="py-3 text-right tabular-nums">{p.viewCount}</td>
               <td className="py-3 text-right tabular-nums">{p.commentCount}</td>
-              <td className="py-3">
+              <td className="py-3 pl-6">
                 <PublishedToggle
                   published={p.published}
                   toggleAction={async () => { "use server"; await togglePostPublished(p.id); }}

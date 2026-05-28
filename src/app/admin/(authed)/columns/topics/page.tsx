@@ -23,7 +23,7 @@ export default async function AdminTopicsPage() {
             <th className="py-2">제목</th>
             <th className="py-2 w-28">연결 멤버</th>
             <th className="py-2 w-16 text-right">정렬</th>
-            <th className="py-2 w-24">노출</th>
+            <th className="py-2 w-24 pl-6">노출</th>
             <th className="py-2 w-28 text-right">동작</th>
           </tr>
         </thead>
@@ -33,7 +33,7 @@ export default async function AdminTopicsPage() {
               <td className="py-3 font-medium">{t.title}</td>
               <td className="py-3 text-[var(--color-text-muted)]">{t.authorName ?? "—"}</td>
               <td className="py-3 text-right tabular-nums">{t.sortOrder}</td>
-              <td className="py-3">
+              <td className="py-3 pl-6">
                 <PublishedToggle
                   published={t.visible}
                   toggleAction={async () => { "use server"; await toggleTopicVisible(t.id); }}
