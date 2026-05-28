@@ -28,9 +28,9 @@ export default async function NewsPage() {
           News
         </h1>
         <p className="text-lg md:text-xl text-[var(--color-text-muted)] leading-[1.5]">
-          All the news that matters
+          News you probably shouldn't trust
           <br />
-          안 중요해도 씁니다
+          믿지는 마시고, 읽어는 보세요
         </p>
       </header>
 
