@@ -29,13 +29,14 @@
 ## 4. 데이터 모델 (정적 번들)
 
 - 파일: `src/lib/playground/rehearsal/data/metro-stations.json`
-- 엔트리: `{ name: string; lines: string[]; lat: number; lng: number }`
-- **환승역**: 같은 역명이 여러 노선에 나오면 1개 좌표로 dedupe (대표 좌표). `lines` 에 노선 모음.
-- **동명이역**(예: 총신대입구↔이수, 서로 다른 위치의 양평역): 이름이 같지만 위치가 다른 경우는 `name` 에 노선/구분 병기로 유일성 확보 (예: `"양평역(5호선)"`, `"양평역(경의중앙선)"`).
+- 엔트리: `{ name: string; lat: number; lng: number }` (역명 오름차순 배열).
+- **노선(`lines`) 미수록**: 확보한 공개 소스(역명→좌표 딕셔너리)에 노선 정보가 없고, 좌표 자동완성에는 불필요(YAGNI). 표시는 역명만.
+- **환승역/동명이역**: 소스가 역명당 1엔트리(대표 좌표)로 이미 deduped → 역명 유니크가 자연 보장. 동명이역(예: 위치가 다른 양평역)은 소스 한계로 1좌표만 — 플레이그라운드 수용 범위.
 - 로더/헬퍼: `src/lib/playground/rehearsal/metroStations.ts`
-  - `getStationOptions(): { name: string; lines: string[] }[]` — 피커 표시용(정렬).
-  - `findStationByName(name: string): { name; lat; lng } | null` — 정확 매칭, 없으면 null.
-  - 타입 `MetroStation = { name; lines; lat; lng }`.
+  - `METRO_STATIONS: MetroStation[]` — 전체 배열.
+  - `getStationNames(): string[]` — 피커(datalist) 표시용.
+  - `findStationByName(name: string): MetroStation | null` — 정확 매칭(트림), 없으면 null.
+  - 타입 `MetroStation = { name: string; lat: number; lng: number }`.
 
 ## 5. UI (RehearsalFinderClient.tsx 수정)
 
@@ -55,7 +56,7 @@
 
 - **데이터 무결성** (`metroStations.test.ts`, node:test):
   - 모든 좌표가 한국 범위(위도 33~39, 경도 124~132) 안.
-  - `name` 유니크(동명이역은 병기로 구분되어 유일).
+  - `name` 유니크(소스가 역명당 1엔트리).
   - 엔트리 수 > 0 (데이터 로드 확인).
 - **해석 헬퍼**: `findStationByName` 정확 매칭 성공 / 미존재 → null / 좌표 형태.
 
