@@ -12,6 +12,7 @@ const items = [
   { href: "/admin/news", label: "News" },
   { href: "/admin/columns", label: "Columns" },
   { href: "/admin/quotes", label: "Quotes" },
+  { href: "/admin/rehearsal-studios", label: "Rehearsal Studios" },
   { href: "/admin/live", label: "Live" },
   { href: "/admin/yeongmin-bot", label: "Kim Yeong-min Bot" },
   { href: "/admin/deploy", label: "Deploy" },
