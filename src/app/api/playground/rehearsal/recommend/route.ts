@@ -4,6 +4,7 @@ import { recommendStudios } from "@/lib/playground/rehearsal/recommend";
 import {
   transportModeEnum, originTypeEnum, equipmentTypeEnum,
 } from "@/lib/playground/rehearsal/types";
+import { isRehearsalFinderEnabled } from "@/lib/playground/rehearsal/rehearsalFlag";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,6 +27,7 @@ const BodySchema = z.object({
 });
 
 export async function POST(req: Request) {
+  if (!isRehearsalFinderEnabled()) return NextResponse.json({ error: "not_found" }, { status: 404 });
   const body = await req.json().catch(() => null);
   const parsed = BodySchema.safeParse(body);
   if (!parsed.success) {
