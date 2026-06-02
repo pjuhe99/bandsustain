@@ -1,3 +1,5 @@
+import { isRehearsalFinderEnabled } from "@/lib/playground/rehearsal/rehearsalFlag";
+
 export type PlaygroundFeature = {
   slug: string;
   title: string;
@@ -40,4 +42,18 @@ export const playgroundFeatures: PlaygroundFeature[] = [
     eyebrow: "취향 실험",
     href: "/playground/sound-taste-test",
   },
+  {
+    slug: "rehearsal-finder",
+    title: "합주실 추천",
+    description: "멤버들의 출발 위치를 입력하면 이동시간·가격·장비를 고려해 합주실을 추천해드려요.",
+    cta: "합주실 찾으러 가기",
+    eyebrow: "이상한 도구",
+    href: "/playground/rehearsal-finder",
+  },
 ];
+
+export function visiblePlaygroundFeatures(): PlaygroundFeature[] {
+  return playgroundFeatures.filter(
+    (f) => f.slug !== "rehearsal-finder" || isRehearsalFinderEnabled(),
+  );
+}

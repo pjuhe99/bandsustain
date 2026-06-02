@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { buttonClasses } from "@/components/Button";
 import { buildPageMetadata } from "@/lib/seo";
-import { playgroundFeatures, type PlaygroundFeature } from "@/lib/playground";
+import { visiblePlaygroundFeatures, type PlaygroundFeature } from "@/lib/playground";
+
+export const dynamic = "force-dynamic";
 
 const description =
   "서스테인이 만든 작은 놀이터. 이상하고 귀엽고 쓸데없지만 묘하게 즐거운 것들을 모아둔 공간입니다.";
@@ -29,7 +31,7 @@ export default function PlaygroundPage() {
       </header>
 
       <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-        {playgroundFeatures.map((f) => (
+        {visiblePlaygroundFeatures().map((f) => (
           <PlaygroundCard key={f.slug} feature={f} />
         ))}
       </ul>
