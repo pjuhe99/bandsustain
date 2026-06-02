@@ -10,7 +10,8 @@
     "playground:import-catalog": "tsx scripts/import-pedalplayground-catalog.ts",
     "playground:invariants": "tsx scripts/playground-invariants.ts",
     "pins:verify": "tsx scripts/verify-member-pins.ts",
-    "bandname:seed": "tsx scripts/seed-bandname.ts"
+    "bandname:seed": "tsx scripts/seed-bandname.ts",
+    "rehearsal:seed": "tsx scripts/seed-rehearsal.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
