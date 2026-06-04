@@ -2,31 +2,32 @@
 import { useRef, useState } from "react";
 import { buttonClasses } from "@/components/Button";
 import { findStationById, stationLabel } from "@/lib/playground/rehearsal/metroStations";
+import { EQUIPMENT_LABELS } from "@/lib/playground/rehearsal/types";
 import StationSearchSheet from "./StationSearchSheet";
 import LineBadge from "./LineBadge";
 
-type Region = { id: number; displayName: string };
-type EquipOption = { value: string; label: string };
 type MemberForm = { id: number; nickname: string; stationId: string | null };
 
 type ResultItem = {
   rankNo: number;
-  studio: { name: string; regionName: string | null; areaLabel: string | null; bookingUrl: string | null; mapUrl: string | null; hourlyPriceMin: number | null; equipment: { equipmentType: string }[] };
+  studio: {
+    name: string; regionName: string | null; areaLabel: string | null;
+    bookingUrl: string | null; mapUrl: string | null;
+    hourlyPriceMin: number | null; hourlyPriceMax: number | null;
+    hasParking: boolean; parkingNote: string | null;
+    equipment: { equipmentType: string }[];
+  };
   avgMinutes: number; maxMinutes: number; reason: string;
   memberRoutes: { nickname: string; route: { travelMinutes: number } }[];
 };
 
-export default function RehearsalFinderClient({ regions, equipmentOptions }: { regions: Region[]; equipmentOptions: EquipOption[] }) {
+export default function RehearsalFinderClient() {
   const [members, setMembers] = useState<MemberForm[]>([
     { id: 0, nickname: "", stationId: null },
     { id: 1, nickname: "", stationId: null },
   ]);
   const nextId = useRef(2);
   const [openMemberId, setOpenMemberId] = useState<number | null>(null);
-  const [transportMode, setTransportMode] = useState("transit");
-  const [maxBudget, setMaxBudget] = useState("");
-  const [requiredEquipment, setRequiredEquipment] = useState<string[]>([]);
-  const [preferredRegionIds, setPreferredRegionIds] = useState<number[]>([]);
   const [results, setResults] = useState<ResultItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -36,26 +37,19 @@ export default function RehearsalFinderClient({ regions, equipmentOptions }: { r
   async function submit() {
     setError(null); setLoading(true); setResults(null);
     try {
-      const payload = {
-        transportMode,
-        maxBudgetPerHour: maxBudget ? Number(maxBudget) : null,
-        requiredEquipment,
-        preferredRegionIds,
-        members: members
-          .map((m) => ({ m, st: m.stationId ? findStationById(m.stationId) : null }))
-          .filter((x) => x.m.nickname.trim() && x.st)
-          .map(({ m, st }) => ({
-            nickname: m.nickname,
-            originText: stationLabel(st!),
-            originLat: st!.lat,
-            originLng: st!.lng,
-            originType: "station",
-            transportMode,
-          })),
-      };
-      if (payload.members.length === 0) { setError("닉네임과 역이 채워진 멤버가 최소 1명 필요합니다."); return; }
+      const memberPayload = members
+        .map((m) => ({ m, st: m.stationId ? findStationById(m.stationId) : null }))
+        .filter((x) => x.m.nickname.trim() && x.st)
+        .map(({ m, st }) => ({
+          nickname: m.nickname,
+          originText: stationLabel(st!),
+          originLat: st!.lat,
+          originLng: st!.lng,
+          originType: "station",
+        }));
+      if (memberPayload.length === 0) { setError("닉네임과 역이 채워진 멤버가 최소 1명 필요합니다."); return; }
       const res = await fetch("/api/playground/rehearsal/recommend", {
-        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload),
+        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ members: memberPayload }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.message ?? data.error ?? "추천 실패"); return; }
@@ -105,37 +99,6 @@ export default function RehearsalFinderClient({ regions, equipmentOptions }: { r
         <p className="mt-2 text-xs text-[var(--color-text-muted)]">※ 멤버별로 [역 선택]을 눌러 가까운 지하철 역을 검색·선택하세요(초성 검색 가능). 좌표는 자동으로 채워집니다.</p>
       </div>
 
-      {/* 조건 */}
-      <div className="grid md:grid-cols-3 gap-4">
-        <div><label className="block text-xs uppercase tracking-wider mb-1">이동수단</label>
-          <select value={transportMode} onChange={(e) => setTransportMode(e.target.value)} className={`${input} w-full`}>
-            <option value="transit">대중교통</option><option value="car">자동차</option><option value="mixed">혼합</option>
-          </select></div>
-        <div><label className="block text-xs uppercase tracking-wider mb-1">시간당 예산(원)</label>
-          <input value={maxBudget} onChange={(e) => setMaxBudget(e.target.value)} placeholder="예: 25000" className={`${input} w-full`} /></div>
-        <div><label className="block text-xs uppercase tracking-wider mb-1">선호 지역</label>
-          <select multiple value={preferredRegionIds.map(String)} className={`${input} w-full h-24`}
-            onChange={(e) => setPreferredRegionIds(Array.from(e.target.selectedOptions).map((o) => Number(o.value)))}>
-            {regions.map((r) => <option key={r.id} value={r.id}>{r.displayName}</option>)}
-          </select></div>
-      </div>
-
-      <div>
-        <label className="block text-xs uppercase tracking-wider mb-1">필수 장비</label>
-        <div className="flex flex-wrap gap-2">
-          {equipmentOptions.map((e) => {
-            const on = requiredEquipment.includes(e.value);
-            return (
-              <button key={e.value} type="button"
-                onClick={() => setRequiredEquipment(on ? requiredEquipment.filter((x) => x !== e.value) : [...requiredEquipment, e.value])}
-                className={`px-3 py-1 text-sm border ${on ? "bg-[var(--color-text)] text-[var(--color-bg)] border-[var(--color-text)]" : "border-[var(--color-border-strong)]"}`}>
-                {e.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       <button type="button" onClick={submit} disabled={loading} className={buttonClasses("accent")}>
         {loading ? "추천 중…" : "합주실 추천받기"}
       </button>
@@ -145,7 +108,7 @@ export default function RehearsalFinderClient({ regions, equipmentOptions }: { r
       {results && (
         <div className="space-y-4">
           <h2 className="font-display font-bold text-xl">추천 결과 {results.length}곳</h2>
-          {results.length === 0 && <p className="text-[var(--color-text-muted)]">조건에 맞는 합주실이 없어요. 예산/장비/지역 조건을 완화해보세요.</p>}
+          {results.length === 0 && <p className="text-[var(--color-text-muted)]">조건에 맞는 합주실이 없어요.</p>}
           {results.map((r) => (
             <div key={r.rankNo} className="border border-[var(--color-border)] p-5">
               <div className="flex items-baseline justify-between">
@@ -154,7 +117,19 @@ export default function RehearsalFinderClient({ regions, equipmentOptions }: { r
               </div>
               <p className="mt-1 text-sm text-[var(--color-accent)]">{r.reason}</p>
               <p className="mt-2 text-sm">평균 이동 {Math.round(r.avgMinutes)}분 · 최대 {Math.round(r.maxMinutes)}분
-                {r.studio.hourlyPriceMin ? ` · 시간당 ${r.studio.hourlyPriceMin.toLocaleString("ko-KR")}원~` : ""}</p>
+                {r.studio.hourlyPriceMin
+                  ? ` · 시간당 ${r.studio.hourlyPriceMin.toLocaleString("ko-KR")}${r.studio.hourlyPriceMax && r.studio.hourlyPriceMax !== r.studio.hourlyPriceMin ? `~${r.studio.hourlyPriceMax.toLocaleString("ko-KR")}` : "~"}원`
+                  : ""}
+                {r.studio.hasParking ? " · 주차 가능" : ""}</p>
+              {r.studio.equipment.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {r.studio.equipment.map((eq, i) => (
+                    <span key={i} className="rounded border border-[var(--color-border)] px-1.5 py-0.5 text-[11px] text-[var(--color-text-muted)]">
+                      {EQUIPMENT_LABELS[eq.equipmentType as keyof typeof EQUIPMENT_LABELS] ?? eq.equipmentType}
+                    </span>
+                  ))}
+                </div>
+              )}
               <ul className="mt-2 text-xs text-[var(--color-text-muted)] flex flex-wrap gap-x-4">
                 {r.memberRoutes.map((mr, i) => <li key={i}>{mr.nickname}: {mr.route.travelMinutes}분</li>)}
               </ul>
