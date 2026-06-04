@@ -16,7 +16,7 @@
  * 런타임 네트워크 의존 없음 — 산출 JSON 커밋 후 앱은 정적 파일만 읽는다.
  */
 import JSON5 from "json5";
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -142,6 +142,29 @@ async function main() {
     }
   }
   base.push(...clusterToBase(bOnly));
+
+  // --- 큐레이션 보정 (소스 노후로 빠진 최근 개통역·오타 보정; 좌표는 Naver 실좌표) ---
+  // metro-stations-corrections.json: { add[], addLines{}, rename{}, remove[] }
+  const corr = JSON.parse(
+    readFileSync(resolve(__dirname, "../src/lib/playground/rehearsal/data/metro-stations-corrections.json"), "utf-8"),
+  ) as {
+    add: { name: string; lines: string[]; lat: number; lng: number; area: string }[];
+    addLines: Record<string, string[]>;
+    rename: Record<string, string>;
+    remove: string[];
+  };
+  const removeSet = new Set(corr.remove);
+  let patched: Base[] = base.filter((b) => !removeSet.has(b.name)); // 오타/허위 제거
+  for (const b of patched) {
+    if (corr.rename[b.name]) b.name = corr.rename[b.name]; // 개명
+    if (corr.addLines[b.name]) for (const l of corr.addLines[b.name]) b.lines.add(l); // 기존역 호선 보강
+  }
+  for (const a of corr.add) {
+    if (patched.some((b) => b.name === a.name)) throw new Error(`correction add already exists: ${a.name}`);
+    patched.push({ name: a.name, lines: new Set(a.lines), lat: a.lat, lng: a.lng, area: a.area }); // 신설역
+  }
+  base.length = 0;
+  base.push(...patched);
 
   // --- id / ambiguous ---
   const nameCount = new Map<string, number>();
