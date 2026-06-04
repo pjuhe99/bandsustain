@@ -32,8 +32,6 @@ export default function RehearsalFinderClient() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const input = "border border-[var(--color-border-strong)] px-3 py-2 text-sm";
-
   async function submit() {
     setError(null); setLoading(true); setResults(null);
     try {
@@ -65,17 +63,23 @@ export default function RehearsalFinderClient() {
       <div>
         <h2 className="font-display font-bold text-xl mb-3">멤버 출발지 (최대 10명)</h2>
         <div className="space-y-3">
-          {members.map((m) => {
+          {members.map((m, idx) => {
             const st = m.stationId ? findStationById(m.stationId) : null;
             return (
-              <div key={m.id} className="flex flex-col gap-2 sm:grid sm:grid-cols-[1fr_2fr_40px] sm:gap-2 sm:items-start">
-                <input placeholder="닉네임" value={m.nickname} className={`${input} w-full`}
-                  onChange={(e) => setMembers(members.map((x) => x.id === m.id ? { ...x, nickname: e.target.value } : x))} />
-                {/* 모바일: [역 선택]+삭제가 한 줄로 닉네임 아래 스택 / 데스크탑(sm): contents 로 그리드 2·3칸에 펼침 */}
-                <div className="flex items-center gap-1 sm:contents">
-                  <div className="flex flex-1 items-center gap-1 min-w-0">
+              <div key={m.id}
+                className={`flex items-stretch gap-3 sm:gap-4 border p-3 sm:p-4 ${st ? "border-[var(--color-border-strong)]" : "border-[var(--color-border)]"}`}>
+                {/* 인덱스 번호 (선택 시 accent) */}
+                <div className={`font-display font-black tabular-nums leading-none text-2xl sm:text-3xl w-7 sm:w-9 shrink-0 ${st ? "text-[var(--color-accent)]" : "text-[var(--color-border)]"}`}>
+                  {String(idx + 1).padStart(2, "0")}
+                </div>
+                {/* 필드: 닉네임(밑줄) + 역 선택 */}
+                <div className="flex-1 min-w-0 space-y-2">
+                  <input placeholder="닉네임" value={m.nickname}
+                    className="w-full border-0 border-b border-[var(--color-border)] bg-transparent px-0 py-1 text-sm focus:border-[var(--color-text)] focus:outline-none"
+                    onChange={(e) => setMembers(members.map((x) => x.id === m.id ? { ...x, nickname: e.target.value } : x))} />
+                  <div className="flex items-center gap-1">
                     <button type="button" onClick={() => setOpenMemberId(m.id)}
-                      className={`flex-1 min-w-0 border border-[var(--color-border-strong)] px-3 py-2 text-sm text-left ${st ? "" : "text-[var(--color-text-muted)]"}`}>
+                      className={`flex-1 min-w-0 border px-3 py-2 text-sm text-left ${st ? "border-[var(--color-border-strong)]" : "border-[var(--color-border)] text-[var(--color-text-muted)]"}`}>
                       {st ? (
                         <span className="inline-flex flex-wrap items-center gap-1.5">
                           {stationLabel(st)}
@@ -84,19 +88,21 @@ export default function RehearsalFinderClient() {
                       ) : "역 선택"}
                     </button>
                     {st && (
-                      <button type="button" aria-label="역 선택 해제" className="px-1.5 py-2 text-[var(--color-text-muted)] shrink-0"
-                        onClick={() => setMembers(members.map((x) => x.id === m.id ? { ...x, stationId: null } : x))}>✕</button>
+                      <button type="button" aria-label="역 선택 해제" className="px-1.5 py-2 text-xs text-[var(--color-text-muted)] shrink-0 hover:text-[var(--color-text)]"
+                        onClick={() => setMembers(members.map((x) => x.id === m.id ? { ...x, stationId: null } : x))}>해제</button>
                     )}
                   </div>
-                  <button type="button" className="text-red-600 py-2 shrink-0"
-                    onClick={() => setMembers(members.filter((x) => x.id !== m.id))}>✕</button>
                 </div>
+                {/* 멤버 삭제 */}
+                <button type="button" aria-label="멤버 삭제" className="shrink-0 self-start text-lg leading-none text-[var(--color-text-muted)] hover:text-red-600"
+                  onClick={() => setMembers(members.filter((x) => x.id !== m.id))}>✕</button>
               </div>
             );
           })}
         </div>
         {members.length < 10 && (
-          <button type="button" className="mt-2 text-sm border border-[var(--color-border-strong)] px-3 py-1"
+          <button type="button"
+            className="mt-3 w-full border border-dashed border-[var(--color-border-strong)] py-3 text-xs uppercase tracking-wider text-[var(--color-text-muted)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text)]"
             onClick={() => setMembers([...members, { id: nextId.current++, nickname: "", stationId: null }])}>+ 멤버 추가</button>
         )}
         <p className="mt-2 text-xs text-[var(--color-text-muted)]">※ 멤버별로 [역 선택]을 눌러 가까운 지하철 역을 검색·선택하세요(초성 검색 가능). 좌표는 자동으로 채워집니다.</p>
