@@ -3537,17 +3537,6 @@
     "ambiguous": false
   },
   {
-    "id": "서울역",
-    "name": "서울역",
-    "lines": [
-      "1호선"
-    ],
-    "lat": 37.554648,
-    "lng": 126.972559,
-    "area": "",
-    "ambiguous": false
-  },
-  {
     "id": "서울지방병무청",
     "name": "서울지방병무청",
     "lines": [

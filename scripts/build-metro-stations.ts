@@ -7,7 +7,7 @@
  *       전 역 좌표 보유·현대 호선명. 단 환승역 호선 멤버십 일부 누락.
  *   B (호선 보강): MountainNine/seoul-metro-map station_coordinate.csv
  *       (line,name,code,lat,lng). 환승역 호선 멤버십 정확. 표기 옛 방식·좌표 일부 오류 → 좌표는 매칭에만 쓰고 채택 안 함.
- * 취득일: 2026-06-04 (A RAW URL 은 불변 commit SHA 고정).
+ * 취득일: 2026-06-04 (A RAW URL 은 불변 commit SHA 고정; B RAW URL 도 commit 7f98ea7 고정).
  *
  * 산출: src/lib/playground/rehearsal/data/metro-stations.json
  *   { id, name, lines[], lat, lng, area, ambiguous }[]  (수도권 ~657역, 24호선)
@@ -25,7 +25,7 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const A_URL =
   "https://gist.githubusercontent.com/jhj0517/9bd253175c4410493af024d5e0a1c01f/raw/4a71b4b16ee2a25737acd1fdc595b7b8824a0dd1/korean-subway-station-list.json5";
 const B_URL =
-  "https://raw.githubusercontent.com/MountainNine/seoul-metro-map/master/station_coordinate.csv";
+  "https://raw.githubusercontent.com/MountainNine/seoul-metro-map/7f98ea73f70785900024f5db107a10695e750adb/station_coordinate.csv";
 
 // A 호선명 정규화 (오기/표기흔들림 → 정식)
 const A_LINE_FIX: Record<string, string> = {
@@ -127,7 +127,7 @@ async function main() {
     const cols = row.split(",");
     if (cols.length < 5) continue;
     const line = normBLine(cols[0].trim());
-    const name = cols[1].trim();
+    const name = stripStation(cols[1].trim());
     const lat = Number(cols[3]), lng = Number(cols[4]);
     if (!Number.isFinite(lat) || !Number.isFinite(lng) || !inMetro(lat, lng)) continue;
     const cands = baseByName.get(name);
@@ -162,8 +162,12 @@ async function main() {
     .sort((a, b) => a.name.localeCompare(b.name, "ko") || a.id.localeCompare(b.id, "ko"));
 
   // --- 무결성 가드 (위반 시 빌드 실패) ---
+  const seen = new Set<string>();
+  for (const s of out) {
+    if (seen.has(s.id)) throw new Error(`duplicate id: "${s.id}"`);
+    seen.add(s.id);
+  }
   const ids = out.map((s) => s.id);
-  if (new Set(ids).size !== ids.length) throw new Error("duplicate ids");
   for (const s of out) {
     if (!(s.lat >= 33 && s.lat <= 39 && s.lng >= 124 && s.lng <= 132)) throw new Error(`coord OOR: ${s.id}`);
     if (s.lines.length === 0) throw new Error(`no lines: ${s.id}`);
