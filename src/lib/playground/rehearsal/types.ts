@@ -101,3 +101,10 @@ export type MemberRoute = {
   nickname: string;
   route: RouteResult;
 };
+
+export const ROOM_EQUIPMENT_TYPES = ["DRUM", "GUITAR_AMP", "BASS_AMP", "KEYBOARD", "ETC"] as const;
+export type RoomEquipmentType = (typeof ROOM_EQUIPMENT_TYPES)[number];
+export const ROOM_EQUIPMENT_LABELS: Record<RoomEquipmentType, string> = {
+  DRUM: "드럼", GUITAR_AMP: "기타앰프", BASS_AMP: "베이스앰프", KEYBOARD: "키보드", ETC: "그외",
+};
+export type RoomGear = { name: string; type: RoomEquipmentType };
