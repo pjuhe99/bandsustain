@@ -29,7 +29,7 @@
 
 처리 단계:
 
-1. **json5 파싱** (주석/홑따옴표/trailing comma 정리 후 JSON 파싱).
+1. **json5 파싱** — **반드시 정식 JSON5 파서 사용**(`json5` npm 패키지를 devDependency 로 추가해 `JSON5.parse()`). 정규식으로 주석/홑따옴표/trailing comma 를 치환하는 방식은 **금지**(문자열 내부 따옴표·주석 유사 토큰에서 조용히 깨지고, 소스 포맷이 조금만 바뀌어도 빌드가 잘못된 데이터를 산출). 파서가 던지면 빌드를 실패시킨다(silent 진행 금지).
 2. **호선명 정규화:** `경의중앙 → 경의중앙선`, `김포 골드라인 → 김포골드라인`, `신림역(오기) → 신림선`. 각 엔트리 `lines`는 정규화 후 정렬·유니크.
 3. **수도권 필터(bbox):** `36.7 < lat < 38.3 && 126.2 < lng < 127.8`. 부산/대구/광주/대전 등 256역 제외 → 618행. (line 화이트리스트 대신 bbox — 견고하고 노선명 변화에 둔감.)
 4. **동명이역 병합:** 같은 `name` 그룹에서 좌표 거리 **< 1.5km**면 1역으로 병합(lines 합집합, 좌표 평균, area는 대표 1개). 멀면(예: **양평역** — 5호선 영등포 vs 경의중앙선 양평군, 53km) **별도 유지**. 분석상 18개 동명 중 17개는 병합, 양평역만 분리.
@@ -39,16 +39,19 @@
 
 ```ts
 type MetroStation = {
-  id: string;        // 유니크 키 (동명이역 구분). 예: "yangpyeong-5" / "yangpyeong-gyeonguijungang"
-  name: string;      // "양평" (표시는 name + 동명이역이면 area 보조)
-  lines: string[];   // ["5호선"] / ["2호선","경의중앙선"] — 정규화·정렬됨
+  id: string;            // 유니크 키 (동명이역 구분). 예: "yangpyeong-5" / "yangpyeong-gyeonguijungang"
+  name: string;          // "양평" — 검색/매칭 대상
+  lines: string[];       // ["5호선"] / ["2호선","경의중앙선"] — 정규화·정렬됨
   lat: number;
   lng: number;
-  area: string;      // 지역구 라벨 (동명이역 구분·표시 보조). 예: "영등포구"
+  area: string;          // 지역구. 예: "영등포구"
+  ambiguous: boolean;    // 같은 name 이 2곳 이상이면 true (양평). build 단계에서 계산.
 };
 ```
 
-> 검증: 모든 좌표가 한국 범위(33<lat<39, 124<lng<132) 안, `id` 유니크, `lines` 비어있지 않음, 양평역 2엔트리 존재, 호선 24종.
+> 검증: 모든 좌표가 한국 범위(33<lat<39, 124<lng<132) 안, `id` 유니크, `lines` 비어있지 않음, 양평역 2엔트리(`ambiguous:true`) 존재, 호선 24종.
+
+**표시·기록 라벨 (`stationLabel`):** `ambiguous` 면 `"양평 (영등포구)"`, 아니면 `name` 그대로. 이 라벨이 (a) 드롭다운/입력란 표시, (b) **추천 payload `originText`** 양쪽에 쓰인다 — 동명이역도 다운스트림 로그/재현에서 구분되도록(아래 §3·§4 참조). build 단계에서 `ambiguous` 를 미리 계산해 둔다.
 
 ## 3. 데이터 모델 / 로더 (`metroStations.ts` 확장)
 
@@ -57,17 +60,26 @@ type MetroStation = {
 - `getStations(): MetroStation[]`
 - `getLines(): string[]` — 정렬된 24호선(노선번호 우선 → 광역노선). 칩/필터용.
 - `findStationById(id): MetroStation | null` — 선택값 해석.
-- `searchStations(query: string, selectedLines: string[]): MetroStation[]` — **순수 함수**. 역명 매칭(공백 정규화·prefix 우선, 그 외 substring) ∩ 호선 필터(selectedLines 비면 전체, 아니면 `lines`가 하나라도 교집합). 결과는 prefix 매칭 우선 정렬 후 이름순. 상한(예: 50개) 둬서 드롭다운 폭주 방지.
+- `stationLabel(station): string` — `ambiguous` 면 `"{name} ({area})"`, 아니면 `name`.
+- `searchStations(query: string, selectedLines: string[]): MetroStation[]` — **순수 함수**.
+  - **빈 쿼리 규칙(명시):** `query.trim()` 이 비면 **항상 `[]` 반환** — selectedLines 가 있어도 전체 목록을 쏟지 않는다. 즉 호선 칩은 "검색 범위 한정"이지 "역 목록 나열"이 아니다(search-first UX, 모바일 노이즈 방지). UI 는 빈 쿼리일 때 드롭다운 대신 힌트(`역명을 입력하세요`)를 보인다.
+  - **비어있지 않은 쿼리:** 역명 매칭(공백 정규화·prefix 우선, 그 외 substring) ∩ 호선 필터(selectedLines 비면 전체, 아니면 `lines`가 하나라도 교집합). prefix 매칭 우선 정렬 후 이름순. 상한 50개로 드롭다운 폭주 방지.
 
-> 추천 payload는 여전히 `originLat/originLng/originText/originType="station"`. 클라이언트가 `findStationById`로 좌표를 채운다. recommend 오케스트레이션/스키마(019)/scoring/ranker/route-cache **무변경**.
+> 추천 payload는 여전히 `originLat/originLng/originText/originType="station"`. 클라이언트가 `findStationById`로 좌표를 채우고, **`originText` 에는 `name` 이 아니라 `stationLabel(station)`** 을 넣는다 — 동명이역(양평)도 `"양평 (영등포구)"` / `"양평 (양평군)"` 으로 기록돼 로그/디버깅/재현에서 구분된다. recommend 오케스트레이션/스키마(019)/scoring/ranker/route-cache **무변경**.
 
 ## 4. UI — 검색창 + 호선 칩 필터 (`StationPicker` 컴포넌트 분리)
 
 `RehearsalFinderClient.tsx`의 멤버 행 입력을 새 `StationPicker.tsx`로 분리:
 
-- **호선 칩 줄:** `(전체)` + 24호선 칩. 다중 토글(선택된 호선들의 OR 합집합으로 후보 한정). 모바일에서 wrap. 칩은 **공식 노선색** 적용.
-- **검색 입력 + 드롭다운:** 타이핑하면 `searchStations(query, selectedLines)`로 실시간 후보. 각 후보 = 역명 + 호선 배지(노선색) + 동명이역이면 area. 키보드 ↑↓/Enter 선택, Esc·외부 클릭 닫기.
-- **선택 상태:** 선택 시 멤버 state에 `stationId` 저장, 입력란에 역명 표시. 미선택/무효 id면 submit 시 에러(`목록에서 역을 선택하세요`).
+> **상태 모델 (가장 중요 — 기존 단일 `station: string` 의 결함 차단):** 멤버는 **두 개의 분리된 필드**를 가진다 — `query`(입력란에 보이는 표시 텍스트)와 `stationId`(유효 선택값, 없으면 `null`). 제출은 **오직 `stationId`** 로 좌표를 해석한다. 화면 텍스트로 좌표를 역추적하지 않는다.
+>
+> **동기화 규칙(필수):**
+> 1. 후보를 **선택**하면 → `stationId = 선택역.id`, `query = stationLabel(선택역)`.
+> 2. 사용자가 입력란을 **타이핑**하면 → `query` 갱신, 그리고 **현재 `query` 가 선택역의 `stationLabel` 과 한 글자라도 다르면 즉시 `stationId = null`**. (선택 후 다시 타이핑해 다른 역명이 보이는데 옛 좌표로 제출되는 상태 불일치를 원천 차단.)
+> 3. 제출 시 `stationId === null` 인 멤버가 있으면 에러(`목록에서 역을 선택하세요`) — `query` 텍스트로 fuzzy 재해석하지 않는다.
+
+- **호선 칩 줄:** `(전체)` + 24호선 칩. 다중 토글(선택된 호선들의 OR 합집합으로 검색 범위 한정). 모바일에서 wrap. 칩은 **공식 노선색** 적용. 칩 변경은 `query` 가 비어 있지 않을 때만 드롭다운에 반영(빈 쿼리는 여전히 결과 없음 — §3 빈 쿼리 규칙).
+- **검색 입력 + 드롭다운:** 타이핑하면 `searchStations(query, selectedLines)`로 실시간 후보. 각 후보 = 역명 + 호선 배지(노선색) + 동명이역이면 area. **빈 쿼리면 드롭다운 대신 힌트(`역명을 입력하세요`).** 키보드 ↑↓/Enter 선택, Esc·외부 클릭 닫기.
 - 네이티브 `datalist` 제거.
 
 **호선색 상수** `metroLineColors.ts`(또는 데이터 모듈 내 맵): 호선명 → hex. 칩·배지 공통 사용. 미정의 호선은 중립 회색 fallback.
@@ -77,7 +89,8 @@ type MetroStation = {
 ## 5. 변경 / 무변경 범위
 
 **변경·추가:**
-- `scripts/build-metro-stations.ts` (신규, 원천→정규화)
+- `package.json` (`json5` devDependency 추가 — build 스크립트 파싱용)
+- `scripts/build-metro-stations.ts` (신규, 원천→정규화, `JSON5.parse`)
 - `src/lib/playground/rehearsal/data/metro-stations.json` (재생성: name/lat/lng → id/name/lines/lat/lng/area)
 - `src/lib/playground/rehearsal/metroStations.ts` (id 키 로더 + `getLines`/`searchStations`)
 - `src/lib/playground/rehearsal/metroLineColors.ts` (신규, 노선색)
@@ -88,9 +101,11 @@ type MetroStation = {
 
 ## 6. 테스트
 
-- **데이터 무결성** (`metroStations.test.ts` 갱신): 좌표 범위, `id` 유니크, `lines` 비어있지 않음·정규화된 호선만, 양평역 2엔트리, `getLines()` 24종.
-- **`searchStations` 단위테스트:** 한글 prefix 매칭, substring fallback, 호선필터 교집합, 빈 selectedLines=전체, 결과 상한, prefix 우선 정렬.
-- **빌드 스모크(DEV):** `pnpm build` → `pm2 restart bandsustain-dev` → 라우트 200 → 콤보박스/호선 칩 노출 → 검색·필터 동작 → end-to-end 추천(역 선택 → 좌표 payload → 결과) 회귀.
+- **데이터 무결성** (`metroStations.test.ts` 갱신): 좌표 범위, `id` 유니크, `lines` 비어있지 않음·정규화된 호선만(`경의중앙`/`김포 골드라인`/`신림역` 잔존 0), 양평역 2엔트리·`ambiguous:true`, `getLines()` 24종.
+- **`searchStations` 단위테스트:** **빈/공백 쿼리 → `[]`**(selectedLines 가 있어도), 한글 prefix 매칭, substring fallback, 호선필터 교집합, 결과 상한, prefix 우선 정렬.
+- **`stationLabel` 단위테스트:** 일반역 → `name`, 동명이역(양평) → `"양평 (영등포구)"` / `"양평 (양평군)"`.
+- **상태 동기화(StationPicker):** 선택 후 입력 텍스트가 라벨과 달라지면 `stationId=null` 로 떨어지는지 — 컴포넌트/로직 테스트로 회귀 고정(스펙 §4 규칙 2). 제출 시 `stationId=null` 멤버는 에러.
+- **빌드 스모크(DEV):** `pnpm build` → `pm2 restart bandsustain-dev` → 라우트 200 → 콤보박스/호선 칩 노출 → 검색·필터·빈쿼리 힌트 동작 → 선택→재타이핑 시 stationId 무효화 → end-to-end 추천(역 선택 → `originText=라벨` payload → 결과) 회귀.
 
 ## 7. 단순화 / 알려진 한계
 
