@@ -1,12 +1,13 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { buttonClasses } from "@/components/Button";
-import { findStationById, stationLabel, reconcileSelection } from "@/lib/playground/rehearsal/metroStations";
-import StationPicker from "./StationPicker";
+import { findStationById, stationLabel } from "@/lib/playground/rehearsal/metroStations";
+import StationSearchSheet from "./StationSearchSheet";
+import LineBadge from "./LineBadge";
 
 type Region = { id: number; displayName: string };
 type EquipOption = { value: string; label: string };
-type MemberForm = { nickname: string; query: string; stationId: string | null };
+type MemberForm = { id: number; nickname: string; stationId: string | null };
 
 type ResultItem = {
   rankNo: number;
@@ -17,9 +18,11 @@ type ResultItem = {
 
 export default function RehearsalFinderClient({ regions, equipmentOptions }: { regions: Region[]; equipmentOptions: EquipOption[] }) {
   const [members, setMembers] = useState<MemberForm[]>([
-    { nickname: "", query: "", stationId: null },
-    { nickname: "", query: "", stationId: null },
+    { id: 0, nickname: "", stationId: null },
+    { id: 1, nickname: "", stationId: null },
   ]);
+  const nextId = useRef(2);
+  const [openMemberId, setOpenMemberId] = useState<number | null>(null);
   const [transportMode, setTransportMode] = useState("transit");
   const [maxBudget, setMaxBudget] = useState("");
   const [requiredEquipment, setRequiredEquipment] = useState<string[]>([]);
@@ -33,11 +36,6 @@ export default function RehearsalFinderClient({ regions, equipmentOptions }: { r
   async function submit() {
     setError(null); setLoading(true); setResults(null);
     try {
-      const typedButUnknown = members.filter((m) => m.query.trim() && !m.stationId);
-      if (typedButUnknown.length > 0) {
-        setError(`목록에서 역을 선택하세요: ${typedButUnknown.map((m) => m.query).join(", ")}`);
-        return;
-      }
       const payload = {
         transportMode,
         maxBudgetPerHour: maxBudget ? Number(maxBudget) : null,
@@ -73,28 +71,38 @@ export default function RehearsalFinderClient({ regions, equipmentOptions }: { r
       <div>
         <h2 className="font-display font-bold text-xl mb-3">멤버 출발지 (최대 10명)</h2>
         <div className="space-y-3">
-          {members.map((m, i) => (
-            <div key={i} className="grid grid-cols-[1fr_2fr_40px] gap-2 items-start">
-              <input placeholder="닉네임" value={m.nickname} className={input}
-                onChange={(e) => setMembers(members.map((x, j) => j === i ? { ...x, nickname: e.target.value } : x))} />
-              <StationPicker
-                query={m.query}
-                invalid={m.query.trim().length > 0 && !m.stationId}
-                onQueryChange={(q) => setMembers(members.map((x, j) =>
-                  j === i ? { ...x, query: q, stationId: reconcileSelection(x.stationId, q) } : x))}
-                onSelect={(s) => setMembers(members.map((x, j) =>
-                  j === i ? { ...x, stationId: s.id, query: stationLabel(s) } : x))}
-              />
-              <button type="button" className="text-red-600 py-2"
-                onClick={() => setMembers(members.filter((_, j) => j !== i))}>✕</button>
-            </div>
-          ))}
+          {members.map((m) => {
+            const st = m.stationId ? findStationById(m.stationId) : null;
+            return (
+              <div key={m.id} className="grid grid-cols-[1fr_2fr_40px] gap-2 items-start">
+                <input placeholder="닉네임" value={m.nickname} className={input}
+                  onChange={(e) => setMembers(members.map((x) => x.id === m.id ? { ...x, nickname: e.target.value } : x))} />
+                <div className="flex items-center gap-1">
+                  <button type="button" onClick={() => setOpenMemberId(m.id)}
+                    className={`flex-1 border border-[var(--color-border-strong)] px-3 py-2 text-sm text-left ${st ? "" : "text-[var(--color-text-muted)]"}`}>
+                    {st ? (
+                      <span className="inline-flex flex-wrap items-center gap-1.5">
+                        {stationLabel(st)}
+                        {st.lines.map((l) => <LineBadge key={l} line={l} />)}
+                      </span>
+                    ) : "역 선택"}
+                  </button>
+                  {st && (
+                    <button type="button" aria-label="역 선택 해제" className="px-1.5 py-2 text-[var(--color-text-muted)]"
+                      onClick={() => setMembers(members.map((x) => x.id === m.id ? { ...x, stationId: null } : x))}>✕</button>
+                  )}
+                </div>
+                <button type="button" className="text-red-600 py-2"
+                  onClick={() => setMembers(members.filter((x) => x.id !== m.id))}>✕</button>
+              </div>
+            );
+          })}
         </div>
         {members.length < 10 && (
           <button type="button" className="mt-2 text-sm border border-[var(--color-border-strong)] px-3 py-1"
-            onClick={() => setMembers([...members, { nickname: "", query: "", stationId: null }])}>+ 멤버 추가</button>
+            onClick={() => setMembers([...members, { id: nextId.current++, nickname: "", stationId: null }])}>+ 멤버 추가</button>
         )}
-        <p className="mt-2 text-xs text-[var(--color-text-muted)]">※ 멤버별로 가까운 지하철 역을 검색·선택하세요(호선 칩으로 좁힐 수 있어요). 좌표는 자동으로 채워집니다.</p>
+        <p className="mt-2 text-xs text-[var(--color-text-muted)]">※ 멤버별로 [역 선택]을 눌러 가까운 지하철 역을 검색·선택하세요(초성 검색 가능). 좌표는 자동으로 채워집니다.</p>
       </div>
 
       {/* 조건 */}
@@ -158,6 +166,14 @@ export default function RehearsalFinderClient({ regions, equipmentOptions }: { r
           ))}
         </div>
       )}
+      <StationSearchSheet
+        open={openMemberId !== null}
+        onClose={() => setOpenMemberId(null)}
+        onSelect={(s) => {
+          setMembers(members.map((x) => x.id === openMemberId ? { ...x, stationId: s.id } : x));
+          setOpenMemberId(null);
+        }}
+      />
     </div>
   );
 }
