@@ -51,7 +51,7 @@ export default function StationSearchSheet({
             role="combobox" aria-expanded={true} aria-autocomplete="list"
             onChange={(e) => { setQuery(e.target.value); setHighlight(0); }} onKeyDown={onKeyDown} />
         </div>
-        <div role="listbox" className="overflow-auto px-2 pb-3">
+        <div role="listbox" className="h-[50vh] sm:h-80 shrink-0 overflow-auto px-2 pb-3">
           {query.trim() === "" ? (
             <p className="px-2 py-2 text-xs text-[var(--color-text-muted)]">역명을 입력하세요</p>
           ) : results.length === 0 ? (
