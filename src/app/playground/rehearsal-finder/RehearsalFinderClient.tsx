@@ -68,26 +68,29 @@ export default function RehearsalFinderClient() {
           {members.map((m) => {
             const st = m.stationId ? findStationById(m.stationId) : null;
             return (
-              <div key={m.id} className="grid grid-cols-[1fr_2fr_40px] gap-2 items-start">
-                <input placeholder="닉네임" value={m.nickname} className={input}
+              <div key={m.id} className="flex flex-col gap-2 sm:grid sm:grid-cols-[1fr_2fr_40px] sm:gap-2 sm:items-start">
+                <input placeholder="닉네임" value={m.nickname} className={`${input} w-full`}
                   onChange={(e) => setMembers(members.map((x) => x.id === m.id ? { ...x, nickname: e.target.value } : x))} />
-                <div className="flex items-center gap-1">
-                  <button type="button" onClick={() => setOpenMemberId(m.id)}
-                    className={`flex-1 border border-[var(--color-border-strong)] px-3 py-2 text-sm text-left ${st ? "" : "text-[var(--color-text-muted)]"}`}>
-                    {st ? (
-                      <span className="inline-flex flex-wrap items-center gap-1.5">
-                        {stationLabel(st)}
-                        {st.lines.map((l) => <LineBadge key={l} line={l} />)}
-                      </span>
-                    ) : "역 선택"}
-                  </button>
-                  {st && (
-                    <button type="button" aria-label="역 선택 해제" className="px-1.5 py-2 text-[var(--color-text-muted)]"
-                      onClick={() => setMembers(members.map((x) => x.id === m.id ? { ...x, stationId: null } : x))}>✕</button>
-                  )}
+                {/* 모바일: [역 선택]+삭제가 한 줄로 닉네임 아래 스택 / 데스크탑(sm): contents 로 그리드 2·3칸에 펼침 */}
+                <div className="flex items-center gap-1 sm:contents">
+                  <div className="flex flex-1 items-center gap-1 min-w-0">
+                    <button type="button" onClick={() => setOpenMemberId(m.id)}
+                      className={`flex-1 min-w-0 border border-[var(--color-border-strong)] px-3 py-2 text-sm text-left ${st ? "" : "text-[var(--color-text-muted)]"}`}>
+                      {st ? (
+                        <span className="inline-flex flex-wrap items-center gap-1.5">
+                          {stationLabel(st)}
+                          {st.lines.map((l) => <LineBadge key={l} line={l} />)}
+                        </span>
+                      ) : "역 선택"}
+                    </button>
+                    {st && (
+                      <button type="button" aria-label="역 선택 해제" className="px-1.5 py-2 text-[var(--color-text-muted)] shrink-0"
+                        onClick={() => setMembers(members.map((x) => x.id === m.id ? { ...x, stationId: null } : x))}>✕</button>
+                    )}
+                  </div>
+                  <button type="button" className="text-red-600 py-2 shrink-0"
+                    onClick={() => setMembers(members.filter((x) => x.id !== m.id))}>✕</button>
                 </div>
-                <button type="button" className="text-red-600 py-2"
-                  onClick={() => setMembers(members.filter((x) => x.id !== m.id))}>✕</button>
               </div>
             );
           })}
