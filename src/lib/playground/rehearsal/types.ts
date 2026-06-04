@@ -47,6 +47,15 @@ export type StudioEquipment = {
   note: string | null;
 };
 
+export type StudioRoom = {
+  id: number;
+  name: string;
+  hourlyPrice: number | null;
+  capacity: number | null;
+  equipment: RoomGear[];
+  review: string | null;
+};
+
 export type Studio = {
   id: number;
   name: string;
@@ -69,6 +78,12 @@ export type Studio = {
   bookingUrl: string | null;
   mapUrl: string | null;
   equipment: StudioEquipment[];
+  roadAddress: string | null;
+  bookingMethod: string | null;
+  amenities: string | null;
+  homepageUrl: string | null;
+  rooms: StudioRoom[];
+  equipmentTypes: RoomEquipmentType[];
 };
 
 export type SearchMemberInput = {
@@ -108,3 +123,10 @@ export const ROOM_EQUIPMENT_LABELS: Record<RoomEquipmentType, string> = {
   DRUM: "드럼", GUITAR_AMP: "기타앰프", BASS_AMP: "베이스앰프", KEYBOARD: "키보드", ETC: "그외",
 };
 export type RoomGear = { name: string; type: RoomEquipmentType };
+
+// 방들의 장비 타입 합집합 (ROOM_EQUIPMENT_TYPES 정의 순서 유지)
+export function roomEquipmentTypes(rooms: { equipment: RoomGear[] }[]): RoomEquipmentType[] {
+  const present = new Set<RoomEquipmentType>();
+  for (const r of rooms) for (const g of r.equipment) present.add(g.type);
+  return ROOM_EQUIPMENT_TYPES.filter((t) => present.has(t));
+}
