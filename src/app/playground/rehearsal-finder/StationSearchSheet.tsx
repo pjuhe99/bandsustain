@@ -30,7 +30,7 @@ export default function StationSearchSheet({
   if (!open) return null;
 
   function onKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "ArrowDown") { e.preventDefault(); setHighlight((h) => Math.min(h + 1, results.length - 1)); }
+    if (e.key === "ArrowDown") { e.preventDefault(); setHighlight((h) => Math.max(0, Math.min(h + 1, results.length - 1))); }
     else if (e.key === "ArrowUp") { e.preventDefault(); setHighlight((h) => Math.max(h - 1, 0)); }
     else if (e.key === "Enter") { if (results[highlight]) { e.preventDefault(); onSelect(results[highlight]); } }
     else if (e.key === "Escape") { onClose(); }
