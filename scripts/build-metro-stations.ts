@@ -14,6 +14,8 @@
 import JSON5 from "json5";
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 const RAW_URL =
   "https://gist.githubusercontent.com/jhj0517/9bd253175c4410493af024d5e0a1c01f/raw/4a71b4b16ee2a25737acd1fdc595b7b8824a0dd1/korean-subway-station-list.json5";
@@ -67,7 +69,11 @@ async function main() {
   for (const [, es] of groups) {
     const clusters: Norm[][] = [];
     for (const e of es) {
-      const c = clusters.find((cl) => haversineKm([cl[0].lat, cl[0].lng], [e.lat, e.lng]) < 1.5);
+      const c = clusters.find((cl) => {
+        const cLat = cl.reduce((s, m) => s + m.lat, 0) / cl.length;
+        const cLng = cl.reduce((s, m) => s + m.lng, 0) / cl.length;
+        return haversineKm([cLat, cLng], [e.lat, e.lng]) < 1.5;
+      });
       if (c) c.push(e); else clusters.push([e]);
     }
     for (const c of clusters) {
