@@ -2,21 +2,24 @@
 import { useRef, useState } from "react";
 import { buttonClasses } from "@/components/Button";
 import { findStationById, stationLabel } from "@/lib/playground/rehearsal/metroStations";
-import { EQUIPMENT_LABELS } from "@/lib/playground/rehearsal/types";
+import { ROOM_EQUIPMENT_LABELS, type RoomEquipmentType } from "@/lib/playground/rehearsal/types";
+import StudioDetailModal from "./StudioDetailModal";
 import StationSearchSheet from "./StationSearchSheet";
 import LineBadge from "./LineBadge";
 
 type MemberForm = { id: number; nickname: string; stationId: string | null };
 
+type ResultGear = { name: string; type: string };
+type ResultRoom = { id: number; name: string; hourlyPrice: number | null; capacity: number | null; equipment: ResultGear[]; review: string | null };
+type ResultStudio = {
+  name: string; regionName: string | null; areaLabel: string | null; roadAddress: string | null;
+  bookingMethod: string | null; amenities: string | null; homepageUrl: string | null; mapUrl: string | null;
+  hourlyPriceMin: number | null; hourlyPriceMax: number | null; hasParking: boolean;
+  equipmentTypes: RoomEquipmentType[]; rooms: ResultRoom[];
+};
 type ResultItem = {
   rankNo: number;
-  studio: {
-    name: string; regionName: string | null; areaLabel: string | null;
-    bookingUrl: string | null; mapUrl: string | null;
-    hourlyPriceMin: number | null; hourlyPriceMax: number | null;
-    hasParking: boolean; parkingNote: string | null;
-    equipment: { equipmentType: string }[];
-  };
+  studio: ResultStudio;
   avgMinutes: number; maxMinutes: number; reason: string;
   memberRoutes: { nickname: string; route: { travelMinutes: number } }[];
 };
@@ -29,6 +32,7 @@ export default function RehearsalFinderClient() {
   const nextId = useRef(2);
   const [openMemberId, setOpenMemberId] = useState<number | null>(null);
   const [results, setResults] = useState<ResultItem[] | null>(null);
+  const [detailStudio, setDetailStudio] = useState<ResultStudio | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -118,36 +122,45 @@ export default function RehearsalFinderClient() {
         <div className="space-y-4">
           <h2 className="font-display font-bold text-xl">추천 결과 {results.length}곳</h2>
           {results.length === 0 && <p className="text-[var(--color-text-muted)]">조건에 맞는 합주실이 없어요.</p>}
-          {results.map((r) => (
-            <div key={r.rankNo} className="border border-[var(--color-border)] p-5">
-              <div className="flex items-baseline justify-between">
-                <h3 className="font-display font-bold text-lg">{r.rankNo}. {r.studio.name}</h3>
-                <span className="text-sm text-[var(--color-text-muted)]">{r.studio.regionName ?? r.studio.areaLabel ?? ""}</span>
-              </div>
-              <p className="mt-1 text-sm text-[var(--color-accent)]">{r.reason}</p>
-              <p className="mt-2 text-sm">평균 이동 {Math.round(r.avgMinutes)}분 · 최대 {Math.round(r.maxMinutes)}분
-                {r.studio.hourlyPriceMin
-                  ? ` · 시간당 ${r.studio.hourlyPriceMin.toLocaleString("ko-KR")}${r.studio.hourlyPriceMax && r.studio.hourlyPriceMax !== r.studio.hourlyPriceMin ? `~${r.studio.hourlyPriceMax.toLocaleString("ko-KR")}` : "~"}원`
-                  : ""}
-                {r.studio.hasParking ? " · 주차 가능" : ""}</p>
-              {r.studio.equipment.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {r.studio.equipment.map((eq, i) => (
-                    <span key={i} className="rounded border border-[var(--color-border)] px-1.5 py-0.5 text-[11px] text-[var(--color-text-muted)]">
-                      {EQUIPMENT_LABELS[eq.equipmentType as keyof typeof EQUIPMENT_LABELS] ?? eq.equipmentType}
-                    </span>
-                  ))}
+          {results.map((r) => {
+            const priceMin = r.studio.hourlyPriceMin;
+            const priceMax = r.studio.hourlyPriceMax;
+            const priceLabel = priceMin
+              ? (priceMax && priceMax !== priceMin
+                  ? `${priceMin.toLocaleString("ko-KR")}~${priceMax.toLocaleString("ko-KR")}원`
+                  : `${priceMin.toLocaleString("ko-KR")}원~`)
+              : null;
+            return (
+              <div key={r.rankNo} className="border border-[var(--color-border)] p-5">
+                <div className="flex items-baseline justify-between gap-2">
+                  <h3 className="font-display font-bold text-lg">{r.rankNo}. {r.studio.name}</h3>
+                  <span className="shrink-0 text-sm text-[var(--color-text-muted)]">{r.studio.regionName ?? r.studio.areaLabel ?? ""}</span>
                 </div>
-              )}
-              <ul className="mt-2 text-xs text-[var(--color-text-muted)] flex flex-wrap gap-x-4">
-                {r.memberRoutes.map((mr, i) => <li key={i}>{mr.nickname}: {mr.route.travelMinutes}분</li>)}
-              </ul>
-              <div className="mt-3 flex gap-3 text-sm">
-                {r.studio.mapUrl && <a href={r.studio.mapUrl} target="_blank" rel="noreferrer" className="underline">지도</a>}
-                {r.studio.bookingUrl && <a href={r.studio.bookingUrl} target="_blank" rel="noreferrer" className="underline">예약</a>}
+                {r.reason && <p className="mt-1 text-sm text-[var(--color-text-muted)]">{r.reason}</p>}
+                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                  <span>⏱ 평균 {Math.round(r.avgMinutes)}분 · 최대 {Math.round(r.maxMinutes)}분</span>
+                  {priceLabel && <span>💸 {priceLabel}</span>}
+                  <span>🚪 방 {r.studio.rooms.length}</span>
+                  {r.studio.hasParking && <span>🅿 주차</span>}
+                </div>
+                {r.studio.equipmentTypes.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {r.studio.equipmentTypes.map((t) => (
+                      <span key={t} className="rounded border border-[var(--color-border-strong)] px-1.5 py-0.5 text-[11px]">{ROOM_EQUIPMENT_LABELS[t]}</span>
+                    ))}
+                  </div>
+                )}
+                <ul className="mt-2 flex flex-wrap gap-x-4 text-xs text-[var(--color-text-muted)]">
+                  {r.memberRoutes.map((mr, i) => <li key={i}>{mr.nickname}: {mr.route.travelMinutes}분</li>)}
+                </ul>
+                <div className="mt-3 flex items-center gap-3 text-sm">
+                  <button type="button" onClick={() => setDetailStudio(r.studio)}
+                    className={buttonClasses("secondary", "px-4 py-2 text-xs")}>자세히 보기</button>
+                  {r.studio.mapUrl && <a href={r.studio.mapUrl} target="_blank" rel="noreferrer" className="underline">지도</a>}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
       <StationSearchSheet
@@ -158,6 +171,7 @@ export default function RehearsalFinderClient() {
           setOpenMemberId(null);
         }}
       />
+      <StudioDetailModal studio={detailStudio} onClose={() => setDetailStudio(null)} />
     </div>
   );
 }
