@@ -1,13 +1,12 @@
 "use client";
 import { useState } from "react";
 import { buttonClasses } from "@/components/Button";
-import { getStationNames, findStationByName } from "@/lib/playground/rehearsal/metroStations";
+import { findStationById, stationLabel, reconcileSelection } from "@/lib/playground/rehearsal/metroStations";
+import StationPicker from "./StationPicker";
 
 type Region = { id: number; displayName: string };
 type EquipOption = { value: string; label: string };
-type MemberForm = { nickname: string; station: string };
-
-const STATION_NAMES = getStationNames();
+type MemberForm = { nickname: string; query: string; stationId: string | null };
 
 type ResultItem = {
   rankNo: number;
@@ -18,8 +17,8 @@ type ResultItem = {
 
 export default function RehearsalFinderClient({ regions, equipmentOptions }: { regions: Region[]; equipmentOptions: EquipOption[] }) {
   const [members, setMembers] = useState<MemberForm[]>([
-    { nickname: "", station: "" },
-    { nickname: "", station: "" },
+    { nickname: "", query: "", stationId: null },
+    { nickname: "", query: "", stationId: null },
   ]);
   const [transportMode, setTransportMode] = useState("transit");
   const [maxBudget, setMaxBudget] = useState("");
@@ -34,11 +33,9 @@ export default function RehearsalFinderClient({ regions, equipmentOptions }: { r
   async function submit() {
     setError(null); setLoading(true); setResults(null);
     try {
-      const typedButUnknown = members.filter(
-        (m) => m.station.trim() && !findStationByName(m.station),
-      );
+      const typedButUnknown = members.filter((m) => m.query.trim() && !m.stationId);
       if (typedButUnknown.length > 0) {
-        setError(`목록에 없는 역입니다: ${typedButUnknown.map((m) => m.station).join(", ")} — 목록에서 역을 선택하세요.`);
+        setError(`목록에서 역을 선택하세요: ${typedButUnknown.map((m) => m.query).join(", ")}`);
         return;
       }
       const payload = {
@@ -47,11 +44,11 @@ export default function RehearsalFinderClient({ regions, equipmentOptions }: { r
         requiredEquipment,
         preferredRegionIds,
         members: members
-          .map((m) => ({ m, st: findStationByName(m.station) }))
+          .map((m) => ({ m, st: m.stationId ? findStationById(m.stationId) : null }))
           .filter((x) => x.m.nickname.trim() && x.st)
           .map(({ m, st }) => ({
             nickname: m.nickname,
-            originText: st!.name,
+            originText: stationLabel(st!),
             originLat: st!.lat,
             originLng: st!.lng,
             originType: "station",
@@ -75,33 +72,29 @@ export default function RehearsalFinderClient({ regions, equipmentOptions }: { r
       {/* 멤버 입력 */}
       <div>
         <h2 className="font-display font-bold text-xl mb-3">멤버 출발지 (최대 10명)</h2>
-        <datalist id="metro-stations">
-          {STATION_NAMES.map((n) => <option key={n} value={n} />)}
-        </datalist>
-        <div className="space-y-2">
-          {members.map((m, i) => {
-            const unknown = m.station.trim().length > 0 && !findStationByName(m.station);
-            return (
-              <div key={i} className="grid grid-cols-[1fr_1.6fr_40px] gap-2 items-start">
-                <input placeholder="닉네임" value={m.nickname} className={input}
-                  onChange={(e) => setMembers(members.map((x, j) => j === i ? { ...x, nickname: e.target.value } : x))} />
-                <div>
-                  <input list="metro-stations" placeholder="가까운 지하철 역" value={m.station}
-                    className={`${input} w-full ${unknown ? "border-red-500" : ""}`}
-                    onChange={(e) => setMembers(members.map((x, j) => j === i ? { ...x, station: e.target.value } : x))} />
-                  {unknown && <p className="mt-1 text-xs text-red-600">목록에서 역을 선택하세요</p>}
-                </div>
-                <button type="button" className="text-red-600 py-2"
-                  onClick={() => setMembers(members.filter((_, j) => j !== i))}>✕</button>
-              </div>
-            );
-          })}
+        <div className="space-y-3">
+          {members.map((m, i) => (
+            <div key={i} className="grid grid-cols-[1fr_2fr_40px] gap-2 items-start">
+              <input placeholder="닉네임" value={m.nickname} className={input}
+                onChange={(e) => setMembers(members.map((x, j) => j === i ? { ...x, nickname: e.target.value } : x))} />
+              <StationPicker
+                query={m.query}
+                invalid={m.query.trim().length > 0 && !m.stationId}
+                onQueryChange={(q) => setMembers(members.map((x, j) =>
+                  j === i ? { ...x, query: q, stationId: reconcileSelection(x.stationId, q) } : x))}
+                onSelect={(s) => setMembers(members.map((x, j) =>
+                  j === i ? { ...x, stationId: s.id, query: stationLabel(s) } : x))}
+              />
+              <button type="button" className="text-red-600 py-2"
+                onClick={() => setMembers(members.filter((_, j) => j !== i))}>✕</button>
+            </div>
+          ))}
         </div>
         {members.length < 10 && (
           <button type="button" className="mt-2 text-sm border border-[var(--color-border-strong)] px-3 py-1"
-            onClick={() => setMembers([...members, { nickname: "", station: "" }])}>+ 멤버 추가</button>
+            onClick={() => setMembers([...members, { nickname: "", query: "", stationId: null }])}>+ 멤버 추가</button>
         )}
-        <p className="mt-2 text-xs text-[var(--color-text-muted)]">※ 멤버별로 가까운 지하철 역을 입력해 목록에서 선택하세요. 좌표는 자동으로 채워집니다.</p>
+        <p className="mt-2 text-xs text-[var(--color-text-muted)]">※ 멤버별로 가까운 지하철 역을 검색·선택하세요(호선 칩으로 좁힐 수 있어요). 좌표는 자동으로 채워집니다.</p>
       </div>
 
       {/* 조건 */}
