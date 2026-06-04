@@ -128,7 +128,7 @@ export default function RehearsalFinderClient() {
             const priceLabel = priceMin
               ? (priceMax && priceMax !== priceMin
                   ? `${priceMin.toLocaleString("ko-KR")}~${priceMax.toLocaleString("ko-KR")}원`
-                  : `${priceMin.toLocaleString("ko-KR")}원~`)
+                  : `${priceMin.toLocaleString("ko-KR")}원`)
               : null;
             return (
               <div key={r.rankNo} className="border border-[var(--color-border)] p-5">
