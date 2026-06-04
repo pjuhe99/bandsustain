@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   METRO_STATIONS, getStations, getLines, findStationById,
-  stationLabel, searchStations, reconcileSelection,
+  stationLabel, searchStations,
 } from "./metroStations";
 
 test("데이터 로드: 수도권 역이 충분히 많다 (>550)", () => {
@@ -53,34 +53,41 @@ test("stationLabel: 일반역=name, 동명이역=name (area)", () => {
   assert.equal(stationLabel(yp), "양평 (영등포구)");
 });
 
-test("searchStations: 빈/공백 쿼리는 항상 [] (호선 선택과 무관)", () => {
-  assert.deepEqual(searchStations("", []), []);
-  assert.deepEqual(searchStations("   ", ["2호선"]), []);
+test("searchStations: 빈/공백 쿼리는 항상 []", () => {
+  assert.deepEqual(searchStations(""), []);
+  assert.deepEqual(searchStations("   "), []);
 });
 
-test("searchStations: 한글 prefix 매칭 + prefix 우선 정렬", () => {
-  const r = searchStations("강남", []);
+test("searchStations: 한글 prefix 매칭 + prefix 우선", () => {
+  const r = searchStations("강남");
   assert.ok(r.length > 0);
   assert.equal(r[0].name.startsWith("강남"), true);
   assert.ok(r.some((s) => s.id === "강남"));
 });
 
-test("searchStations: 호선 필터 교집합", () => {
-  const r = searchStations("강", ["신분당선"]);
-  assert.ok(r.every((s) => s.lines.includes("신분당선")), "all on 신분당선");
-  assert.ok(r.some((s) => s.name === "강남"), "강남 is on 신분당선");
+test("searchStations: substring fallback (prefix 아님)", () => {
+  const r = searchStations("디지털");
+  assert.ok(r.some((s) => s.name.includes("디지털") && !s.name.startsWith("디지털")),
+    "구로디지털단지 류가 substring 으로 잡혀야");
+});
+
+test("searchStations: 초성 'ㄱㄴ' → 강남 포함, 결과 전부 초성 prefix", () => {
+  const r = searchStations("ㄱㄴ");
+  assert.ok(r.some((s) => s.id === "강남"), "강남 included");
+  for (const s of r) assert.ok(toChosungLocal(s.name).startsWith("ㄱㄴ"), `${s.name}`);
 });
 
 test("searchStations: 결과 상한 50", () => {
-  assert.ok(searchStations("역", []).length <= 50);
+  assert.ok(searchStations("ㄱ").length <= 50);
 });
 
-test("reconcileSelection: 라벨 일치 유지 / 불일치 시 null", () => {
-  assert.equal(reconcileSelection("강남", "강남"), "강남");
-  assert.equal(reconcileSelection("강남", "강남구청"), null);
-  assert.equal(reconcileSelection(null, "강남"), null);
-  assert.equal(reconcileSelection("강남", ""), null);
-  // 동명이역: 라벨(괄호 포함)이 정확히 일치해야 유지
-  assert.equal(reconcileSelection("양평#영등포구", "양평 (영등포구)"), "양평#영등포구");
-  assert.equal(reconcileSelection("양평#영등포구", "양평"), null);
-});
+// 테스트 보조 (구현과 동일 규칙) — 초성 검증용
+function toChosungLocal(str) {
+  const CHO = ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+  let out = "";
+  for (const ch of str) {
+    const c = ch.charCodeAt(0);
+    out += (c >= 0xac00 && c <= 0xd7a3) ? CHO[Math.floor((c - 0xac00) / 588)] : ch;
+  }
+  return out;
+}
