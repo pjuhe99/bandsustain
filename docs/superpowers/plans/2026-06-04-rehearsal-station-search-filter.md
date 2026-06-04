@@ -21,8 +21,8 @@
 | 파일 | 책임 | 변경 |
 |------|------|------|
 | `package.json` | `json5` devDependency 추가 | Modify |
-| `scripts/build-metro-stations.ts` | 원천(json5)→정규화→정적 JSON 산출(재현용) | Create |
-| `src/lib/playground/rehearsal/data/metro-stations.json` | 601역 `{id,name,lines[],lat,lng,area,ambiguous}` | Regenerate |
+| `scripts/build-metro-stations.ts` | 두 원천(jhj0517 json5 좌표 + MountainNine csv 호선)→정규화·합집합→정적 JSON 산출(재현용) | Create |
+| `src/lib/playground/rehearsal/data/metro-stations.json` | 657역 `{id,name,lines[],lat,lng,area,ambiguous}` | Regenerate |
 | `src/lib/playground/rehearsal/metroLineColors.ts` | 호선 표시순서(`LINE_ORDER`) + 노선색(`lineColor`) | Create |
 | `src/lib/playground/rehearsal/metroStations.ts` | id 키 로더 + `getLines`/`searchStations`/`stationLabel`/`reconcileSelection` | Rewrite |
 | `src/lib/playground/rehearsal/metroStations.test.ts` | 데이터 무결성 + 순수 헬퍼 단위테스트 | Rewrite |
@@ -49,6 +49,8 @@ sudo -u ec2-user pnpm add -D json5
 Expected: `package.json` devDependencies에 `json5` 추가, lockfile 갱신.
 
 - [ ] **Step 2: 빌드 스크립트 작성**
+
+> **⚠️ 실행 중 갱신(2026-06-04):** 단일 소스(jhj0517)는 주요 환승역 호선 멤버십이 ~50% 누락(강남에 신분당선 없음, 사당 자체 없음)이라, **이중 소스(jhj0517 좌표 + MountainNine csv 호선 합집합)** 로 전환했다. 실제 커밋된 스크립트는 `62561de` 의 dual-source 버전이며, 상세 알고리즘은 설계문서 §2 참조. 아래 단일-소스 코드 블록은 역사적 참고용(최종본 아님).
 
 Create `scripts/build-metro-stations.ts` — 원천 gist(불변 SHA 고정 raw URL)를 받아 **정식 JSON5 파서**로 파싱하고 정규화해 정적 JSON을 쓴다. 정규식으로 json5를 손보지 않는다.
 
@@ -294,7 +296,7 @@ test("동명이역 양평: 2엔트리 · ambiguous true", () => {
 test("findStationById: 매칭/미매칭", () => {
   const s = findStationById("강남");
   assert.ok(s, "강남 should exist");
-  assert.deepEqual(s!.lines, ["2호선"]);
+  assert.deepEqual(s!.lines, ["2호선", "신분당선"]);
   assert.equal(findStationById("없는id12345"), null);
 });
 
