@@ -16,12 +16,13 @@
 
 ## 2. 컨테이너 — `[역 선택]` 버튼 + 반응형 시트
 
-- 멤버 행 = `닉네임 input` + **`[역 선택]` 버튼** + `✕`(행 삭제). 버튼은:
-  - 미선택: placeholder "역 선택" (회색).
-  - 선택됨: `stationLabel`(동명이역이면 `양평 (영등포구)`) + 작은 호선 배지들.
+- 멤버 행 = `닉네임 input` + **역 선택 영역** + `✕`(행 삭제). 역 선택 영역은:
+  - 미선택: **`[역 선택]` 버튼** placeholder "역 선택" (회색) → 클릭 시 시트 오픈.
+  - 선택됨: **`stationLabel`(동명이역이면 `양평 (영등포구)`) + 작은 호선 배지들** 을 보이는 버튼(클릭 시 시트 오픈해 **변경**) + 그 옆 **작은 `✕ 해제` 컨트롤**(클릭 시 `stationId=null` 로 되돌림, 닉네임은 유지). → 잘못 고른 역을 행 삭제 없이 "미선택"으로 되돌릴 수 있다.
 - 버튼 클릭 → 시트 오픈. **반응형:** 모바일(`< sm`)=바텀시트(하단에서 슬라이드, 풀 너비), 데스크탑(`≥ sm`)=가운데 모달. CSS transform/transition만 사용(외부 라이브러리 없음).
-- **시트는 부모가 하나만 렌더.** 부모 state `openMemberIndex: number | null`. 멤버가 10명이어도 시트 인스턴스는 1개. `onSelect(station)`는 `openMemberIndex` 멤버에 적용.
-- 닫기: backdrop 클릭 · Esc · 닫기(✕) 버튼. `role="dialog"`, `aria-modal`. 열릴 때 검색 input 자동 포커스. 열린 동안 body 스크롤은 시트 내부로 한정(간단히 backdrop overlay).
+- **시트는 부모가 하나만 렌더.** 멤버는 **안정적 `id`(증가 카운터)** 를 가지며(아래 §6), 부모 state `openMemberId: number | null` 로 대상 멤버를 가리킨다. `onSelect(station)` 는 **그 id 의 멤버**에 적용 — 시트가 열린 사이 배열이 바뀌어도(인덱스 밀림) 엉뚱한 멤버에 꽂히지 않음. 멤버 10명이어도 시트 인스턴스는 1개.
+- 닫기: backdrop 클릭 · Esc · 닫기(✕) 버튼. `role="dialog"`, `aria-modal`. 열릴 때 검색 input 자동 포커스.
+- **body 스크롤 락(명시):** 시트가 열린 동안 `document.body.style.overflow = "hidden"`, 닫힐 때 복원(`useEffect` cleanup). backdrop overlay 만으로는 모바일 Safari 배경 스크롤을 못 막으므로 overflow 토글을 명시한다. (포커스 트랩은 최소 — Esc/backdrop 닫기 + input 자동 포커스 수준, 완전 트랩은 비목표.)
 
 ## 3. 시트 내부 — 검색 전용
 
@@ -44,7 +45,7 @@
 
 ## 5. 검색 랭킹 — `searchStations` 확장
 
-`searchStations(query, selectedLines?)` 시그니처에서 `selectedLines`는 더 이상 UI에서 안 쓰이지만(칩 제거) **하위호환·내부 단순화를 위해 파라미터를 제거**한다 → `searchStations(query: string): MetroStation[]`. (호출처는 시트 하나뿐.)
+`searchStations(query, selectedLines)` 에서 `selectedLines` 는 칩 제거로 더 이상 안 쓰인다. **하위호환을 포기하고 breaking change 로 파라미터를 제거**한다 → `searchStations(query: string): MetroStation[]`. 기존 호출처(`StationPicker.tsx`, `metroStations.test.ts`)는 이 작업에서 **일괄 갱신**된다(StationPicker 삭제 → 호출처는 새 시트 하나, 테스트는 새 시그니처로).
 
 매칭/랭킹(빈 쿼리 → `[]` 유지):
 - 정규화 `normalize` = trim + 공백제거 + lowercase.
@@ -56,10 +57,11 @@
 
 ## 6. 상태 모델 단순화 (`RehearsalFinderClient.tsx`)
 
-- `MemberForm = { nickname: string; stationId: string | null }` (이전 `query` 필드 제거).
-- 멤버 행: 닉네임 input + 역선택 버튼(라벨=`stationId ? stationLabel(findStationById(stationId)!) : "역 선택"`) + ✕.
-- 공유 `StationSearchSheet`를 `openMemberIndex`로 제어. `onSelect(s)` → 해당 멤버 `stationId = s.id`, 시트 닫기.
-- submit: 멤버 중 `nickname.trim() && stationId` 인 것만, `findStationById`로 좌표 해석, `originText = stationLabel(st)`, `originType "station"`. 유효 멤버 0이면 기존 에러. (이전 `typedButUnknown` 자유입력 검증은 불필요 — 버튼은 유효 stationId만 설정.)
+- `MemberForm = { id: number; nickname: string; stationId: string | null }` — **`id` 는 안정적 키**(증가 카운터: 초기 멤버 0·1, 추가 시 `nextId++` via `useRef`). 이전 `query` 필드 제거.
+- 멤버 행: `key={m.id}`, 행 삭제는 **id 기준**(`filter(x => x.id !== m.id)`). 닉네임 input + 역 선택 영역(§2: 미선택 버튼 / 선택 시 라벨버튼 + `✕ 해제`) + 행삭제 ✕.
+  - 라벨 = `stationId ? stationLabel(findStationById(stationId)!) : "역 선택"`. `✕ 해제` → `stationId=null`.
+- 공유 `StationSearchSheet` 를 **`openMemberId`** 로 제어. `onSelect(s)` → **그 id 멤버**의 `stationId = s.id` 로 갱신 후 시트 닫기(인덱스 밀림 안전).
+- submit: 멤버 중 `nickname.trim() && stationId` 인 것만, `findStationById` 로 좌표 해석, `originText = stationLabel(st)`, `originType "station"`. 유효 멤버 0이면 기존 에러. (이전 `typedButUnknown` 자유입력 검증은 불필요 — 버튼은 유효 stationId만 설정.)
 
 ## 7. 변경 / 무변경 범위
 
@@ -73,7 +75,7 @@
 - **`chosung` 단위테스트:** `toChosung("강남")==="ㄱㄴ"`, `toChosung("강남구청")==="ㄱㄴㄱㅊ"`, 비한글 보존, `isChosungQuery("ㄱㄴ")===true`/`isChosungQuery("강")===false`/`isChosungQuery("")===false`.
 - **`searchStations` 단위테스트(갱신):** 빈 쿼리 `[]`, 역명 prefix 우선, substring fallback, **초성 `"ㄱㄴ"`→강남 포함**, 상한 50. (reconcileSelection 테스트 삭제.)
 - **데이터 무결성** 기존 테스트 유지(count·id·lines·양평·24호선).
-- **빌드 스모크(DEV):** `pnpm build` → `pm2 restart bandsustain-dev` → 라우트 200 → 멤버 행에 `[역 선택]` 버튼 N개(칩 0) → 시트 마크업 존재 → e2e 추천(역 선택 → payload → 결과). 인터랙션(시트 열림/검색/초성/선택→라벨) 최종 확인은 사용자가 dev에서.
+- **빌드 스모크(DEV):** `pnpm build` → `pm2 restart bandsustain-dev` → 라우트 200 → 멤버 행에 `[역 선택]` 버튼 N개(칩 0) → 시트 마크업 존재 → e2e 추천(역 선택 → payload → 결과). 인터랙션(시트 열림/검색/초성/선택→라벨/**✕ 해제로 미선택 복귀**/**열림 중 배경 스크롤 잠금**) 최종 확인은 사용자가 dev에서.
 
 ## 9. 단순화 / 알려진 한계
 
