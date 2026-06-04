@@ -2,21 +2,27 @@ import "server-only";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
 import { getPool } from "@/lib/db";
 import type { Studio, StudioStatus, StudioEquipment, EquipmentType } from "./types";
+import { loadRoomsByStudioIds } from "./rooms";
+import { roomEquipmentTypes } from "./types";
 
-function mapStudioRow(r: RowDataPacket): Omit<Studio, "equipment"> {
+function mapStudioRow(r: RowDataPacket): Omit<Studio, "equipment" | "rooms" | "equipmentTypes"> {
   return {
     id: r.id, name: r.name, slug: r.slug, regionId: r.region_id, regionName: r.region_name ?? null,
-    areaLabel: r.area_label, lat: r.lat != null ? Number(r.lat) : NaN, lng: r.lng != null ? Number(r.lng) : NaN,
+    areaLabel: r.area_label, roadAddress: r.road_address ?? null,
+    lat: r.lat != null ? Number(r.lat) : NaN, lng: r.lng != null ? Number(r.lng) : NaN,
     nearestStation: r.nearest_station, nearestStationMeters: r.nearest_station_meters,
     hourlyPriceMin: r.hourly_price_min, hourlyPriceMax: r.hourly_price_max,
     minCapacity: r.min_capacity, maxCapacity: r.max_capacity,
     hasParking: r.has_parking === 1, parkingNote: r.parking_note,
     status: r.status as StudioStatus, sourceNote: r.source_note,
     bookingUrl: r.booking_url, mapUrl: r.map_url,
+    bookingMethod: r.booking_method ?? null, amenities: r.amenities ?? null, homepageUrl: r.homepage_url ?? null,
   };
 }
 
-async function attachEquipment(studios: Omit<Studio, "equipment">[]): Promise<Studio[]> {
+async function attachEquipment(
+  studios: Omit<Studio, "equipment" | "rooms" | "equipmentTypes">[],
+): Promise<Omit<Studio, "rooms" | "equipmentTypes">[]> {
   if (studios.length === 0) return [];
   const ids = studios.map((s) => s.id);
   const [rows] = await getPool().query<RowDataPacket[]>(
@@ -38,11 +44,21 @@ async function attachEquipment(studios: Omit<Studio, "equipment">[]): Promise<St
   return studios.map((s) => ({ ...s, equipment: byStudio.get(s.id) ?? [] }));
 }
 
+async function attachRooms(studios: Omit<Studio, "rooms" | "equipmentTypes">[]): Promise<Studio[]> {
+  if (studios.length === 0) return [];
+  const roomsByStudio = await loadRoomsByStudioIds(studios.map((s) => s.id));
+  return studios.map((s) => {
+    const rooms = roomsByStudio.get(s.id) ?? [];
+    return { ...s, rooms, equipmentTypes: roomEquipmentTypes(rooms) };
+  });
+}
+
 const SELECT_STUDIO = `
   SELECT st.id, st.name, st.slug, st.region_id, rg.display_name AS region_name, st.area_label,
-         st.lat, st.lng, st.nearest_station, st.nearest_station_meters,
+         st.road_address, st.lat, st.lng, st.nearest_station, st.nearest_station_meters,
          st.hourly_price_min, st.hourly_price_max, st.min_capacity, st.max_capacity,
-         st.has_parking, st.parking_note, st.status, st.source_note, st.booking_url, st.map_url
+         st.has_parking, st.parking_note, st.status, st.source_note, st.booking_url, st.map_url,
+         st.booking_method, st.amenities, st.homepage_url
     FROM playground_studios st
     LEFT JOIN playground_regions rg ON rg.id = st.region_id`;
 
@@ -50,7 +66,7 @@ export async function getCandidateStudios(): Promise<Studio[]> {
   const [rows] = await getPool().query<RowDataPacket[]>(
     `${SELECT_STUDIO} WHERE st.status = 'approved' AND st.lat IS NOT NULL AND st.lng IS NOT NULL`,
   );
-  return attachEquipment(rows.map(mapStudioRow));
+  return attachRooms(await attachEquipment(rows.map(mapStudioRow)));
 }
 
 export async function listStudios(filter: {
@@ -70,14 +86,13 @@ export async function listStudios(filter: {
     `${SELECT_STUDIO} ${where} ORDER BY st.updated_at DESC, st.id DESC`,
     params,
   );
-  return attachEquipment(rows.map(mapStudioRow));
+  return attachRooms(await attachEquipment(rows.map(mapStudioRow)));
 }
 
 export async function getStudioById(id: number): Promise<Studio | null> {
   const [rows] = await getPool().query<RowDataPacket[]>(`${SELECT_STUDIO} WHERE st.id = ?`, [id]);
   if (rows.length === 0) return null;
-  const [withEquip] = await attachEquipment([mapStudioRow(rows[0])]);
-  return withEquip;
+  return (await attachRooms(await attachEquipment([mapStudioRow(rows[0])])))[0] ?? null;
 }
 
 export type StudioWriteInput = {

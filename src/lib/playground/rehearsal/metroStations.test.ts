@@ -82,7 +82,7 @@ test("searchStations: 결과 상한 50", () => {
 });
 
 // 테스트 보조 (구현과 동일 규칙) — 초성 검증용
-function toChosungLocal(str) {
+function toChosungLocal(str: string) {
   const CHO = ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
   let out = "";
   for (const ch of str) {
