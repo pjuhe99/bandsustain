@@ -1,38 +1,62 @@
 /**
  * 합주실 추천용 수도권 지하철 역 데이터 빌드 스크립트.
  *
- * 원천: jhj0517 공개 gist (역명/노선/좌표, "직접 수집·일부 부정확 가능" disclaimer).
- *   https://gist.github.com/jhj0517/9bd253175c4410493af024d5e0a1c01f
- * 취득일: 2026-06-04 (아래 RAW_URL은 불변 commit SHA 고정).
+ * 두 공개 소스를 결합 — 좌표는 A, 호선 멤버십은 A∪B:
+ *   A (좌표 기준): jhj0517 gist korean-subway-station-list.json5
+ *       https://gist.github.com/jhj0517/9bd253175c4410493af024d5e0a1c01f
+ *       전 역 좌표 보유·현대 호선명. 단 환승역 호선 멤버십 일부 누락.
+ *   B (호선 보강): MountainNine/seoul-metro-map station_coordinate.csv
+ *       (line,name,code,lat,lng). 환승역 호선 멤버십 정확. 표기 옛 방식·좌표 일부 오류 → 좌표는 매칭에만 쓰고 채택 안 함.
+ * 취득일: 2026-06-04 (A RAW URL 은 불변 commit SHA 고정).
  *
  * 산출: src/lib/playground/rehearsal/data/metro-stations.json
- *   { id, name, lines[], lat, lng, area, ambiguous }[]  (수도권 ~601역, 24호선)
+ *   { id, name, lines[], lat, lng, area, ambiguous }[]  (수도권 ~657역, 24호선)
  *
  * 실행: cd <repo> && sudo -u ec2-user npx tsx scripts/build-metro-stations.ts
- * 런타임 네트워크 의존 없음 — 산출 JSON을 커밋하면 앱 빌드는 정적 파일만 읽는다.
+ * 런타임 네트워크 의존 없음 — 산출 JSON 커밋 후 앱은 정적 파일만 읽는다.
  */
 import JSON5 from "json5";
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
-const RAW_URL =
+const A_URL =
   "https://gist.githubusercontent.com/jhj0517/9bd253175c4410493af024d5e0a1c01f/raw/4a71b4b16ee2a25737acd1fdc595b7b8824a0dd1/korean-subway-station-list.json5";
+const B_URL =
+  "https://raw.githubusercontent.com/MountainNine/seoul-metro-map/master/station_coordinate.csv";
 
-// 호선명 표기 정규화 (오기/표기흔들림 → 정식 노선명)
-const LINE_FIX: Record<string, string> = {
+// A 호선명 정규화 (오기/표기흔들림 → 정식)
+const A_LINE_FIX: Record<string, string> = {
   "경의중앙": "경의중앙선",
   "김포 골드라인": "김포골드라인",
   "신림역": "신림선",
 };
+// B 호선명 정규화 (옛 표기 → 정식)
+const B_LINE_FIX: Record<string, string> = {
+  "경의선": "경의중앙선",
+  "분당선": "수인분당선",
+  "수인선": "수인분당선",
+  "인천선": "인천1호선",
+  "김포도시철도": "김포골드라인",
+  "용인경전철": "에버라인",
+  "의정부경전철": "의정부선",
+  "우이신설경전철": "우이신설선",
+};
+function normBLine(l: string): string {
+  const m = l.match(/^0(\d호선)$/); // 02호선 -> 2호선
+  if (m) return m[1];
+  return B_LINE_FIX[l] ?? l;
+}
 
-type Src = { name: string; areas?: string[]; lines: string[]; lat: number; lng: number };
+type ASrc = { name: string; areas?: string[]; lines: string[]; lat: number; lng: number };
+type Rec = { lines: Set<string>; lat: number; lng: number; area: string };
+type Base = { name: string; lines: Set<string>; lat: number; lng: number; area: string };
 type Station = { id: string; name: string; lines: string[]; lat: number; lng: number; area: string; ambiguous: boolean };
 
-// 수도권 bounding box (부산/대구/광주/대전 등 제외)
-const inMetro = (lat: number, lng: number) =>
-  lat > 36.7 && lat < 38.3 && lng > 126.2 && lng < 127.8;
+const inMetro = (lat: number, lng: number) => lat > 36.7 && lat < 38.3 && lng > 126.2 && lng < 127.8;
+const stripStation = (n: string) => (n.endsWith("역") ? n.slice(0, -1) : n);
 
 function haversineKm(a: [number, number], b: [number, number]): number {
   const R = 6371;
@@ -44,30 +68,16 @@ function haversineKm(a: [number, number], b: [number, number]): number {
   return 2 * R * Math.asin(Math.sqrt(x));
 }
 
-async function main() {
-  const res = await fetch(RAW_URL);
-  if (!res.ok) throw new Error(`fetch failed: ${res.status}`);
-  const text = await res.text();
-  const raw = JSON5.parse(text) as Src[]; // 파싱 실패 시 throw → 빌드 실패(silent 금지)
+function pushByName(map: Map<string, Rec[]>, name: string, rec: Rec): void {
+  const arr = map.get(name);
+  if (arr) arr.push(rec); else map.set(name, [rec]);
+}
 
-  // 1) 수도권 필터 + 역명에서 후행 '역' 제거 + 호선 정규화
-  type Norm = { name: string; lines: string[]; lat: number; lng: number; area: string };
-  const norm: Norm[] = [];
-  for (const d of raw) {
-    const lat = Number(d.lat), lng = Number(d.lng);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng) || !inMetro(lat, lng)) continue;
-    const name = d.name.endsWith("역") ? d.name.slice(0, -1) : d.name;
-    const lines = [...new Set(d.lines.map((l) => LINE_FIX[l] ?? l))].sort((a, b) => a.localeCompare(b, "ko"));
-    norm.push({ name, lines, lat, lng, area: (d.areas?.[0] ?? "") });
-  }
-
-  // 2) 같은 name 그룹 내 <1.5km 군집 병합
-  const groups = new Map<string, Norm[]>();
-  for (const r of norm) (groups.get(r.name) ?? groups.set(r.name, []).get(r.name)!).push(r);
-
-  const merged: Norm[] = [];
-  for (const [, es] of groups) {
-    const clusters: Norm[][] = [];
+// name 그룹을 <1.5km 러닝-centroid 군집으로 묶어 Base[] 생성 (lines 합집합, 좌표 평균, area=비어있지 않은 첫 값)
+function clusterToBase(byName: Map<string, Rec[]>): Base[] {
+  const out: Base[] = [];
+  for (const [name, es] of byName) {
+    const clusters: Rec[][] = [];
     for (const e of es) {
       const c = clusters.find((cl) => {
         const cLat = cl.reduce((s, m) => s + m.lat, 0) / cl.length;
@@ -76,38 +86,95 @@ async function main() {
       });
       if (c) c.push(e); else clusters.push([e]);
     }
-    for (const c of clusters) {
-      const lines = [...new Set(c.flatMap((e) => e.lines))].sort((a, b) => a.localeCompare(b, "ko"));
-      const lat = Number((c.reduce((s, e) => s + e.lat, 0) / c.length).toFixed(6));
-      const lng = Number((c.reduce((s, e) => s + e.lng, 0) / c.length).toFixed(6));
-      merged.push({ name: c[0].name, lines, lat, lng, area: c[0].area });
+    for (const cl of clusters) {
+      out.push({
+        name,
+        lines: new Set(cl.flatMap((e) => [...e.lines])),
+        lat: cl.reduce((s, e) => s + e.lat, 0) / cl.length,
+        lng: cl.reduce((s, e) => s + e.lng, 0) / cl.length,
+        area: cl.find((e) => e.area)?.area ?? "",
+      });
     }
   }
+  return out;
+}
 
-  // 3) ambiguous(동명 2곳 이상) + id 부여
+async function fetchText(url: string): Promise<string> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`fetch failed (${res.status}): ${url}`);
+  return res.text();
+}
+
+async function main() {
+  // --- A: 좌표 기준 base ---
+  const aRaw = JSON5.parse(await fetchText(A_URL)) as ASrc[];
+  const aByName = new Map<string, Rec[]>();
+  for (const d of aRaw) {
+    const lat = Number(d.lat), lng = Number(d.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || !inMetro(lat, lng)) continue;
+    const lines = new Set(d.lines.map((l) => A_LINE_FIX[l] ?? l));
+    pushByName(aByName, stripStation(d.name), { lines, lat, lng, area: d.areas?.[0] ?? "" });
+  }
+  const base = clusterToBase(aByName);
+  const baseByName = new Map<string, Base[]>();
+  for (const b of base) { const a = baseByName.get(b.name); if (a) a.push(b); else baseByName.set(b.name, [b]); }
+
+  // --- B: 호선 보강 (B 좌표는 매칭용으로만, 채택 안 함) ---
+  const bRows = (await fetchText(B_URL)).replace(/^﻿/, "").trim().split(/\r?\n/);
+  bRows.shift(); // header: line,name,code,lat,lng
+  const bOnly = new Map<string, Rec[]>();
+  for (const row of bRows) {
+    const cols = row.split(",");
+    if (cols.length < 5) continue;
+    const line = normBLine(cols[0].trim());
+    const name = cols[1].trim();
+    const lat = Number(cols[3]), lng = Number(cols[4]);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || !inMetro(lat, lng)) continue;
+    const cands = baseByName.get(name);
+    if (cands && cands.length === 1) {
+      cands[0].lines.add(line);
+    } else if (cands && cands.length > 1) {
+      let best = cands[0], bd = Infinity;
+      for (const c of cands) { const d = haversineKm([c.lat, c.lng], [lat, lng]); if (d < bd) { bd = d; best = c; } }
+      best.lines.add(line);
+    } else {
+      pushByName(bOnly, name, { lines: new Set([line]), lat, lng, area: "" });
+    }
+  }
+  base.push(...clusterToBase(bOnly));
+
+  // --- id / ambiguous ---
   const nameCount = new Map<string, number>();
-  for (const m of merged) nameCount.set(m.name, (nameCount.get(m.name) ?? 0) + 1);
-
-  const out: Station[] = merged
-    .map((m) => {
-      const ambiguous = (nameCount.get(m.name) ?? 0) > 1;
-      return { id: ambiguous ? `${m.name}#${m.area}` : m.name, name: m.name, lines: m.lines, lat: m.lat, lng: m.lng, area: m.area, ambiguous };
+  for (const b of base) nameCount.set(b.name, (nameCount.get(b.name) ?? 0) + 1);
+  const out: Station[] = base
+    .map((b) => {
+      const ambiguous = (nameCount.get(b.name) ?? 0) > 1;
+      return {
+        id: ambiguous ? `${b.name}#${b.area}` : b.name,
+        name: b.name,
+        lines: [...b.lines].sort((x, y) => x.localeCompare(y, "ko")),
+        lat: Number(b.lat.toFixed(6)),
+        lng: Number(b.lng.toFixed(6)),
+        area: b.area,
+        ambiguous,
+      };
     })
     .sort((a, b) => a.name.localeCompare(b.name, "ko") || a.id.localeCompare(b.id, "ko"));
 
-  // 4) 무결성 가드 (위반 시 빌드 실패)
+  // --- 무결성 가드 (위반 시 빌드 실패) ---
   const ids = out.map((s) => s.id);
   if (new Set(ids).size !== ids.length) throw new Error("duplicate ids");
   for (const s of out) {
     if (!(s.lat >= 33 && s.lat <= 39 && s.lng >= 124 && s.lng <= 132)) throw new Error(`coord OOR: ${s.id}`);
     if (s.lines.length === 0) throw new Error(`no lines: ${s.id}`);
   }
-  if (out.length < 550) throw new Error(`too few stations: ${out.length}`);
+  if (out.length < 600) throw new Error(`too few stations: ${out.length}`);
+  const allLines = [...new Set(out.flatMap((s) => s.lines))].sort((a, b) => a.localeCompare(b, "ko"));
+  if (allLines.length !== 24) throw new Error(`expected 24 lines, got ${allLines.length}: ${allLines.join(",")}`);
 
   const dest = resolve(__dirname, "../src/lib/playground/rehearsal/data/metro-stations.json");
   writeFileSync(dest, JSON.stringify(out, null, 2) + "\n", "utf-8");
-  const lineCount = new Set(out.flatMap((s) => s.lines)).size;
-  console.log(`wrote ${out.length} stations, ${lineCount} lines -> ${dest}`);
+  console.log(`wrote ${out.length} stations, ${allLines.length} lines -> ${dest}`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
