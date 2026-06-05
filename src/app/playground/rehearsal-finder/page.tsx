@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { buildPageMetadata } from "@/lib/seo";
 import { isRehearsalFinderEnabled } from "@/lib/playground/rehearsal/rehearsalFlag";
-import RehearsalFinderClient from "./RehearsalFinderClient";
+import RehearsalFinderEntry from "./RehearsalFinderEntry";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +22,7 @@ export default function RehearsalFinderPage() {
         <h1 className="font-display font-black uppercase tracking-tight text-3xl md:text-5xl">합주실 추천</h1>
         <p className="mt-4 text-[var(--color-text-muted)]">멤버들의 출발 역을 선택하면 이동시간 기준으로 합주실을 추천해드려요. (베타 · MockRouteProvider)</p>
       </header>
-      <RehearsalFinderClient />
+      <RehearsalFinderEntry />
     </section>
   );
 }
