@@ -79,6 +79,7 @@ export type Studio = {
   mapUrl: string | null;
   equipment: StudioEquipment[];
   roadAddress: string | null;
+  phone: string | null;
   bookingMethod: string | null;
   amenities: string | null;
   homepageUrl: string | null;

@@ -8,7 +8,7 @@ import { roomEquipmentTypes } from "./types";
 function mapStudioRow(r: RowDataPacket): Omit<Studio, "equipment" | "rooms" | "equipmentTypes"> {
   return {
     id: r.id, name: r.name, slug: r.slug, regionId: r.region_id, regionName: r.region_name ?? null,
-    areaLabel: r.area_label, roadAddress: r.road_address ?? null,
+    areaLabel: r.area_label, roadAddress: r.road_address ?? null, phone: r.phone ?? null,
     lat: r.lat != null ? Number(r.lat) : NaN, lng: r.lng != null ? Number(r.lng) : NaN,
     nearestStation: r.nearest_station, nearestStationMeters: r.nearest_station_meters,
     hourlyPriceMin: r.hourly_price_min, hourlyPriceMax: r.hourly_price_max,
@@ -55,7 +55,7 @@ async function attachRooms(studios: Omit<Studio, "rooms" | "equipmentTypes">[]):
 
 const SELECT_STUDIO = `
   SELECT st.id, st.name, st.slug, st.region_id, rg.display_name AS region_name, st.area_label,
-         st.road_address, st.lat, st.lng, st.nearest_station, st.nearest_station_meters,
+         st.road_address, st.phone, st.lat, st.lng, st.nearest_station, st.nearest_station_meters,
          st.hourly_price_min, st.hourly_price_max, st.min_capacity, st.max_capacity,
          st.has_parking, st.parking_note, st.status, st.source_note, st.booking_url, st.map_url,
          st.booking_method, st.amenities, st.homepage_url

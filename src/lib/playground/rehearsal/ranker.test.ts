@@ -6,7 +6,7 @@ import type { Studio, RouteResult } from "./types";
 function studio(p: Partial<Studio>): Studio {
   return {
     id: 1, name: "S", slug: "s", regionId: 1, regionName: "서울 마포구", areaLabel: null,
-    roadAddress: null, lat: 37.55, lng: 126.92, nearestStation: null, nearestStationMeters: null,
+    roadAddress: null, phone: null, lat: 37.55, lng: 126.92, nearestStation: null, nearestStationMeters: null,
     hourlyPriceMin: 20000, hourlyPriceMax: 25000, minCapacity: 1, maxCapacity: 6,
     hasParking: false, parkingNote: null, status: "approved", sourceNote: null,
     bookingUrl: null, mapUrl: null, bookingMethod: null, amenities: null, homepageUrl: null,
