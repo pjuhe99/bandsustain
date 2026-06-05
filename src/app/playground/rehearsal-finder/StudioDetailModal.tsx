@@ -5,7 +5,7 @@ import { ROOM_EQUIPMENT_TYPES, ROOM_EQUIPMENT_LABELS, type RoomEquipmentType } f
 type Gear = { name: string; type: string };
 type DetailRoom = { id: number; name: string; hourlyPrice: number | null; capacity: number | null; equipment: Gear[]; review: string | null };
 export type DetailStudio = {
-  name: string; regionName: string | null; areaLabel: string | null; roadAddress: string | null;
+  name: string; regionName: string | null; areaLabel: string | null; roadAddress: string | null; phone: string | null;
   bookingMethod: string | null; amenities: string | null; homepageUrl: string | null; mapUrl: string | null;
   rooms: DetailRoom[];
 };
@@ -35,6 +35,7 @@ export default function StudioDetailModal({ studio, onClose }: { studio: DetailS
         <div className="space-y-5 overflow-auto px-5 py-4">
           <div className="space-y-1 text-sm">
             {studio.roadAddress && <p>📍 {studio.roadAddress}</p>}
+            {studio.phone && <p className="text-[var(--color-text-muted)]">📞 {studio.phone}</p>}
             {studio.bookingMethod && <p className="text-[var(--color-text-muted)]">예약 방식: {studio.bookingMethod}</p>}
             {studio.amenities && <p className="text-[var(--color-text-muted)]">{studio.amenities}</p>}
             <div className="flex flex-wrap gap-3 pt-1">
@@ -43,29 +44,35 @@ export default function StudioDetailModal({ studio, onClose }: { studio: DetailS
             </div>
           </div>
           <div className="space-y-3">
-            <h4 className="text-xs uppercase tracking-wider text-[var(--color-text-muted)]">방 {studio.rooms.length}개</h4>
-            {studio.rooms.map((room) => (
-              <div key={room.id} className="border border-[var(--color-border)] p-3">
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="font-bold text-sm">{room.name}</span>
-                  <span className="shrink-0 text-sm text-[var(--color-text-muted)]">
-                    {room.hourlyPrice ? `${room.hourlyPrice.toLocaleString("ko-KR")}원/시간` : ""}
-                    {room.capacity ? ` · ${room.capacity}인` : ""}
-                  </span>
-                </div>
-                <div className="mt-2 space-y-1">
-                  {(ROOM_EQUIPMENT_TYPES as readonly RoomEquipmentType[])
-                    .filter((t) => room.equipment.some((g) => g.type === t))
-                    .map((t) => (
-                      <div key={t} className="flex gap-2 text-xs">
-                        <span className="w-16 shrink-0 text-[var(--color-text-muted)]">{ROOM_EQUIPMENT_LABELS[t]}</span>
-                        <span>{room.equipment.filter((g) => g.type === t).map((g) => g.name).join(", ")}</span>
-                      </div>
-                    ))}
-                </div>
-                {room.review && <p className="mt-2 whitespace-pre-line text-xs text-[var(--color-text-muted)]">{room.review}</p>}
-              </div>
-            ))}
+            {studio.rooms.length === 0 ? (
+              <p className="text-sm text-[var(--color-text-muted)]">방·가격·악기 정보가 아직 없어요. 네이버 지도에서 확인해주세요.</p>
+            ) : (
+              <>
+                <h4 className="text-xs uppercase tracking-wider text-[var(--color-text-muted)]">방 {studio.rooms.length}개</h4>
+                {studio.rooms.map((room) => (
+                  <div key={room.id} className="border border-[var(--color-border)] p-3">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="font-bold text-sm">{room.name}</span>
+                      <span className="shrink-0 text-sm text-[var(--color-text-muted)]">
+                        {room.hourlyPrice ? `${room.hourlyPrice.toLocaleString("ko-KR")}원/시간` : ""}
+                        {room.capacity ? ` · ${room.capacity}인` : ""}
+                      </span>
+                    </div>
+                    <div className="mt-2 space-y-1">
+                      {(ROOM_EQUIPMENT_TYPES as readonly RoomEquipmentType[])
+                        .filter((t) => room.equipment.some((g) => g.type === t))
+                        .map((t) => (
+                          <div key={t} className="flex gap-2 text-xs">
+                            <span className="w-16 shrink-0 text-[var(--color-text-muted)]">{ROOM_EQUIPMENT_LABELS[t]}</span>
+                            <span>{room.equipment.filter((g) => g.type === t).map((g) => g.name).join(", ")}</span>
+                          </div>
+                        ))}
+                    </div>
+                    {room.review && <p className="mt-2 whitespace-pre-line text-xs text-[var(--color-text-muted)]">{room.review}</p>}
+                  </div>
+                ))}
+              </>
+            )}
           </div>
         </div>
       </div>
