@@ -22,18 +22,32 @@ test("normalizeName: 공백·'합주실' 제거", () => {
   assert.equal(normalizeName("그루브합주실 방배점"), "그루브방배점");
 });
 
-test("중복: 좌표 25m 이내 skip / 이름 포함 skip / 38m 다른지점 유지", () => {
+test("중복: 좌표 25m 이내 skip / 이름 동일 skip / 38m 다른지점 유지", () => {
   const existing = [
     { name: "엠플사운드", lat: 37.51, lng: 127.04 },
     { name: "비쥬합주실 1호점", lat: 37.5, lng: 126.98 },
   ];
-  const dupName = item({ id: "1", name: "엠플사운드합주실", y: "37.6", x: "127.1" });        // 이름 포함
+  const dupName = item({ id: "1", name: "엠플사운드합주실", y: "37.6", x: "127.1" });        // 정규화 동일
   const dupCoord = item({ id: "2", name: "전혀다른이름", y: "37.51", x: "127.04" });          // 좌표 0m
-  const nearBranch = item({ id: "3", name: "비쥬 합주실 2호점", y: "37.50034", x: "126.98" }); // ~38m + 이름 비포함 → 유지
+  const nearBranch = item({ id: "3", name: "비쥬 합주실 2호점", y: "37.50034", x: "126.98" }); // ~38m + 다른 지점 → 유지
   const r = transformNaverItems([dupName, dupCoord, nearBranch], existing);
   assert.deepEqual(r.skipped.map((s) => s.name).sort(), ["엠플사운드합주실", "전혀다른이름"]);
   assert.equal(r.studios.length, 1);
   assert.equal(r.studios[0].name, "비쥬 합주실 2호점");
+});
+
+test("이름 포함: 나머지가 지점 표식(숫자/점)이면 별도 지점 유지, 룸 표기 등이면 dup", () => {
+  const existing = [
+    { name: "스페이스 개러지", lat: 37.505, lng: 126.957 },                       // 중앙대점 (좌표 멀리 떨어진 지점들과 비교)
+    { name: "그라운드 합주실 합정 1호점 S룸", lat: 37.55, lng: 126.91 },
+    { name: "하모닉스 합주실", lat: 37.51, lng: 127.01 },
+  ];
+  const branchA = item({ id: "1", name: "스페이스 개러지 성신여대점", y: "37.592", x: "127.017" }); // 나머지 '성신여대점' → 별도 지점
+  const branchB = item({ id: "2", name: "하모닉스 합주실 2호점", y: "37.6", x: "127.1" });          // 나머지 '2호점' → 별도 지점
+  const sameRoom = item({ id: "3", name: "그라운드 합주실 합정1호점", y: "37.549", x: "126.92" });   // 기존이 'S룸'만 더 가짐 → dup
+  const r = transformNaverItems([branchA, branchB, sameRoom], existing);
+  assert.deepEqual(r.studios.map((s) => s.name).sort(), ["스페이스 개러지 성신여대점", "하모닉스 합주실 2호점"]);
+  assert.deepEqual(r.skipped.map((s) => s.name), ["그라운드 합주실 합정1호점"]);
 });
 
 test("JSON 내부 중복도 skip (먼저 수락된 것 기준)", () => {

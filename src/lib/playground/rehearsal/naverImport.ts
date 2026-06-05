@@ -31,8 +31,13 @@ export function areaLabelFromAddress(commonAddress: string, fullAddress: string)
 
 function nameDup(a: string, b: string): boolean {
   const na = normalizeName(a), nb = normalizeName(b);
-  if (na.length < 4 || nb.length < 4) return na === nb;
-  return na === nb || na.includes(nb) || nb.includes(na);
+  if (na === nb) return true;
+  if (na.length < 4 || nb.length < 4) return false;
+  const [long, short] = na.length >= nb.length ? [na, nb] : [nb, na];
+  if (!long.includes(short)) return false;
+  // 포함이어도 나머지에 지점 표식(숫자·'점')이 있으면 별도 지점 (성신여대점·2호점 등). 'S룸' 같은 룸 표기만 다르면 dup.
+  const rest = long.replace(short, "");
+  return !/[0-9점]/.test(rest);
 }
 
 export function transformNaverItems(items: NaverItem[], existing: ExistingStudioRef[]): NaverImportResult {

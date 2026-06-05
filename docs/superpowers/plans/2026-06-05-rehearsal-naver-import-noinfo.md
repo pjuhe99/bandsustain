@@ -291,9 +291,9 @@ cd <repo>
 sudo -u ec2-user bash -c 'set -a; source /var/www/html/_______site_BANDSUSTAIN_DEV/.db_credentials; set +a; npx tsx scripts/import-naver-studios.ts'
 sudo -u ec2-user bash -c 'set -a; source /var/www/html/_______site_BANDSUSTAIN_DEV/.db_credentials; set +a; mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "SELECT source_note, COUNT(*) FROM playground_studios GROUP BY source_note; SELECT COUNT(*) AS no_price FROM playground_studios WHERE hourly_price_min IS NULL"'
 ```
-Expected: `신규 65곳, 중복 스킵 5곳` (스킵: 그라운드 홍대1호점·스페이스개러지 중앙대점·엠플사운드합주실·그루브 방배점·사운딕트). `notion-import 20 / naver-map-import 65`, `no_price 65`. **가격 0 행이 없어야 함** (NULL 만).
+Expected: `신규 64곳, 중복 스킵 6곳` (스킵: 그라운드 홍대1호점+합정1호점·스페이스개러지 중앙대점·엠플사운드합주실·그루브 방배점·사운딕트). `notion-import 20 / naver-map-import 64`, `no_price 64`. **가격 0 행이 없어야 함** (NULL 만).
 
-- [ ] **Step 4: 멱등 재실행 확인** — Step 3 첫 명령 재실행 → 동일 결과(65/5), 총 개수 그대로 85.
+- [ ] **Step 4: 멱등 재실행 확인** — Step 3 첫 명령 재실행 → 동일 결과(65/5), 총 개수 그대로 84.
 
 - [ ] **Step 5: Commit**
 ```bash
@@ -891,7 +891,7 @@ Expected: 각 `# fail 0`, 빌드 성공, route 200.
 cd <repo>
 html=$(curl -s "http://127.0.0.1:3101/playground/rehearsal-finder")
 echo "멤버 위치 버튼: $(echo "$html" | grep -o '멤버 위치 기반으로 찾기' | wc -l) / 조건 필터 버튼: $(echo "$html" | grep -o '조건으로 필터링하기' | wc -l)"
-echo "=== /filter 빈 필터 (전체 85 기대) ==="
+echo "=== /filter 빈 필터 (전체 84 기대) ==="
 curl -s -X POST "http://127.0.0.1:3101/api/playground/rehearsal/filter" -H 'Content-Type: application/json' -d '{}' \
   | sudo -u ec2-user node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log("studios:",j.studios.length,"noInfo:",j.noInfo.length);const np=j.studios.filter(x=>x.hourlyPriceMin==null);console.log("가격없음:",np.length,"| 샘플:",np.slice(0,3).map(x=>x.name+"/"+x.areaLabel+"/phone:"+x.phone).join(" ; "));});'
 echo "=== /filter 서울+마포구+드럼+20_25 (noInfo 분리 기대) ==="
@@ -903,7 +903,7 @@ curl -s -X POST "http://127.0.0.1:3101/api/playground/rehearsal/recommend" -H 'C
   -d '{"members":[{"nickname":"a","originText":"홍대입구","originLat":37.557,"originLng":126.924,"originType":"station"}]}' \
   | sudo -u ec2-user node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log("results:",(j.results??[]).length, (j.results??[]).map(r=>r.studio.name+"/min:"+r.studio.hourlyPriceMin).join(" ; "));});'
 ```
-Expected: 버튼 각 1, 빈 필터 studios 85 / noInfo 0 / 가격없음 65(phone 포함), 조건 필터에서 noInfo > 0, 추천은 홍대 주변(마포 신규 포함 가능) 결과에 `min:null` 항목 동작.
+Expected: 버튼 각 1, 빈 필터 studios 84 / noInfo 0 / 가격없음 64(phone 포함), 조건 필터에서 noInfo > 0, 추천은 홍대 주변(마포 신규 포함 가능) 결과에 `min:null` 항목 동작.
 
 - [ ] **Step 3: 브라우저 수동 확인 안내** — `https://dev.bandsustain.com/playground/rehearsal-finder`: (1) 두 모드 버튼, (2) 필터: 서울→구 칩, 가격대 걸면 "조건 확인이 안 되는 N곳" 접기, (3) 정보 없는 카드에 "가격 정보 없음/방 정보 없음/악기 정보 없음", (4) 상세 모달: 📞 전화 + "방·가격·악기 정보가 아직 없어요", (5) 추천 모드 기존 동작.
 
@@ -921,4 +921,4 @@ sudo -u ec2-user git push origin dev
 - **스펙 커버리지:** §2 스키마=T1 · §3 임포트=T2,T3 · §4 정보없음=T4,T5 · §5 모드/필터 수정=T6,T7,T8 · §6 테스트=T2/T6 단위+T9 스모크. 0원 금지=가격 컬럼 NULL 적재(T3 검증)+priceLabel null 분기(T4).
 - **타입 일관성:** `Studio.phone`(T1) ↔ `CardStudio.phone`(T4) ↔ `DetailStudio.phone`(T5). `StudioFilter.gus`(T6) ↔ Zod `gus`(T7) ↔ FilterClient body(T8). `FilterResult {studios,noInfo}`(T6) ↔ 라우트 직렬화(T7) ↔ 클라이언트 `{studios,noInfo}`(T8). recommend 응답 studio = Studio ⊇ CardStudio.
 - **멱등:** 021 동적 ADD, 러너 DELETE-by-source_note 후 재삽입(T3 Step 4 재실행 검증).
-- **중복 5곳 기대값:** 사전 분석(25m+이름포함 규칙)으로 확정 — 그라운드 홍대1호점·스페이스개러지 중앙대점·엠플사운드합주실·그루브 방배점·사운딕트 합주실. 비쥬 2호점(38m)은 신규 유지.
+- **중복 5곳 기대값:** 사전 분석(25m+정규화이름(지점표식 구분) 규칙)으로 확정 — 그라운드 홍대1호점·스페이스개러지 중앙대점·엠플사운드합주실·그루브 방배점·사운딕트 합주실. 비쥬 2호점(38m)·성신여대점·고려대점·하모닉스 2호점·타수 2호점은 별도 지점으로 신규 유지.
