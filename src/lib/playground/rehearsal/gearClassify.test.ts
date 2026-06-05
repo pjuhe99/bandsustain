@@ -20,3 +20,16 @@ test("classifyGearList: 콤마 문자열 → RoomGear[] (트림·빈값 제거)"
     { name: "Ampeg SVT810E", type: "BASS_AMP" },
   ]);
 });
+
+test("classifyGear: 일반 단어 키워드 폴백 (admin 수기 입력)", () => {
+  assert.equal(classifyGear("드럼"), "DRUM");
+  assert.equal(classifyGear("DW 드럼세트"), "DRUM");
+  assert.equal(classifyGear("마샬 기타앰프"), "GUITAR_AMP");
+  assert.equal(classifyGear("기타 앰프"), "GUITAR_AMP");
+  assert.equal(classifyGear("베이스앰프"), "BASS_AMP");
+  assert.equal(classifyGear("암페그 베이스"), "BASS_AMP");
+  assert.equal(classifyGear("키보드"), "KEYBOARD");
+  assert.equal(classifyGear("신디사이저"), "KEYBOARD");
+  assert.equal(classifyGear("기타"), "ETC");        // '기타' 단독은 모호 → ETC
+  assert.equal(classifyGear("마이크"), "ETC");
+});
