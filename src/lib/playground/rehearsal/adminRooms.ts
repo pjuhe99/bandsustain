@@ -40,6 +40,6 @@ export function deriveStudioStats(rooms: { hourlyPrice: number | null; capacity:
   };
 }
 
-export function gearToText(equipment: { name: string }[]): string {
+export function gearToText<T extends { name: string }>(equipment: T[]): string {
   return equipment.map((g) => g.name).join(", ");
 }

@@ -4,6 +4,7 @@ import { getPool } from "@/lib/db";
 import type { Studio, StudioStatus, StudioEquipment, EquipmentType } from "./types";
 import { loadRoomsByStudioIds } from "./rooms";
 import { roomEquipmentTypes } from "./types";
+import type { RoomWrite } from "./adminRooms";
 
 function mapStudioRow(r: RowDataPacket): Omit<Studio, "equipment" | "rooms" | "equipmentTypes"> {
   return {
@@ -97,44 +98,52 @@ export async function getStudioById(id: number): Promise<Studio | null> {
 
 export type StudioWriteInput = {
   name: string; slug: string; regionId: number | null; areaLabel: string | null;
+  roadAddress: string | null; phone: string | null;
   lat: number | null; lng: number | null; nearestStation: string | null; nearestStationMeters: number | null;
   hourlyPriceMin: number | null; hourlyPriceMax: number | null; minCapacity: number | null; maxCapacity: number | null;
   hasParking: boolean; parkingNote: string | null; status: StudioStatus; sourceNote: string | null;
   bookingUrl: string | null; mapUrl: string | null;
-  equipment: { equipmentType: EquipmentType; equipmentName: string | null; quantity: number; note: string | null }[];
+  bookingMethod: string | null; amenities: string | null; homepageUrl: string | null;
+  equipment?: { equipmentType: EquipmentType; equipmentName: string | null; quantity: number; note: string | null }[];
+  rooms?: RoomWrite[];
 };
 
 export async function createStudio(input: StudioWriteInput): Promise<number> {
   const [res] = await getPool().query<ResultSetHeader>(
     `INSERT INTO playground_studios
-       (name, slug, region_id, area_label, lat, lng, nearest_station, nearest_station_meters,
+       (name, slug, region_id, area_label, road_address, phone, lat, lng, nearest_station, nearest_station_meters,
         hourly_price_min, hourly_price_max, min_capacity, max_capacity, has_parking, parking_note,
-        status, source_note, booking_url, map_url)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-    [input.name, input.slug, input.regionId, input.areaLabel, input.lat, input.lng, input.nearestStation,
-     input.nearestStationMeters, input.hourlyPriceMin, input.hourlyPriceMax, input.minCapacity, input.maxCapacity,
-     input.hasParking ? 1 : 0, input.parkingNote, input.status, input.sourceNote, input.bookingUrl, input.mapUrl],
+        status, source_note, booking_url, map_url, booking_method, amenities, homepage_url)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+    [input.name, input.slug, input.regionId, input.areaLabel, input.roadAddress, input.phone, input.lat, input.lng,
+     input.nearestStation, input.nearestStationMeters, input.hourlyPriceMin, input.hourlyPriceMax,
+     input.minCapacity, input.maxCapacity, input.hasParking ? 1 : 0, input.parkingNote, input.status,
+     input.sourceNote, input.bookingUrl, input.mapUrl, input.bookingMethod, input.amenities, input.homepageUrl],
   );
   const studioId = res.insertId;
-  await replaceEquipment(studioId, input.equipment);
+  if (input.equipment) await replaceEquipment(studioId, input.equipment);
+  if (input.rooms) await replaceRooms(studioId, input.rooms);
   return studioId;
 }
 
 export async function updateStudio(id: number, input: StudioWriteInput): Promise<void> {
   await getPool().query(
     `UPDATE playground_studios SET
-       name=?, slug=?, region_id=?, area_label=?, lat=?, lng=?, nearest_station=?, nearest_station_meters=?,
-       hourly_price_min=?, hourly_price_max=?, min_capacity=?, max_capacity=?, has_parking=?, parking_note=?,
-       status=?, source_note=?, booking_url=?, map_url=?
+       name=?, slug=?, region_id=?, area_label=?, road_address=?, phone=?, lat=?, lng=?,
+       nearest_station=?, nearest_station_meters=?, hourly_price_min=?, hourly_price_max=?,
+       min_capacity=?, max_capacity=?, has_parking=?, parking_note=?, status=?, source_note=?,
+       booking_url=?, map_url=?, booking_method=?, amenities=?, homepage_url=?
      WHERE id=?`,
-    [input.name, input.slug, input.regionId, input.areaLabel, input.lat, input.lng, input.nearestStation,
-     input.nearestStationMeters, input.hourlyPriceMin, input.hourlyPriceMax, input.minCapacity, input.maxCapacity,
-     input.hasParking ? 1 : 0, input.parkingNote, input.status, input.sourceNote, input.bookingUrl, input.mapUrl, id],
+    [input.name, input.slug, input.regionId, input.areaLabel, input.roadAddress, input.phone, input.lat, input.lng,
+     input.nearestStation, input.nearestStationMeters, input.hourlyPriceMin, input.hourlyPriceMax,
+     input.minCapacity, input.maxCapacity, input.hasParking ? 1 : 0, input.parkingNote, input.status,
+     input.sourceNote, input.bookingUrl, input.mapUrl, input.bookingMethod, input.amenities, input.homepageUrl, id],
   );
-  await replaceEquipment(id, input.equipment);
+  if (input.equipment) await replaceEquipment(id, input.equipment);
+  if (input.rooms) await replaceRooms(id, input.rooms);
 }
 
-async function replaceEquipment(studioId: number, equipment: StudioWriteInput["equipment"]): Promise<void> {
+async function replaceEquipment(studioId: number, equipment: NonNullable<StudioWriteInput["equipment"]>): Promise<void> {
   await getPool().query(`DELETE FROM playground_studio_equipment WHERE studio_id = ?`, [studioId]);
   for (const e of equipment) {
     await getPool().query(
@@ -143,4 +152,19 @@ async function replaceEquipment(studioId: number, equipment: StudioWriteInput["e
       [studioId, e.equipmentType, e.equipmentName, e.quantity, e.note],
     );
   }
+}
+
+async function replaceRooms(studioId: number, rooms: RoomWrite[]): Promise<void> {
+  await getPool().query(`DELETE FROM playground_studio_rooms WHERE studio_id = ?`, [studioId]);
+  for (const r of rooms) {
+    await getPool().query(
+      `INSERT INTO playground_studio_rooms (studio_id, name, hourly_price, capacity, equipment_json, review, sort_order)
+       VALUES (?,?,?,?,?,?,?)`,
+      [studioId, r.name, r.hourlyPrice, r.capacity, JSON.stringify(r.equipment), r.review, r.sortOrder],
+    );
+  }
+}
+
+export async function deleteStudio(id: number): Promise<void> {
+  await getPool().query(`DELETE FROM playground_studios WHERE id = ?`, [id]); // rooms/equipment CASCADE
 }
