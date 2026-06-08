@@ -1,4 +1,5 @@
 import { haversineMeters } from "./geo";
+import { regionFromAddress, type RegionInfo } from "./region";
 
 export type NaverItem = {
   id: string; name: string; full_address: string; common_address: string;
@@ -10,6 +11,7 @@ export type NaverImportStudio = {
   name: string; slug: string; areaLabel: string; roadAddress: string;
   lat: number; lng: number; mapUrl: string; bookingUrl: string | null;
   phone: string | null; bookingMethod: string | null; imageUrl: string | null;
+  region: RegionInfo | null;
 };
 export type NaverImportResult = {
   studios: NaverImportStudio[];
@@ -62,6 +64,8 @@ export function transformNaverItems(items: NaverItem[], existing: ExistingStudio
       mapUrl: it.naver_map_url.trim(), bookingUrl, phone,
       bookingMethod: bookingUrl ? "네이버 예약" : phone ? "전화" : null,
       imageUrl: (it.image_url ?? "").trim() || null,
+      // 지역: common_address(구 포함) 우선, 없으면 full_address(road)에서 도출
+      region: regionFromAddress(it.common_address) ?? regionFromAddress(it.full_address),
     });
     refs.push({ name: it.name, lat, lng });
   }

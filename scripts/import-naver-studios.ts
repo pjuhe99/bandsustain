@@ -7,7 +7,7 @@ import mysql from "mysql2/promise";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { transformNaverItems, type NaverItem, type ExistingStudioRef } from "../src/lib/playground/rehearsal/naverImport";
+import { transformNaverItems, type NaverItem, type ExistingStudioRef, type NaverImportStudio } from "../src/lib/playground/rehearsal/naverImport";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -22,21 +22,42 @@ async function main() {
     host: process.env.DB_HOST ?? "127.0.0.1", user: process.env.DB_USER, password: process.env.DB_PASS,
     database: DB_NAME, charset: "utf8mb4", multipleStatements: false,
   });
+  // 지역 upsert(멱등): display_name UNIQUE → ON DUPLICATE 로 기존/신규 id 회수. 캐시로 중복 쿼리 회피.
+  const regionCache = new Map<string, number>();
+  async function upsertRegion(region: NaverImportStudio["region"]): Promise<number | null> {
+    if (!region) return null;
+    const cached = regionCache.get(region.displayName);
+    if (cached) return cached;
+    const [res]: any = await conn.query(
+      `INSERT INTO playground_regions (province, city, district, display_name, is_supported, sort_order)
+       VALUES (?,?,?,?,1,0)
+       ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)`,
+      [region.province, region.city, region.district, region.displayName],
+    );
+    const id = res.insertId as number;
+    regionCache.set(region.displayName, id);
+    return id;
+  }
+
   try {
     await conn.beginTransaction();
     await conn.query("DELETE FROM playground_studios WHERE source_note = 'naver-map-import'");
     const [rows]: any = await conn.query("SELECT name, lat, lng FROM playground_studios WHERE lat IS NOT NULL AND lng IS NOT NULL");
     const existing: ExistingStudioRef[] = rows.map((r: any) => ({ name: r.name, lat: Number(r.lat), lng: Number(r.lng) }));
     const { studios, skipped } = transformNaverItems(raw.items, existing);
+    let withRegion = 0;
     for (const s of studios) {
+      const regionId = await upsertRegion(s.region);
+      if (regionId) withRegion++;
       await conn.query(
         `INSERT INTO playground_studios
-           (name, slug, area_label, road_address, phone, lat, lng, status, source_note, map_url, booking_url, booking_method, image_url)
-         VALUES (?,?,?,?,?,?,?, 'approved', 'naver-map-import', ?,?,?,?)`,
-        [s.name, s.slug, s.areaLabel, s.roadAddress, s.phone, s.lat, s.lng, s.mapUrl, s.bookingUrl, s.bookingMethod, s.imageUrl],
+           (name, slug, area_label, road_address, phone, lat, lng, region_id, status, source_note, map_url, booking_url, booking_method, image_url)
+         VALUES (?,?,?,?,?,?,?,?, 'approved', 'naver-map-import', ?,?,?,?)`,
+        [s.name, s.slug, s.areaLabel, s.roadAddress, s.phone, s.lat, s.lng, regionId, s.mapUrl, s.bookingUrl, s.bookingMethod, s.imageUrl],
       );
     }
     await conn.commit();
+    console.log(`  지역 연결: ${withRegion}/${studios.length}곳 (regions 캐시 ${regionCache.size}종)`);
     console.log(`적재 완료(DB=${DB_NAME}): 신규 ${studios.length}곳, 중복 스킵 ${skipped.length}곳.`);
     for (const sk of skipped) console.log(`  skip [${sk.by}] ${sk.name} = 기존 '${sk.matchedExisting}'`);
   } catch (e) { await conn.rollback(); throw e; }
