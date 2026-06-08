@@ -71,6 +71,32 @@ export async function getCandidateStudios(): Promise<Studio[]> {
   return attachRooms(await attachEquipment(rows.map(mapStudioRow)));
 }
 
+export type RegionFacet = { province: string; count: number; subs: { name: string; count: number }[] };
+
+// 노출 가능한(approved + 좌표 있는) 합주실의 지역 분포 → 필터 칩 데이터.
+// regionName("서울 마포구") 을 시도 + 하위(구/시) 로 분해해 시도별 그룹화, 많은 순 정렬.
+export async function getRegionFacets(): Promise<RegionFacet[]> {
+  const [rows] = await getPool().query<RowDataPacket[]>(
+    `SELECT rg.display_name AS dn, COUNT(*) AS c
+       FROM playground_studios st JOIN playground_regions rg ON rg.id = st.region_id
+      WHERE st.status = 'approved' AND st.lat IS NOT NULL AND st.lng IS NOT NULL
+      GROUP BY rg.display_name`,
+  );
+  const byProvince = new Map<string, { count: number; subs: { name: string; count: number }[] }>();
+  for (const r of rows as { dn: string; c: number }[]) {
+    const i = r.dn.indexOf(" ");
+    const province = i < 0 ? r.dn : r.dn.slice(0, i);
+    const sub = i < 0 ? "" : r.dn.slice(i + 1);
+    const entry = byProvince.get(province) ?? { count: 0, subs: [] };
+    entry.count += Number(r.c);
+    if (sub) entry.subs.push({ name: sub, count: Number(r.c) });
+    byProvince.set(province, entry);
+  }
+  return [...byProvince.entries()]
+    .map(([province, v]) => ({ province, count: v.count, subs: v.subs.sort((a, b) => b.count - a.count) }))
+    .sort((a, b) => b.count - a.count);
+}
+
 export async function listStudios(filter: {
   regionId?: number; status?: StudioStatus; keyword?: string; equipmentType?: EquipmentType;
 }): Promise<Studio[]> {

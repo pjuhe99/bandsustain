@@ -2,10 +2,11 @@
 import { useState } from "react";
 import RehearsalFinderClient from "./RehearsalFinderClient";
 import RehearsalFilterClient from "./RehearsalFilterClient";
+import type { RegionFacet } from "@/lib/playground/rehearsal/studios";
 
 type Mode = "select" | "recommend" | "filter";
 
-export default function RehearsalFinderEntry() {
+export default function RehearsalFinderEntry({ regionFacets }: { regionFacets: RegionFacet[] }) {
   const [mode, setMode] = useState<Mode>("select");
 
   if (mode === "select") {
@@ -29,7 +30,7 @@ export default function RehearsalFinderEntry() {
     <div className="space-y-6">
       <button type="button" onClick={() => setMode("select")}
         className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)]">← 다른 방법으로 찾기</button>
-      {mode === "recommend" ? <RehearsalFinderClient /> : <RehearsalFilterClient />}
+      {mode === "recommend" ? <RehearsalFinderClient /> : <RehearsalFilterClient facets={regionFacets} />}
     </div>
   );
 }

@@ -2,8 +2,8 @@ import type { Studio, RoomEquipmentType } from "./types";
 
 export type PriceBucket = "u15" | "15_20" | "20_25" | "o25";
 export type StudioFilter = {
-  city: string | null;
-  gus: string[];
+  province: string | null;
+  subRegions: string[];
   instrumentTypes: RoomEquipmentType[];
   priceBucket: PriceBucket | null;
   capacityMin: number | null;
@@ -12,21 +12,12 @@ export type StudioFilter = {
 };
 export type FilterResult = { studios: Studio[]; noInfo: Studio[] };
 
-const CITIES = ["서울", "성남", "수원"] as const;
-
-export function parseRegion(roadAddress: string | null, areaLabel: string | null): { city: string | null; gu: string | null } {
-  const src = roadAddress ?? "";
-  let city: string | null = null;
-  if (/^서울/.test(src)) city = "서울";
-  else if (/성남시/.test(src)) city = "성남";
-  else if (/수원시/.test(src)) city = "수원";
-  if (!city && areaLabel) {
-    for (const tok of areaLabel.split(",").map((s) => s.trim())) {
-      if ((CITIES as readonly string[]).includes(tok)) city = tok;
-    }
-  }
-  const gu = src.match(/(?:^|\s)([가-힣]+구)(?=\s|$)/)?.[1] ?? null;
-  return { city, gu };
+// regionName("서울 마포구") → 시도 + 하위(구/시). 지역 매칭의 단일 진실원.
+export function splitRegionName(regionName: string | null): { province: string | null; sub: string | null } {
+  if (!regionName) return { province: null, sub: null };
+  const i = regionName.indexOf(" ");
+  if (i < 0) return { province: regionName, sub: null };
+  return { province: regionName.slice(0, i), sub: regionName.slice(i + 1) };
 }
 
 export function priceBucketMatch(price: number | null, b: PriceBucket): boolean {
@@ -44,9 +35,9 @@ export function applyStudioFilters(studios: Studio[], f: StudioFilter): FilterRe
   const matched: Studio[] = [];
   const noInfo: Studio[] = [];
   for (const s of studios) {
-    const { city, gu } = parseRegion(s.roadAddress, s.areaLabel);
-    if (f.city && city !== f.city) continue;
-    if (f.gus.length && (gu == null || !f.gus.includes(gu))) continue;
+    const { province, sub } = splitRegionName(s.regionName);
+    if (f.province && province !== f.province) continue;
+    if (f.subRegions.length && (sub == null || !f.subRegions.includes(sub))) continue;
     if (f.parkingOnly && !s.hasParking) continue;
     if (f.rentalOnly && !/악기대여\s*O/.test(s.amenities ?? "")) continue;
     if (roomCondActive && s.rooms.length === 0) { noInfo.push(s); continue; } // 정보 없음 → 판단불가 분리

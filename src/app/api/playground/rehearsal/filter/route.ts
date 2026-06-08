@@ -9,8 +9,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const FilterSchema = z.object({
-  city: z.string().nullable().default(null),
-  gus: z.array(z.string()).default([]),
+  province: z.string().nullable().default(null),
+  subRegions: z.array(z.string()).default([]),
   instrumentTypes: z.array(z.enum(ROOM_EQUIPMENT_TYPES as unknown as [RoomEquipmentType, ...RoomEquipmentType[]])).default([]),
   priceBucket: z.enum(["u15", "15_20", "20_25", "o25"]).nullable().default(null),
   capacityMin: z.number().int().positive().nullable().default(null),

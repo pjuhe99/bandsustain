@@ -3,10 +3,8 @@ import { useState } from "react";
 import { buttonClasses } from "@/components/Button";
 import StudioCard, { type CardStudio } from "./StudioCard";
 import StudioDetailModal from "./StudioDetailModal";
+import type { RegionFacet } from "@/lib/playground/rehearsal/studios";
 
-const CITY_OPTIONS = ["서울", "성남", "수원"];
-// 서울 구 칩 (2026-06-05 데이터 기준, 많은 순). 데이터 변경 시 갱신.
-const SEOUL_GUS = ["마포구", "서초구", "동작구", "성북구", "중구", "동대문구", "송파구", "서대문구", "성동구", "강남구", "종로구", "영등포구", "광진구", "관악구", "강서구", "구로구", "중랑구"];
 const PRICE_BUCKETS = [
   { v: "u15", label: "~15,000" }, { v: "15_20", label: "15,000~20,000" },
   { v: "20_25", label: "20,000~25,000" }, { v: "o25", label: "25,000~" },
@@ -19,9 +17,9 @@ const chip = (on: boolean) =>
 const chipGu = (on: boolean) =>
   `rounded-full px-2.5 py-1 text-xs border ${on ? "bg-[var(--color-bg-muted)] text-[var(--color-text)] border-[var(--color-text)] font-medium" : "border-[var(--color-border)] text-[var(--color-text-muted)]"}`;
 
-export default function RehearsalFilterClient() {
-  const [city, setCity] = useState<string | null>(null);
-  const [gus, setGus] = useState<string[]>([]);
+export default function RehearsalFilterClient({ facets }: { facets: RegionFacet[] }) {
+  const [province, setProvince] = useState<string | null>(null);
+  const [subRegions, setSubRegions] = useState<string[]>([]);
   const [priceBucket, setPriceBucket] = useState<string | null>(null);
   const [capacityMin, setCapacityMin] = useState<number | null>(null);
   const [parkingOnly, setParkingOnly] = useState(false);
@@ -32,13 +30,14 @@ export default function RehearsalFilterClient() {
   const [error, setError] = useState<string | null>(null);
 
   function toggle<T>(arr: T[], v: T): T[] { return arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]; }
+  const selectedFacet = facets.find((f) => f.province === province) ?? null;
 
   async function apply() {
     setError(null); setLoading(true);
     try {
       const res = await fetch("/api/playground/rehearsal/filter", {
         method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ city, gus, priceBucket, capacityMin, parkingOnly, rentalOnly }),
+        body: JSON.stringify({ province, subRegions, priceBucket, capacityMin, parkingOnly, rentalOnly }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.message ?? data.error ?? "필터 실패"); return; }
@@ -54,17 +53,18 @@ export default function RehearsalFilterClient() {
         <div>
           <label className="block text-xs uppercase tracking-wider mb-1.5 text-[var(--color-text-muted)]">지역</label>
           <div className="flex flex-wrap gap-1.5">
-            <button type="button" className={chip(city === null)} onClick={() => { setCity(null); setGus([]); }}>전체</button>
-            {CITY_OPTIONS.map((c) => (
-              <button key={c} type="button" className={chip(city === c)} onClick={() => { setCity(c); setGus([]); }}>{c}</button>
+            <button type="button" className={chip(province === null)} onClick={() => { setProvince(null); setSubRegions([]); }}>전체</button>
+            {facets.map((f) => (
+              <button key={f.province} type="button" className={chip(province === f.province)}
+                onClick={() => { setProvince(f.province); setSubRegions([]); }}>{f.province} ({f.count})</button>
             ))}
           </div>
-          {city === "서울" && (
+          {selectedFacet && selectedFacet.subs.length > 0 && (
             <div className="mt-2 border-l-2 border-[var(--color-border-strong)] pl-3">
-              <span className="block text-[11px] text-[var(--color-text-muted)] mb-1.5">↳ 서울 안에서 구 선택 (여러 개 가능)</span>
+              <span className="block text-[11px] text-[var(--color-text-muted)] mb-1.5">↳ {selectedFacet.province} 안에서 선택 (여러 개 가능)</span>
               <div className="flex flex-wrap gap-1.5">
-                {SEOUL_GUS.map((g) => (
-                  <button key={g} type="button" className={chipGu(gus.includes(g))} onClick={() => setGus(toggle(gus, g))}>{g}</button>
+                {selectedFacet.subs.map((s) => (
+                  <button key={s.name} type="button" className={chipGu(subRegions.includes(s.name))} onClick={() => setSubRegions(toggle(subRegions, s.name))}>{s.name} ({s.count})</button>
                 ))}
               </div>
             </div>

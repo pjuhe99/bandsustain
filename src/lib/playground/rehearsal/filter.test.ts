@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseRegion, priceBucketMatch, applyStudioFilters, type StudioFilter } from "./filter";
+import { splitRegionName, priceBucketMatch, applyStudioFilters, type StudioFilter } from "./filter";
 import type { Studio } from "./types";
 
-const EMPTY: StudioFilter = { city: null, gus: [], instrumentTypes: [], priceBucket: null, capacityMin: null, parkingOnly: false, rentalOnly: false };
+const EMPTY: StudioFilter = { province: null, subRegions: [], instrumentTypes: [], priceBucket: null, capacityMin: null, parkingOnly: false, rentalOnly: false };
 
 function studio(over: Partial<Studio> & { rooms: Studio["rooms"] }): Studio {
   return {
-    id: 1, name: "S", slug: "s", regionId: null, regionName: null, areaLabel: "서울, 역삼",
+    id: 1, name: "S", slug: "s", regionId: 1, regionName: "서울 강남구", areaLabel: "서울, 역삼",
     roadAddress: "서울특별시 강남구 논현로 404", phone: null,
     lat: 37.5, lng: 127, nearestStation: null, nearestStationMeters: null,
     hourlyPriceMin: 20000, hourlyPriceMax: 20000, minCapacity: null, maxCapacity: null,
@@ -20,11 +20,11 @@ function room(over: Partial<Studio["rooms"][number]>): Studio["rooms"][number] {
   return { id: 1, name: "A", hourlyPrice: 20000, capacity: 10, equipment: [], review: null, ...over };
 }
 
-test("parseRegion: 시·구 추출 + 폴백", () => {
-  assert.deepEqual(parseRegion("서울특별시 마포구 양화로 12", null), { city: "서울", gu: "마포구" });
-  assert.deepEqual(parseRegion("경기도 성남시 분당구 판교로 441", null), { city: "성남", gu: "분당구" });
-  assert.deepEqual(parseRegion(null, "수원, 인계"), { city: "수원", gu: null });
-  assert.deepEqual(parseRegion(null, null), { city: null, gu: null });
+test("splitRegionName: 시도/하위 분해", () => {
+  assert.deepEqual(splitRegionName("서울 마포구"), { province: "서울", sub: "마포구" });
+  assert.deepEqual(splitRegionName("경기 성남시"), { province: "경기", sub: "성남시" });
+  assert.deepEqual(splitRegionName("세종 나성동"), { province: "세종", sub: "나성동" });
+  assert.deepEqual(splitRegionName(null), { province: null, sub: null });
 });
 
 test("priceBucketMatch: 경계(상한 포함)", () => {
@@ -35,12 +35,12 @@ test("priceBucketMatch: 경계(상한 포함)", () => {
   assert.equal(priceBucketMatch(null, "u15"), false);
 });
 
-test("지역 필터: 시+구", () => {
-  const a = studio({ roadAddress: "서울특별시 마포구 양화로 12", rooms: [room({})] });
-  const b = studio({ roadAddress: "경기도 성남시 분당구 판교로 441", rooms: [room({})] });
-  assert.equal(applyStudioFilters([a, b], { ...EMPTY, city: "서울" }).studios.length, 1);
-  assert.equal(applyStudioFilters([a, b], { ...EMPTY, city: "서울", gus: ["서초구"] }).studios.length, 0);
-  assert.equal(applyStudioFilters([a, b], { ...EMPTY, city: "서울", gus: ["마포구"] }).studios.length, 1);
+test("지역 필터: 시도+하위", () => {
+  const a = studio({ regionName: "서울 마포구", rooms: [room({})] });
+  const b = studio({ regionName: "경기 성남시", rooms: [room({})] });
+  assert.equal(applyStudioFilters([a, b], { ...EMPTY, province: "서울" }).studios.length, 1);
+  assert.equal(applyStudioFilters([a, b], { ...EMPTY, province: "서울", subRegions: ["서초구"] }).studios.length, 0);
+  assert.equal(applyStudioFilters([a, b], { ...EMPTY, province: "서울", subRegions: ["마포구"] }).studios.length, 1);
 });
 
 test("악기 AND: 한 방에 모두", () => {
@@ -60,8 +60,8 @@ test("정보 없음(방 0): 방 조건 걸면 noInfo 로 분리, 안 걸면 stud
   const priced = applyStudioFilters([naver, full], { ...EMPTY, priceBucket: "15_20" });
   assert.deepEqual(priced.studios.map((s) => s.name), ["S"]);
   assert.deepEqual(priced.noInfo.map((s) => s.name), ["네이버만"]); // 판단불가 분리
-  // 지역 불일치면 noInfo 에도 안 들어감
-  const off = applyStudioFilters([naver], { ...EMPTY, city: "성남", priceBucket: "15_20" });
+  // 지역 불일치면 noInfo 에도 안 들어감 (naver 기본 regionName="서울 강남구" → 경기 필터에 제외)
+  const off = applyStudioFilters([naver], { ...EMPTY, province: "경기", priceBucket: "15_20" });
   assert.equal(off.noInfo.length, 0);
 });
 
