@@ -11,11 +11,17 @@ import { fileURLToPath } from "node:url";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const MD = resolve(__dirname, "data/naver-hapjusil-2026-06-08.md");
 const PREV = resolve(__dirname, "data/naver-map-hapjusil-2026-06-04.json");
+// 풍부한 원본 JSON(image_url 보유): 마크다운엔 없는 image_url 을 id 로 매칭해 채움.
+const RICH = process.env.RICH ?? "/var/www/html/_______site_BANDSUSTAIN/naver_hapjusil_exact_only_20260608.json";
 const OUT = resolve(__dirname, "data/naver-map-hapjusil-2026-06-08.json");
 
 type PrevItem = { id: string; road_address?: string; full_address?: string };
 const prev = JSON.parse(readFileSync(PREV, "utf-8")) as { items: PrevItem[] };
 const prevById = new Map(prev.items.map((it) => [String(it.id), it]));
+
+const richRaw = JSON.parse(readFileSync(RICH, "utf-8"));
+const richItems: { id: string; image_url?: string }[] = Array.isArray(richRaw) ? richRaw : (richRaw.items ?? []);
+const imageById = new Map(richItems.map((it) => [String(it.id), (it.image_url ?? "").trim()]));
 
 const urlIn = (cell: string): string => cell.match(/\((https?:\/\/[^)]+)\)/)?.[1] ?? "";
 const idFromMapUrl = (url: string): string => url.match(/place\/(\d+)/)?.[1] ?? "";
@@ -56,6 +62,7 @@ for (const line of lines) {
     phone: phone ?? "",
     virtual_phone: "",
     booking_url: urlIn(bookingCell ?? ""),
+    image_url: imageById.get(id) ?? "",
     x: String(lng), // x=경도
     y: String(lat), // y=위도
   });

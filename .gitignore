@@ -53,6 +53,11 @@ yarn-error.log*
 # Sync separately on each host; do not bloat the repo.
 /public/playground/images/
 
+# 네이버 합주실 다운로드 이미지(권한 확인 전 내부 저장 전용) + 생성 데이터/로그.
+# 바이너리·미게시 자료라 git 추적 안 함.
+/public/images/naver-hapjusil/
+/logs/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

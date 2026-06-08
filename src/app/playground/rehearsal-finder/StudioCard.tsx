@@ -7,6 +7,7 @@ export type CardRoom = { id: number; name: string; hourlyPrice: number | null; c
 export type CardStudio = {
   name: string; regionName: string | null; areaLabel: string | null; roadAddress: string | null; phone: string | null;
   bookingMethod: string | null; amenities: string | null; homepageUrl: string | null; mapUrl: string | null;
+  imageUrl: string | null;
   hourlyPriceMin: number | null; hourlyPriceMax: number | null; hasParking: boolean;
   equipmentTypes: RoomEquipmentType[]; rooms: CardRoom[];
 };

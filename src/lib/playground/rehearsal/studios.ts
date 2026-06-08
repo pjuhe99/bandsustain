@@ -18,6 +18,7 @@ function mapStudioRow(r: RowDataPacket): Omit<Studio, "equipment" | "rooms" | "e
     status: r.status as StudioStatus, sourceNote: r.source_note,
     bookingUrl: r.booking_url, mapUrl: r.map_url,
     bookingMethod: r.booking_method ?? null, amenities: r.amenities ?? null, homepageUrl: r.homepage_url ?? null,
+    imageUrl: r.image_url ?? null,
   };
 }
 
@@ -59,7 +60,7 @@ const SELECT_STUDIO = `
          st.road_address, st.phone, st.lat, st.lng, st.nearest_station, st.nearest_station_meters,
          st.hourly_price_min, st.hourly_price_max, st.min_capacity, st.max_capacity,
          st.has_parking, st.parking_note, st.status, st.source_note, st.booking_url, st.map_url,
-         st.booking_method, st.amenities, st.homepage_url
+         st.booking_method, st.amenities, st.homepage_url, st.image_url
     FROM playground_studios st
     LEFT JOIN playground_regions rg ON rg.id = st.region_id`;
 

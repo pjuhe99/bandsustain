@@ -77,6 +77,7 @@ export type Studio = {
   sourceNote: string | null;
   bookingUrl: string | null;
   mapUrl: string | null;
+  imageUrl: string | null;
   equipment: StudioEquipment[];
   roadAddress: string | null;
   phone: string | null;

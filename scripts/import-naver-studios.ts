@@ -31,9 +31,9 @@ async function main() {
     for (const s of studios) {
       await conn.query(
         `INSERT INTO playground_studios
-           (name, slug, area_label, road_address, phone, lat, lng, status, source_note, map_url, booking_url, booking_method)
-         VALUES (?,?,?,?,?,?,?, 'approved', 'naver-map-import', ?,?,?)`,
-        [s.name, s.slug, s.areaLabel, s.roadAddress, s.phone, s.lat, s.lng, s.mapUrl, s.bookingUrl, s.bookingMethod],
+           (name, slug, area_label, road_address, phone, lat, lng, status, source_note, map_url, booking_url, booking_method, image_url)
+         VALUES (?,?,?,?,?,?,?, 'approved', 'naver-map-import', ?,?,?,?)`,
+        [s.name, s.slug, s.areaLabel, s.roadAddress, s.phone, s.lat, s.lng, s.mapUrl, s.bookingUrl, s.bookingMethod, s.imageUrl],
       );
     }
     await conn.commit();

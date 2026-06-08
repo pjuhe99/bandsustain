@@ -7,6 +7,7 @@ type DetailRoom = { id: number; name: string; hourlyPrice: number | null; capaci
 export type DetailStudio = {
   name: string; regionName: string | null; areaLabel: string | null; roadAddress: string | null; phone: string | null;
   bookingMethod: string | null; amenities: string | null; homepageUrl: string | null; mapUrl: string | null;
+  imageUrl: string | null;
   rooms: DetailRoom[];
 };
 
@@ -33,6 +34,18 @@ export default function StudioDetailModal({ studio, onClose }: { studio: DetailS
           <button type="button" aria-label="닫기" onClick={onClose} className="px-2 text-lg leading-none text-[var(--color-text-muted)]">✕</button>
         </div>
         <div className="space-y-5 overflow-auto px-5 py-4">
+          {studio.imageUrl && (
+            // 네이버 원본 CDN 직접 표시(핫링크). 서버 미호스팅 — no-referrer 로 우리 도메인 노출/핫링크 차단 회피.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={studio.imageUrl}
+              alt={`${studio.name} 사진`}
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              className="max-h-60 w-full rounded-md object-cover"
+              onError={(e) => { e.currentTarget.style.display = "none"; }}
+            />
+          )}
           <div className="space-y-1 text-sm">
             {studio.roadAddress && <p>📍 {studio.roadAddress}</p>}
             {studio.phone && <p className="text-[var(--color-text-muted)]">📞 {studio.phone}</p>}

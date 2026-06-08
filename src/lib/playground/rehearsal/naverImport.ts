@@ -3,13 +3,13 @@ import { haversineMeters } from "./geo";
 export type NaverItem = {
   id: string; name: string; full_address: string; common_address: string;
   phone: string; virtual_phone: string; booking_url: string; naver_map_url: string;
-  x: string; y: string;
+  x: string; y: string; image_url?: string;
 };
 export type ExistingStudioRef = { name: string; lat: number; lng: number };
 export type NaverImportStudio = {
   name: string; slug: string; areaLabel: string; roadAddress: string;
   lat: number; lng: number; mapUrl: string; bookingUrl: string | null;
-  phone: string | null; bookingMethod: string | null;
+  phone: string | null; bookingMethod: string | null; imageUrl: string | null;
 };
 export type NaverImportResult = {
   studios: NaverImportStudio[];
@@ -61,6 +61,7 @@ export function transformNaverItems(items: NaverItem[], existing: ExistingStudio
       roadAddress: it.full_address.trim(), lat, lng,
       mapUrl: it.naver_map_url.trim(), bookingUrl, phone,
       bookingMethod: bookingUrl ? "네이버 예약" : phone ? "전화" : null,
+      imageUrl: (it.image_url ?? "").trim() || null,
     });
     refs.push({ name: it.name, lat, lng });
   }
