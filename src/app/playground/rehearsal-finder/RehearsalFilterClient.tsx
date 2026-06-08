@@ -3,12 +3,10 @@ import { useState } from "react";
 import { buttonClasses } from "@/components/Button";
 import StudioCard, { type CardStudio } from "./StudioCard";
 import StudioDetailModal from "./StudioDetailModal";
-import { ROOM_EQUIPMENT_LABELS } from "@/lib/playground/rehearsal/types";
 
 const CITY_OPTIONS = ["서울", "성남", "수원"];
 // 서울 구 칩 (2026-06-05 데이터 기준, 많은 순). 데이터 변경 시 갱신.
 const SEOUL_GUS = ["마포구", "서초구", "동작구", "성북구", "중구", "동대문구", "송파구", "서대문구", "성동구", "강남구", "종로구", "영등포구", "광진구", "관악구", "강서구", "구로구", "중랑구"];
-const INSTRUMENTS = ["DRUM", "GUITAR_AMP", "BASS_AMP", "KEYBOARD"] as const;
 const PRICE_BUCKETS = [
   { v: "u15", label: "~15,000" }, { v: "15_20", label: "15,000~20,000" },
   { v: "20_25", label: "20,000~25,000" }, { v: "o25", label: "25,000~" },
@@ -17,11 +15,13 @@ const CAPACITIES = [4, 6, 8, 10, 15, 20];
 
 const chip = (on: boolean) =>
   `rounded px-2.5 py-1 text-xs border ${on ? "bg-[var(--color-text)] text-[var(--color-bg)] border-[var(--color-text)]" : "border-[var(--color-border-strong)]"}`;
+// 구 칩: 시(city) 칩과 구분되도록 알약(rounded-full) 모양 + 선택 시 윤곽-채움(outline-fill) 스타일.
+const chipGu = (on: boolean) =>
+  `rounded-full px-2.5 py-1 text-xs border ${on ? "bg-[var(--color-bg-muted)] text-[var(--color-text)] border-[var(--color-text)] font-medium" : "border-[var(--color-border)] text-[var(--color-text-muted)]"}`;
 
 export default function RehearsalFilterClient() {
   const [city, setCity] = useState<string | null>(null);
   const [gus, setGus] = useState<string[]>([]);
-  const [instrumentTypes, setInstrumentTypes] = useState<string[]>([]);
   const [priceBucket, setPriceBucket] = useState<string | null>(null);
   const [capacityMin, setCapacityMin] = useState<number | null>(null);
   const [parkingOnly, setParkingOnly] = useState(false);
@@ -38,7 +38,7 @@ export default function RehearsalFilterClient() {
     try {
       const res = await fetch("/api/playground/rehearsal/filter", {
         method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ city, gus, instrumentTypes, priceBucket, capacityMin, parkingOnly, rentalOnly }),
+        body: JSON.stringify({ city, gus, priceBucket, capacityMin, parkingOnly, rentalOnly }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.message ?? data.error ?? "필터 실패"); return; }
@@ -60,22 +60,15 @@ export default function RehearsalFilterClient() {
             ))}
           </div>
           {city === "서울" && (
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {SEOUL_GUS.map((g) => (
-                <button key={g} type="button" className={chip(gus.includes(g))} onClick={() => setGus(toggle(gus, g))}>{g}</button>
-              ))}
+            <div className="mt-2 border-l-2 border-[var(--color-border-strong)] pl-3">
+              <span className="block text-[11px] text-[var(--color-text-muted)] mb-1.5">↳ 서울 안에서 구 선택 (여러 개 가능)</span>
+              <div className="flex flex-wrap gap-1.5">
+                {SEOUL_GUS.map((g) => (
+                  <button key={g} type="button" className={chipGu(gus.includes(g))} onClick={() => setGus(toggle(gus, g))}>{g}</button>
+                ))}
+              </div>
             </div>
           )}
-        </div>
-        <div>
-          <label className="block text-xs uppercase tracking-wider mb-1.5 text-[var(--color-text-muted)]">악기 (한 방에 모두)</label>
-          <div className="flex flex-wrap gap-1.5">
-            {INSTRUMENTS.map((t) => (
-              <button key={t} type="button" className={chip(instrumentTypes.includes(t))} onClick={() => setInstrumentTypes(toggle(instrumentTypes, t))}>
-                {ROOM_EQUIPMENT_LABELS[t]}
-              </button>
-            ))}
-          </div>
         </div>
         <div>
           <label className="block text-xs uppercase tracking-wider mb-1.5 text-[var(--color-text-muted)]">가격대(시간당)</label>
@@ -114,7 +107,7 @@ export default function RehearsalFilterClient() {
           {results.noInfo.length > 0 && (
             <details className="border border-dashed border-[var(--color-border-strong)] p-4">
               <summary className="cursor-pointer text-sm text-[var(--color-text-muted)]">
-                조건 확인이 안 되는 {results.noInfo.length}곳 (가격·악기 정보 없음) — 펼쳐보기
+                조건 확인이 안 되는 {results.noInfo.length}곳 (가격 정보 없음) — 펼쳐보기
               </summary>
               <div className="mt-3 space-y-4">
                 {results.noInfo.map((s, i) => <StudioCard key={i} studio={s} onDetail={setDetailStudio} />)}

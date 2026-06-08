@@ -12,21 +12,21 @@ function score(partial: Partial<StudioScore>): StudioScore {
 }
 
 test("평균 이동시간을 항상 포함", () => {
-  const r = generateRecommendationReason({ studioName: "A", score: score({ avgMinutes: 18.4 }), hasAllEquipment: true, hourlyPriceMin: 20000 });
+  const r = generateRecommendationReason({ studioName: "A", score: score({ avgMinutes: 18.4 }), hourlyPriceMin: 20000 });
   assert.ok(r.includes("평균 이동 18분"), r);
 });
 
 test("편차 작으면 공평 문구", () => {
-  const r = generateRecommendationReason({ studioName: "A", score: score({ spreadMinutes: 4 }), hasAllEquipment: true, hourlyPriceMin: null });
+  const r = generateRecommendationReason({ studioName: "A", score: score({ spreadMinutes: 4 }), hourlyPriceMin: null });
   assert.ok(r.includes("공평"), r);
 });
 
-test("장비 모두 갖추면 장비 문구", () => {
-  const r = generateRecommendationReason({ studioName: "A", score: score({}), hasAllEquipment: true, hourlyPriceMin: null });
-  assert.ok(r.includes("장비"), r);
+test("장비 문구는 더 이상 노출하지 않음", () => {
+  const r = generateRecommendationReason({ studioName: "A", score: score({ missingEquipment: [] }), hourlyPriceMin: null });
+  assert.ok(!r.includes("장비"), r);
 });
 
 test("가격 있으면 시간당 가격 노출(천단위 콤마)", () => {
-  const r = generateRecommendationReason({ studioName: "A", score: score({}), hasAllEquipment: false, hourlyPriceMin: 22000 });
+  const r = generateRecommendationReason({ studioName: "A", score: score({}), hourlyPriceMin: 22000 });
   assert.ok(r.includes("22,000"), r);
 });

@@ -77,7 +77,6 @@ export function rankStudios(args: {
     reason: generateRecommendationReason({
       studioName: studio.name,
       score,
-      hasAllEquipment: score.missingEquipment.length === 0,
       hourlyPriceMin: studio.hourlyPriceMin,
     }),
   }));

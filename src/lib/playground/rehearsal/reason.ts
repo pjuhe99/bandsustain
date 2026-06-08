@@ -3,7 +3,6 @@ import type { StudioScore } from "./scoring";
 export function generateRecommendationReason(args: {
   studioName: string;
   score: StudioScore;
-  hasAllEquipment: boolean;
   hourlyPriceMin: number | null;
 }): string {
   const parts: string[] = [];
@@ -15,7 +14,6 @@ export function generateRecommendationReason(args: {
   else parts.push(`가장 먼 멤버도 ${max}분`);
 
   if (args.score.avgTransfer < 0.5) parts.push("환승 부담이 적어요");
-  if (args.hasAllEquipment) parts.push("필요 장비를 모두 갖췄어요");
   if (args.hourlyPriceMin != null) {
     parts.push(`시간당 ${args.hourlyPriceMin.toLocaleString("ko-KR")}원부터`);
   }

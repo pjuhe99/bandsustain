@@ -87,6 +87,9 @@ export default function StudioDetailModal({ studio, onClose }: { studio: DetailS
               </>
             )}
           </div>
+          <p className="border-t border-[var(--color-border)] pt-3 text-xs text-[var(--color-text-muted)]">
+            ℹ️ 합주실 상세 정보(방·가격·악기·사진 등)는 계속 업데이트하고 있어요.
+          </p>
         </div>
       </div>
     </div>
