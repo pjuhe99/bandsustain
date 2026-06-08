@@ -16,7 +16,7 @@ async function main() {
   if (!/DEV/i.test(DB_NAME) && process.env.ALLOW_PROD !== "1")
     throw new Error(`거부: DEV DB 아님 (DB_NAME='${DB_NAME}'). DEV .db_credentials 를 source 하거나 ALLOW_PROD=1.`);
 
-  const raw = JSON.parse(readFileSync(resolve(__dirname, "data/naver-map-hapjusil-2026-06-04.json"), "utf-8")) as { items: NaverItem[] };
+  const raw = JSON.parse(readFileSync(resolve(__dirname, "data/naver-map-hapjusil-2026-06-08.json"), "utf-8")) as { items: NaverItem[] };
 
   const conn = await mysql.createConnection({
     host: process.env.DB_HOST ?? "127.0.0.1", user: process.env.DB_USER, password: process.env.DB_PASS,
