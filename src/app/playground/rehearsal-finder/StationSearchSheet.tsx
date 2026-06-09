@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useScrollLock } from "@/lib/useScrollLock";
 import { searchStations, type MetroStation } from "@/lib/playground/rehearsal/metroStations";
 import LineBadge from "./LineBadge";
 
@@ -16,15 +17,15 @@ export default function StationSearchSheet({
 
   const results = useMemo(() => searchStations(query), [query]);
 
-  // 열릴 때: 검색어 초기화 + 포커스 + body 스크롤 락 (닫힐 때 복원)
+  // 열려 있는 동안 배경 스크롤 락 (배경 흐름에서 제거 → 터치 체이닝 방지)
+  useScrollLock(open);
+  // 열릴 때: 검색어 초기화 + 포커스
   useEffect(() => {
     if (!open) return;
     setQuery("");
     setHighlight(0);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     const t = setTimeout(() => inputRef.current?.focus(), 0);
-    return () => { document.body.style.overflow = prev; clearTimeout(t); };
+    return () => { clearTimeout(t); };
   }, [open]);
 
   if (!open) return null;
@@ -51,7 +52,7 @@ export default function StationSearchSheet({
             role="combobox" aria-expanded={true} aria-autocomplete="list"
             onChange={(e) => { setQuery(e.target.value); setHighlight(0); }} onKeyDown={onKeyDown} />
         </div>
-        <div role="listbox" className="h-[50vh] sm:h-80 shrink-0 overflow-auto px-2 pb-3">
+        <div role="listbox" className="h-[50vh] sm:h-80 shrink-0 overflow-auto overscroll-contain px-2 pb-3">
           {query.trim() === "" ? (
             <p className="px-2 py-2 text-xs text-[var(--color-text-muted)]">역명을 입력하세요</p>
           ) : results.length === 0 ? (

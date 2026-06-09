@@ -1,5 +1,6 @@
 "use client";
 import { useEffect } from "react";
+import { useScrollLock } from "@/lib/useScrollLock";
 import { ROOM_EQUIPMENT_TYPES, ROOM_EQUIPMENT_LABELS, type RoomEquipmentType } from "@/lib/playground/rehearsal/types";
 
 type Gear = { name: string; type: string };
@@ -12,13 +13,12 @@ export type DetailStudio = {
 };
 
 export default function StudioDetailModal({ studio, onClose }: { studio: DetailStudio | null; onClose: () => void }) {
+  useScrollLock(Boolean(studio));
   useEffect(() => {
     if (!studio) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
-    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
+    return () => { window.removeEventListener("keydown", onKey); };
   }, [studio, onClose]);
 
   if (!studio) return null;
@@ -33,7 +33,7 @@ export default function StudioDetailModal({ studio, onClose }: { studio: DetailS
           </div>
           <button type="button" aria-label="닫기" onClick={onClose} className="px-2 text-lg leading-none text-[var(--color-text-muted)]">✕</button>
         </div>
-        <div className="space-y-5 overflow-auto px-5 py-4">
+        <div className="space-y-5 overflow-auto overscroll-contain px-5 py-4">
           {studio.imageUrl && (
             // 네이버 원본 CDN 직접 표시(핫링크). 서버 미호스팅 — no-referrer 로 우리 도메인 노출/핫링크 차단 회피.
             // eslint-disable-next-line @next/next/no-img-element
