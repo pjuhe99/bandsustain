@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useScrollLock } from "@/lib/useScrollLock";
 
 export default function LyricsModal({
   open,
@@ -22,14 +23,7 @@ export default function LyricsModal({
     return () => document.removeEventListener("keydown", handleKey);
   }, [open, onClose]);
 
-  useEffect(() => {
-    if (!open) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, [open]);
+  useScrollLock(open);
 
   return (
     <div
@@ -63,7 +57,7 @@ export default function LyricsModal({
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-6 md:px-8 py-8">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-6 md:px-8 py-8">
           <p className="whitespace-pre-wrap text-base md:text-lg leading-[1.7]">
             {lyrics}
           </p>

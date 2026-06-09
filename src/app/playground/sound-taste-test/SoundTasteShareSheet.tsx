@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useScrollLock } from "@/lib/useScrollLock";
 import { encodeShareProfile } from "@/lib/soundTaste/share";
 import type { TestResult } from "@/lib/soundTaste/engine";
 
@@ -16,6 +17,7 @@ export default function SoundTasteShareSheet({
   result: TestResult;
   onClose: () => void;
 }) {
+  useScrollLock(true);
   const [copied, setCopied] = useState(false);
 
   const token = encodeShareProfile(result.profile);

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useScrollLock } from "@/lib/useScrollLock";
 import Logo from "./Logo";
 
 const navLinks = [
@@ -23,12 +24,7 @@ const socialLinks = [
 export default function Nav() {
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open]);
+  useScrollLock(open);
 
   return (
     <>

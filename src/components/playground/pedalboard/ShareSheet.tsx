@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useScrollLock } from "@/lib/useScrollLock";
 import type { Visibility } from "@/lib/playground/visibility";
 
 export function ShareSheet({
@@ -11,6 +12,7 @@ export function ShareSheet({
   onVisibilityChange: (v: Visibility) => void;
   onClose: () => void;
 }) {
+  useScrollLock(true);
   const [copied, setCopied] = useState(false);
   const url = typeof window !== "undefined"
     ? `${window.location.origin}/playground/p/${shareToken}`
