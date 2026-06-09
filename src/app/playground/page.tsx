@@ -40,7 +40,7 @@ export default function PlaygroundPage() {
 }
 
 function PlaygroundCard({ feature }: { feature: PlaygroundFeature }) {
-  const { title, description: body, cta, href, eyebrow } = feature;
+  const { title, description: body, cta, href, eyebrow, badge } = feature;
 
   return (
     <li className="border border-[var(--color-border)] p-6 md:p-8 flex flex-col gap-4">
@@ -51,6 +51,11 @@ function PlaygroundCard({ feature }: { feature: PlaygroundFeature }) {
       )}
       <h2 className="font-display font-bold text-2xl md:text-3xl leading-tight">
         {title}
+        {badge && (
+          <span className="ml-2 align-middle inline-block rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-[var(--color-accent)] text-[var(--color-accent-ink)]">
+            {badge}
+          </span>
+        )}
       </h2>
       <p className="text-[var(--color-text-muted)] flex-1 leading-relaxed">
         {body}

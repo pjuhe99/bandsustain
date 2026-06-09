@@ -7,16 +7,18 @@ export type PlaygroundFeature = {
   cta: string;
   href?: string;
   eyebrow?: string;
+  badge?: string;
 };
 
 export const playgroundFeatures: PlaygroundFeature[] = [
   {
-    slug: "kim-yeongmin-bot",
-    title: "김영민 봇",
-    description: "궁금한 게 있으면 김영민 봇이 답해드려요.",
-    cta: "말 걸러 가기",
-    eyebrow: "이야기 상대",
-    href: "/playground/kim-yeongmin-bot",
+    slug: "rehearsal-finder",
+    title: "합주실 추천",
+    description: "멤버들의 출발 위치를 입력하면 이동시간·가격·장비를 고려해 합주실을 추천해드려요.",
+    cta: "합주실 찾으러 가기",
+    eyebrow: "쓸모 있는 도구",
+    badge: "BETA",
+    href: "/playground/rehearsal-finder",
   },
   {
     slug: "pedalboard-planner",
@@ -43,12 +45,12 @@ export const playgroundFeatures: PlaygroundFeature[] = [
     href: "/playground/sound-taste-test",
   },
   {
-    slug: "rehearsal-finder",
-    title: "합주실 추천",
-    description: "멤버들의 출발 위치를 입력하면 이동시간·가격·장비를 고려해 합주실을 추천해드려요.",
-    cta: "합주실 찾으러 가기",
-    eyebrow: "이상한 도구",
-    href: "/playground/rehearsal-finder",
+    slug: "kim-yeongmin-bot",
+    title: "김영민 봇",
+    description: "궁금한 게 있으면 김영민 봇이 답해드려요.",
+    cta: "말 걸러 가기",
+    eyebrow: "이야기 상대",
+    href: "/playground/kim-yeongmin-bot",
   },
 ];
 
