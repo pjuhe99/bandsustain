@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { buttonClasses } from "@/components/Button";
 import { buildPageMetadata } from "@/lib/seo";
-import { playgroundFeatures, type PlaygroundFeature } from "@/lib/playground";
+import { visiblePlaygroundFeatures, type PlaygroundFeature } from "@/lib/playground";
+
+export const dynamic = "force-dynamic";
 
 const description =
   "서스테인이 만든 작은 놀이터. 이상하고 귀엽고 쓸데없지만 묘하게 즐거운 것들을 모아둔 공간입니다.";
@@ -29,7 +31,7 @@ export default function PlaygroundPage() {
       </header>
 
       <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-        {playgroundFeatures.map((f) => (
+        {visiblePlaygroundFeatures().map((f) => (
           <PlaygroundCard key={f.slug} feature={f} />
         ))}
       </ul>
@@ -38,7 +40,7 @@ export default function PlaygroundPage() {
 }
 
 function PlaygroundCard({ feature }: { feature: PlaygroundFeature }) {
-  const { title, description: body, cta, href, eyebrow } = feature;
+  const { title, description: body, cta, href, eyebrow, badge } = feature;
 
   return (
     <li className="border border-[var(--color-border)] p-6 md:p-8 flex flex-col gap-4">
@@ -49,6 +51,11 @@ function PlaygroundCard({ feature }: { feature: PlaygroundFeature }) {
       )}
       <h2 className="font-display font-bold text-2xl md:text-3xl leading-tight">
         {title}
+        {badge && (
+          <span className="ml-2 align-middle inline-block rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-[var(--color-accent)] text-[var(--color-accent-ink)]">
+            {badge}
+          </span>
+        )}
       </h2>
       <p className="text-[var(--color-text-muted)] flex-1 leading-relaxed">
         {body}

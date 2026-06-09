@@ -10,7 +10,8 @@
     "playground:import-catalog": "tsx scripts/import-pedalplayground-catalog.ts",
     "playground:invariants": "tsx scripts/playground-invariants.ts",
     "pins:verify": "tsx scripts/verify-member-pins.ts",
-    "bandname:seed": "tsx scripts/seed-bandname.ts"
+    "bandname:seed": "tsx scripts/seed-bandname.ts",
+    "rehearsal:seed": "tsx scripts/seed-rehearsal.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -33,8 +34,10 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "csv-parse": "^6.2.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "json5": "^2.2.3",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"
