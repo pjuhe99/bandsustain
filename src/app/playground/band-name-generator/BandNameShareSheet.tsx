@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useScrollLock } from "@/lib/useScrollLock";
 import { encodeShare } from "@/lib/bandName/share";
 import type { GeneratedBandName } from "@/lib/bandName/types";
 
@@ -16,6 +17,7 @@ export default function BandNameShareSheet({
   result: GeneratedBandName;
   onClose: () => void;
 }) {
+  useScrollLock(true);
   const [copied, setCopied] = useState(false);
 
   const token = encodeShare({ name: result.name, scene: result.scene, mood: result.mood });

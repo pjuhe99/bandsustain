@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useScrollLock } from "@/lib/useScrollLock";
 import { remainingDelayMs } from "@/lib/yeongminDelay";
 import { shouldShowNameModal } from "@/lib/yeongminChatState";
 import { buildUserNameContext, normalizeUserNameInput } from "@/lib/yeongminUserName";
@@ -52,6 +53,9 @@ export default function ChatRoom({ profileImagePath }: Props) {
     }
     textareaRef.current?.focus();
   }, [userName]);
+
+  // 이름 입력 모달이 떠 있는 동안 배경 스크롤 락
+  useScrollLock(shouldShowNameModal(userName));
 
   function resetChat() {
     setMessages([INITIAL_CHAT_PROMPT]);
