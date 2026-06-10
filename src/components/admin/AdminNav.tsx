@@ -15,6 +15,7 @@ const items = [
   { href: "/admin/rehearsal-studios", label: "Rehearsal Studios" },
   { href: "/admin/live", label: "Live" },
   { href: "/admin/yeongmin-bot", label: "Kim Yeong-min Bot" },
+  { href: "/admin/instagram-follow", label: "Instagram Follow" },
   { href: "/admin/deploy", label: "Deploy" },
 ];
 

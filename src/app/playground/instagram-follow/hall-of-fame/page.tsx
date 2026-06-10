@@ -23,7 +23,7 @@ export default async function HallOfFamePage({
 }) {
   if (!isInstagramFollowEnabled()) notFound();
   const sp = await searchParams;
-  const page = Math.max(1, Number(sp.page) || 1);
+  const page = Math.max(1, Math.floor(Number(sp.page) || 1));
   const { items, total } = await listVisibleHof(page, HOF_PAGE_SIZE);
   const offset = (page - 1) * HOF_PAGE_SIZE;
   const lastPage = Math.max(1, Math.ceil(total / HOF_PAGE_SIZE));
