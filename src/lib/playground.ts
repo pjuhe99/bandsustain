@@ -1,4 +1,5 @@
 import { isRehearsalFinderEnabled } from "@/lib/playground/rehearsal/rehearsalFlag";
+import { isInstagramFollowEnabled } from "@/lib/playground/instagram/flag";
 
 export type PlaygroundFeature = {
   slug: string;
@@ -19,6 +20,15 @@ export const playgroundFeatures: PlaygroundFeature[] = [
     eyebrow: "쓸모 있는 도구",
     badge: "BETA",
     href: "/playground/rehearsal-finder",
+  },
+  {
+    slug: "instagram-follow",
+    title: "찐팬 랭킹 & 언팔 수사대",
+    description:
+      "서스테인을 가장 오래 팔로우한 찐팬은 누구? 랭킹에 도전하고, 겸사겸사 나를 맞팔하지 않는 계정도 잡아내 보세요.",
+    cta: "랭킹 보러 가기",
+    eyebrow: "팬 랭킹",
+    href: "/playground/instagram-follow",
   },
   {
     slug: "pedalboard-planner",
@@ -54,8 +64,11 @@ export const playgroundFeatures: PlaygroundFeature[] = [
   },
 ];
 
+// 플래그 게이트 기능은 env 미설정 시 숨김 — 새 게이트 기능은 여기에 if 분기 추가
 export function visiblePlaygroundFeatures(): PlaygroundFeature[] {
-  return playgroundFeatures.filter(
-    (f) => f.slug !== "rehearsal-finder" || isRehearsalFinderEnabled(),
-  );
+  return playgroundFeatures.filter((f) => {
+    if (f.slug === "rehearsal-finder") return isRehearsalFinderEnabled();
+    if (f.slug === "instagram-follow") return isInstagramFollowEnabled();
+    return true;
+  });
 }
