@@ -12,7 +12,8 @@
     "pins:verify": "tsx scripts/verify-member-pins.ts",
     "bandname:seed": "tsx scripts/seed-bandname.ts",
     "rehearsal:seed": "tsx scripts/seed-rehearsal.ts",
-    "test:instagram": "tsx --test src/lib/playground/instagram/*.test.ts"
+    "test:instagram": "tsx --test src/lib/playground/instagram/*.test.ts",
+    "celebs:build": "tsx scripts/build-celebrity-usernames.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
