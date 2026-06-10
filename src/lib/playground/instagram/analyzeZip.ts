@@ -18,7 +18,11 @@ export async function analyzeZip(file: File): Promise<AnalysisResult> {
   try {
     // arrayBuffer()로 변환: 일부 환경에서 File→Blob 미인식 우회 (Node 20 테스트 환경 등)
     zip = await JSZip.loadAsync(await file.arrayBuffer());
-  } catch {
+  } catch (e) {
+    // JSZip은 암호화 ZIP을 loadAsync 단계에서 거부한다
+    if (e instanceof Error && /encrypt/i.test(e.message)) {
+      throw new AnalysisError("ENCRYPTED_ZIP");
+    }
     throw new AnalysisError("NOT_ZIP");
   }
 
