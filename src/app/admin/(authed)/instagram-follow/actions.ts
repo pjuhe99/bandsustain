@@ -9,12 +9,16 @@ async function requireAuth() {
 
 export async function hideEntry(formData: FormData) {
   await requireAuth();
-  await setHofVisibility(Number(formData.get("id")), false);
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id) || id <= 0) return;
+  await setHofVisibility(id, false);
   revalidatePath("/admin/instagram-follow");
 }
 
 export async function showEntry(formData: FormData) {
   await requireAuth();
-  await setHofVisibility(Number(formData.get("id")), true);
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id) || id <= 0) return;
+  await setHofVisibility(id, true);
   revalidatePath("/admin/instagram-follow");
 }

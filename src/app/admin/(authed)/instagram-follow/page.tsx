@@ -34,14 +34,14 @@ export default async function AdminInstagramFollowPage({
         <table className="w-full min-w-[700px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-[var(--color-border-strong)] text-left text-[var(--color-text-muted)]">
-              <th className="py-2 pr-2">ID</th>
-              <th className="py-2 pr-2">닉네임</th>
-              <th className="py-2 pr-2">팔로우 시작일</th>
-              <th className="py-2 pr-2">일수</th>
-              <th className="py-2 pr-2">등록일</th>
-              <th className="py-2 pr-2">IP해시(앞10)</th>
-              <th className="py-2 pr-2">상태</th>
-              <th className="py-2">동작</th>
+              <th scope="col" className="py-2 pr-2">ID</th>
+              <th scope="col" className="py-2 pr-2">닉네임</th>
+              <th scope="col" className="py-2 pr-2">팔로우 시작일</th>
+              <th scope="col" className="py-2 pr-2">일수</th>
+              <th scope="col" className="py-2 pr-2">등록일</th>
+              <th scope="col" className="py-2 pr-2">IP해시(앞10)</th>
+              <th scope="col" className="py-2 pr-2">상태</th>
+              <th scope="col" className="py-2">동작</th>
             </tr>
           </thead>
           <tbody>
