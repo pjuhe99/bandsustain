@@ -56,7 +56,7 @@ export default function HallOfFameForm({ followedAtIso }: { followedAtIso: strin
     }
   };
 
-  if (done) return <p className="text-sm font-semibold">{message}</p>;
+  if (done) return <p role="status" className="text-sm font-semibold">{message}</p>;
 
   return (
     <div className="space-y-3 border-t border-[var(--color-border)] pt-3">

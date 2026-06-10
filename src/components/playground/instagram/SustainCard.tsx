@@ -45,7 +45,7 @@ export default function SustainCard({ sustain }: { sustain: AnalysisResult["sust
       )}
       <p className="text-sm text-[var(--color-text-muted)]">
         {sustain.since
-          ? `${formatKoreanDate(sustain.since)}부터 @${SUSTAIN_USERNAME}을 팔로우하고 있어요.`
+          ? `${formatKoreanDate(sustain.since) ?? sustain.since}부터 @${SUSTAIN_USERNAME}을 팔로우하고 있어요.`
           : `팔로우 시작일은 확인할 수 없었어요. (${sustain.sinceRaw ?? "날짜 확인 불가"})`}
       </p>
       {sustain.since ? (
