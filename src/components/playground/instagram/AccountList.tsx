@@ -168,9 +168,21 @@ export default function AccountList({ accounts, tab }: { accounts: AccountRelati
                 href={a.profileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={buttonClasses("secondary", "shrink-0 px-3 py-1.5 text-xs normal-case tracking-normal")}
+                aria-label={`${a.username} 인스타그램 프로필 열기`}
+                className={buttonClasses("secondary", "shrink-0 px-2.5 py-1.5 text-xs normal-case tracking-normal md:px-3")}
               >
-                인스타그램에서 보기
+                {/* 모바일: 아이콘만 (계정명 잘림 방지), md 이상: 텍스트. 글리프 대신 SVG — 폰트 미탑재 기기 대응 */}
+                <svg
+                  className="h-3.5 w-3.5 md:hidden"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  aria-hidden
+                >
+                  <path d="M7 17L17 7M9 7h8v8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="hidden md:inline">인스타그램에서 보기</span>
               </a>
             </div>
             {celebrityEnabled &&
