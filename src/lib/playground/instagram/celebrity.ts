@@ -29,7 +29,8 @@ export function classify(
   filter: BloomFilter | null,
   overrides: CelebrityOverrides,
 ): CelebrityVerdict {
-  const o = overrides[username];
+  // Object.hasOwn 가드 — "constructor" 같은 username 이 프로토타입 체인을 타지 않도록
+  const o = Object.hasOwn(overrides, username) ? overrides[username] : undefined;
   if (o) return o;
   if (filter && bloomHas(filter, username)) return "celebrity";
   if (HEURISTIC_RE.test(username)) return "celebrity";

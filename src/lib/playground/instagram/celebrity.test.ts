@@ -33,3 +33,8 @@ test("필터 null (로드 실패) 시 보정과 휴리스틱만 동작", () => {
   assert.equal(classify("dlwlrma", null, { dlwlrma: "celebrity" }), "celebrity");
   assert.equal(classify("x_official", null, {}), "celebrity");
 });
+
+test("프로토타입 속성명 username 은 person (hasOwn 가드)", () => {
+  assert.equal(classify("constructor", null, {}), "person");
+  assert.equal(classify("__proto__", null, {}), "person");
+});
