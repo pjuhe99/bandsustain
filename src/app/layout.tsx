@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, Inter } from "next/font/google";
 import AnalyticsBeacon from "@/components/AnalyticsBeacon";
 import ClickTracker from "@/components/ClickTracker";
+import DevRibbon from "@/components/DevRibbon";
 import KakaoSdk from "@/components/KakaoSdk";
 import SiteChrome from "@/components/SiteChrome";
 import { buildRootMetadata } from "@/lib/seo";
@@ -42,6 +43,7 @@ export default function RootLayout({
         <AnalyticsBeacon />
         <ClickTracker />
         <KakaoSdk />
+        <DevRibbon />
         <SiteChrome>{children}</SiteChrome>
       </body>
     </html>
