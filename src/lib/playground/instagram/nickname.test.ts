@@ -26,3 +26,8 @@ test("특수문자 과다 (절반 초과) 금지, 적당한 특수문자는 허�
 test("제어문자/줄바꿈 금지", () => {
   assert.equal(validateNickname("몽\n실이").ok, false);
 });
+test("제로폭 문자는 제거 후 검사 (욕설 우회 차단 + 저장값 정리)", () => {
+  assert.equal(validateNickname("시​발이").ok, false);
+  const r = validateNickname("몽​실이");
+  assert.deepEqual(r, { ok: true, value: "몽실이" });
+});

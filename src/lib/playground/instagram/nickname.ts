@@ -10,7 +10,10 @@ const CONTROL_RE = /[\x00-\x1f\x7f]/; // 제어문자(줄바꿈 포함)
 const PLAIN_CHAR_RE = /[0-9A-Za-z가-힣ㄱ-ㆎ ]/; // 한글/영문/숫자/공백
 
 export function validateNickname(raw: string): NicknameResult {
-  const value = raw.trim();
+  // Strip zero-width/invisible chars before any validation so bypass attempts
+  // (e.g. "시​발" with U+200B) are caught and the stored value is clean.
+  // eslint-disable-next-line no-misleading-character-class
+  const value = raw.trim().replace(/[​-‍⁠﻿­]/g, "");
   if (value.length < 2 || value.length > 20) {
     return { ok: false, reason: "닉네임은 2~20자로 입력해 주세요." };
   }
