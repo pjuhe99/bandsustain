@@ -180,6 +180,7 @@ export default function AccountList({ accounts, tab }: { accounts: AccountRelati
                   onClick={() => setOverrides(saveOverride(a.username, "person"))}
                   className="text-xs text-[var(--color-accent)]"
                   title="누르면 일반인으로 표시"
+                  aria-label={`${a.username} 유명인 추정 해제`}
                 >
                   ⭐ 유명인·브랜드 추정 ✕
                 </button>
@@ -188,6 +189,7 @@ export default function AccountList({ accounts, tab }: { accounts: AccountRelati
                   type="button"
                   onClick={() => setOverrides(saveOverride(a.username, "celebrity"))}
                   className="text-xs text-[var(--color-text-muted)] underline underline-offset-2"
+                  aria-label={`${a.username} 유명인으로 표시`}
                 >
                   유명인으로 표시
                 </button>
