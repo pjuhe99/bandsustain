@@ -65,8 +65,9 @@ export async function insertHof(input: {
 }
 
 export async function adminListHof(search: string | null): Promise<HofAdminRow[]> {
-  const where = search ? `WHERE nickname LIKE ?` : "";
-  const params = search ? [`%${search}%`] : [];
+  const escaped = search ? search.replace(/[%_\\]/g, "\\$&") : null;
+  const where = escaped ? `WHERE nickname LIKE ?` : "";
+  const params = escaped ? [`%${escaped}%`] : [];
   const [rows] = await getPool().query<RowDataPacket[]>(
     `SELECT id, nickname, DATE_FORMAT(sustain_followed_at, '%Y-%m-%d') AS followedAt, is_visible,
             DATE_FORMAT(created_at, '%Y-%m-%d %H:%i') AS createdAt,

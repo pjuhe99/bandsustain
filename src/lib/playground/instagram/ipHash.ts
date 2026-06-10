@@ -8,12 +8,12 @@ export function normalizeIp(raw: string): string {
   return ip;
 }
 
-// 기존 analytics 라우트와 동일 추출 방식 (Apache 리버스 프록시 전제)
+// Apache mod_proxy 는 클라이언트가 보낸 XFF 뒤에 실제 접속 IP 를 append 한다.
+// 첫 항목은 위조 가능하므로 마지막 항목(우리 프록시가 붙인 값)을 신뢰한다.
 export function extractClientIp(req: Request): string {
-  const raw =
-    (req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "")
-      .split(",")[0]
-      .trim() || "0.0.0.0";
+  const xff = req.headers.get("x-forwarded-for") ?? "";
+  const last = xff.split(",").pop()?.trim() ?? "";
+  const raw = last || (req.headers.get("x-real-ip") ?? "").trim() || "0.0.0.0";
   return normalizeIp(raw);
 }
 

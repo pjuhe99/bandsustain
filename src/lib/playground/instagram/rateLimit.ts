@@ -11,7 +11,13 @@ export function createRateLimiter({ limit, windowMs }: Options) {
     }
     arr.push(now);
     hits.set(key, arr);
-    if (hits.size > 10_000) hits.clear(); // 메모리 방어
+    if (hits.size > 10_000) {
+      for (const [k, v] of hits) {
+        const live = v.filter((t) => now - t < windowMs);
+        if (live.length === 0) hits.delete(k);
+        else hits.set(k, live);
+      }
+    }
     return true;
   };
 }
