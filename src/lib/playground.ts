@@ -28,7 +28,6 @@ export const playgroundFeatures: PlaygroundFeature[] = [
       "서스테인을 가장 오래 팔로우한 찐팬은 누구? 랭킹에 도전하고, 겸사겸사 나를 맞팔하지 않는 계정도 잡아내 보세요.",
     cta: "랭킹 보러 가기",
     eyebrow: "팬 랭킹",
-    badge: "BETA",
     href: "/playground/instagram-follow",
   },
   {
