@@ -24,6 +24,7 @@ function bitIndexes(f: BloomFilter, s: string): number[] {
 }
 
 export function createBloom(n: number, p = 0.01): BloomFilter {
+  if (!Number.isFinite(n) || n < 1) throw new Error("bloom capacity must be >= 1");
   const m = Math.ceil((-n * Math.log(p)) / (Math.LN2 * Math.LN2));
   const k = Math.max(1, Math.round((m / n) * Math.LN2));
   return { m, k, count: 0, bits: new Uint8Array(Math.ceil(m / 8)) };

@@ -43,3 +43,8 @@ test("빈 필터는 전부 false", () => {
   const f = createBloom(100, 0.01);
   assert.equal(bloomHas(f, "anything"), false);
 });
+
+test("용량 0/음수는 throw (전부-true 퇴화 방지)", () => {
+  assert.throws(() => createBloom(0, 0.01));
+  assert.throws(() => createBloom(-5, 0.01));
+});
