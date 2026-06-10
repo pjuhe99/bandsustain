@@ -1,4 +1,5 @@
 import { isRehearsalFinderEnabled } from "@/lib/playground/rehearsal/rehearsalFlag";
+import { isInstagramFollowEnabled } from "@/lib/playground/instagram/flag";
 
 export type PlaygroundFeature = {
   slug: string;
@@ -19,6 +20,16 @@ export const playgroundFeatures: PlaygroundFeature[] = [
     eyebrow: "쓸모 있는 도구",
     badge: "BETA",
     href: "/playground/rehearsal-finder",
+  },
+  {
+    slug: "instagram-follow",
+    title: "인스타 맞팔 분석기",
+    description:
+      "인스타그램 데이터 파일 하나로 나를 맞팔하지 않는 계정과 팔로우 시작일을 확인해보세요.",
+    cta: "분석하러 가기",
+    eyebrow: "쓸모 있는 도구",
+    badge: "BETA",
+    href: "/playground/instagram-follow",
   },
   {
     slug: "pedalboard-planner",
@@ -55,7 +66,9 @@ export const playgroundFeatures: PlaygroundFeature[] = [
 ];
 
 export function visiblePlaygroundFeatures(): PlaygroundFeature[] {
-  return playgroundFeatures.filter(
-    (f) => f.slug !== "rehearsal-finder" || isRehearsalFinderEnabled(),
-  );
+  return playgroundFeatures.filter((f) => {
+    if (f.slug === "rehearsal-finder") return isRehearsalFinderEnabled();
+    if (f.slug === "instagram-follow") return isInstagramFollowEnabled();
+    return true;
+  });
 }

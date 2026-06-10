@@ -11,13 +11,15 @@
     "playground:invariants": "tsx scripts/playground-invariants.ts",
     "pins:verify": "tsx scripts/verify-member-pins.ts",
     "bandname:seed": "tsx scripts/seed-bandname.ts",
-    "rehearsal:seed": "tsx scripts/seed-rehearsal.ts"
+    "rehearsal:seed": "tsx scripts/seed-rehearsal.ts",
+    "test:instagram": "tsx --test src/lib/playground/instagram/*.test.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-fade": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
+    "jszip": "^3.10.1",
     "mysql2": "^3.22.2",
     "next": "16.2.4",
     "openai": "^6.37.0",
