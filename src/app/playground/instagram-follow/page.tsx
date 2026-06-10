@@ -9,10 +9,10 @@ import { followDayCount, formatKoreanDate } from "@/lib/playground/instagram/fol
 import { listVisibleHof } from "@/lib/playground/instagram/hofDb";
 
 const description =
-  "서스테인을 가장 오래 팔로우한 팬은 누구일까요? 인스타그램 데이터 파일 하나로 팔로우 기간을 확인하고 명예의 전당에 도전하세요. 겸사겸사 나를 맞팔하지 않는 계정도 확인할 수 있어요.";
+  "서스테인을 가장 오래 팔로우한 찐팬은 누구일까요? 인스타그램 데이터 파일 하나로 팔로우 기간을 확인하고 찐팬 랭킹에 도전하세요. 겸사겸사 나를 맞팔하지 않는 계정도 잡아낼 수 있어요.";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "서스테인 팔로우 명예의 전당",
+  title: "찐팬 랭킹 & 언팔 수사대",
   description,
   path: "/playground/instagram-follow",
   ogImage: "/slides/hero-b4d9e516.jpg",
@@ -39,7 +39,7 @@ export default async function InstagramFollowPage({
           Playground
         </Link>
         <span aria-hidden>›</span>
-        <span className="text-[var(--color-text)]">서스테인 팔로우 명예의 전당</span>
+        <span className="text-[var(--color-text)]">찐팬 랭킹 & 언팔 수사대</span>
       </nav>
 
       <header className="mb-10 md:mb-14">
@@ -47,12 +47,12 @@ export default async function InstagramFollowPage({
           팬 랭킹
         </p>
         <h1 className="font-display font-black uppercase tracking-tight text-4xl md:text-6xl leading-[1.05]">
-          서스테인 팔로우
+          찐팬 랭킹 &
           <br />
-          명예의 전당
+          언팔 수사대
         </h1>
         <p className="mt-6 text-xl md:text-2xl font-display font-bold text-[var(--color-text)]">
-          서스테인을 가장 오래 팔로우한 사람은 누구일까요?
+          서스테인을 가장 오래 팔로우한 찐팬은 누구일까요?
         </p>
         <p className="mt-3 text-lg text-[var(--color-text-muted)] leading-relaxed">{description}</p>
       </header>
@@ -68,7 +68,7 @@ export default async function InstagramFollowPage({
             내 팔로우 기간 확인하고 등록하기
           </Link>
           <p className="text-xs text-[var(--color-text-muted)]">
-            분석 결과에서 나를 맞팔하지 않는 계정도 함께 확인할 수 있어요.
+            언팔 수사 — 나를 맞팔하지 않는 계정도 함께 잡아낼 수 있어요.
           </p>
         </div>
 
@@ -132,7 +132,7 @@ export default async function InstagramFollowPage({
         )}
 
         <p className="mt-6 text-xs text-[var(--color-text-muted)]">
-          명예의 전당 기록은 사용자가 제출한 인스타그램 내보내기 파일을 기준으로 등록됩니다. 닉네임은
+          찐팬 랭킹 기록은 사용자가 제출한 인스타그램 내보내기 파일을 기준으로 등록됩니다. 닉네임은
           등록자가 직접 입력한 표시명이에요.
         </p>
       </div>

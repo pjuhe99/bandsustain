@@ -13,7 +13,7 @@ const TRUST_CARDS = [
 const FEATURES = [
   "1. 나만 팔로우하고 있는 계정 찾기",
   "2. 팔로워·팔로잉 날짜 확인",
-  "3. @band_sustain 팔로우 기간 확인 및 명예의 전당 등록",
+  "3. @band_sustain 팔로우 기간 확인 및 찐팬 랭킹 등록",
 ];
 
 export default function IntroScreen(props: { onStart: () => void; onSkipToUpload: () => void }) {
@@ -26,7 +26,7 @@ export default function IntroScreen(props: { onStart: () => void; onSkipToUpload
   return (
     <div className="space-y-8">
       <header className="space-y-3">
-        <p className="text-xs uppercase tracking-widest text-[var(--color-text-muted)]">서스테인 팔로우 명예의 전당</p>
+        <p className="text-xs uppercase tracking-widest text-[var(--color-text-muted)]">찐팬 랭킹 & 언팔 수사대</p>
         <h1 className="font-display text-3xl md:text-4xl font-black leading-tight">
           내 인스타 맞팔 현황,
           <br />
@@ -57,7 +57,7 @@ export default function IntroScreen(props: { onStart: () => void; onSkipToUpload
         <p>· 인스타그램 아이디와 비밀번호를 입력하지 않습니다.</p>
         <p>· 업로드한 ZIP 파일은 기기에서만 분석합니다.</p>
         <p>· 팔로워 및 팔로잉 목록은 서버에 저장하지 않습니다.</p>
-        <p>· 명예의 전당 등록을 선택한 경우에만 필요한 일부 정보가 서버로 전송됩니다.</p>
+        <p>· 찐팬 랭킹 등록을 선택한 경우에만 필요한 일부 정보가 서버로 전송됩니다.</p>
       </div>
 
       <div className="flex flex-col gap-3">
@@ -82,7 +82,7 @@ export default function IntroScreen(props: { onStart: () => void; onSkipToUpload
           href="/playground/instagram-follow"
           className="text-center text-sm underline underline-offset-4"
         >
-          서스테인 팔로우 명예의 전당 보기
+          찐팬 랭킹 보기
         </Link>
       </div>
 

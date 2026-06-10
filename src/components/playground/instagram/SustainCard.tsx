@@ -53,19 +53,19 @@ export default function SustainCard({ sustain }: { sustain: AnalysisResult["sust
           <HallOfFameForm followedAtIso={sustain.since} />
         ) : (
           <button type="button" className={buttonClasses("accent", "w-full")} onClick={() => setShowForm(true)}>
-            명예의 전당에 등록하기
+            찐팬 랭킹에 등록하기
           </button>
         )
       ) : (
         <p className="text-xs text-[var(--color-text-muted)]">
-          팔로우 시작일을 읽을 수 없어 명예의 전당 등록은 어려워요.
+          팔로우 시작일을 읽을 수 없어 찐팬 랭킹 등록은 어려워요.
         </p>
       )}
       <Link
         href="/playground/instagram-follow"
         className="block text-center text-sm underline underline-offset-4"
       >
-        명예의 전당 보러 가기
+        찐팬 랭킹 보러 가기
       </Link>
     </div>
   );
