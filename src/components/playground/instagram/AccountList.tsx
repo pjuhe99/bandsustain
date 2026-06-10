@@ -51,30 +51,27 @@ export default function AccountList({ accounts, tab }: { accounts: AccountRelati
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const filtered = q ? accounts.filter((a) => a.username.includes(q)) : [...accounts];
-    const date = (a: AccountRelation) => primaryDate(a, tab) ?? "";
-    const days = (a: AccountRelation) => {
+    const base = q ? accounts.filter((a) => a.username.includes(q)) : accounts;
+    const decorated = base.map((a) => {
       const d = primaryDate(a, tab);
-      return d ? (followDayCount(d) ?? -1) : -1;
-    };
+      return { a, dateKey: d, daysKey: d ? followDayCount(d) : null };
+    });
+    const nullLast = (cmp: (x: (typeof decorated)[number], y: (typeof decorated)[number]) => number) =>
+      (x: (typeof decorated)[number], y: (typeof decorated)[number]) => {
+        const xn = x.dateKey === null, yn = y.dateKey === null;
+        if (xn && yn) return 0;
+        if (xn) return 1;
+        if (yn) return -1;
+        return cmp(x, y);
+      };
     switch (sort) {
-      case "recent":
-        filtered.sort((a, b) => date(b).localeCompare(date(a)));
-        break;
-      case "oldest":
-        filtered.sort((a, b) => date(a).localeCompare(date(b)));
-        break;
-      case "name":
-        filtered.sort((a, b) => a.username.localeCompare(b.username));
-        break;
-      case "daysDesc":
-        filtered.sort((a, b) => days(b) - days(a));
-        break;
-      case "daysAsc":
-        filtered.sort((a, b) => days(a) - days(b));
-        break;
+      case "recent": decorated.sort(nullLast((x, y) => y.dateKey!.localeCompare(x.dateKey!))); break;
+      case "oldest": decorated.sort(nullLast((x, y) => x.dateKey!.localeCompare(y.dateKey!))); break;
+      case "name": decorated.sort((x, y) => x.a.username.localeCompare(y.a.username)); break;
+      case "daysDesc": decorated.sort(nullLast((x, y) => (y.daysKey ?? 0) - (x.daysKey ?? 0))); break;
+      case "daysAsc": decorated.sort(nullLast((x, y) => (x.daysKey ?? 0) - (y.daysKey ?? 0))); break;
     }
-    return filtered;
+    return decorated.map((d) => d.a);
   }, [accounts, query, sort, tab]);
 
   return (
