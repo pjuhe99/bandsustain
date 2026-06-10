@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { buildPageMetadata } from "@/lib/seo";
 import { isInstagramFollowEnabled } from "@/lib/playground/instagram/flag";
 import InstagramFollowClient from "@/components/playground/instagram/InstagramFollowClient";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "인스타 맞팔 분석기 | BAND SUSTAIN",
+export const metadata: Metadata = buildPageMetadata({
+  title: "인스타 맞팔 분석기",
   description:
     "인스타그램 데이터 파일 하나로 나를 맞팔하지 않는 계정과 팔로우 시작일을 확인해보세요.",
-};
+  path: "/playground/instagram-follow",
+  ogImage: "/slides/hero-b4d9e516.jpg",
+});
 
 export default function InstagramFollowPage() {
   if (!isInstagramFollowEnabled()) notFound();

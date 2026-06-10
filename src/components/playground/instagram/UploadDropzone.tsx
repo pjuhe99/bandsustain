@@ -14,6 +14,7 @@ export default function UploadDropzone(props: {
   const onDrop = (e: DragEvent) => {
     e.preventDefault();
     setDragOver(false);
+    if (props.busy) return;
     const f = e.dataTransfer.files?.[0];
     if (f) props.onFile(f);
   };
@@ -29,8 +30,10 @@ export default function UploadDropzone(props: {
         role="button"
         tabIndex={0}
         aria-label="ZIP 파일 선택"
+        aria-busy={props.busy}
+        aria-disabled={props.busy}
         onClick={() => !props.busy && inputRef.current?.click()}
-        onKeyDown={(e) => e.key === "Enter" && !props.busy && inputRef.current?.click()}
+        onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && !props.busy) { e.preventDefault(); inputRef.current?.click(); } }}
         onDragOver={(e) => {
           e.preventDefault();
           setDragOver(true);
