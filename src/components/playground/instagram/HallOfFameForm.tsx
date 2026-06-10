@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { buttonClasses } from "@/components/Button";
 import { validateNickname } from "@/lib/playground/instagram/nickname";
 import {
@@ -56,7 +57,17 @@ export default function HallOfFameForm({ followedAtIso }: { followedAtIso: strin
     }
   };
 
-  if (done) return <p role="status" className="text-sm font-semibold">{message}</p>;
+  if (done)
+    return (
+      <div className="space-y-2">
+        <p role="status" className="text-sm font-semibold">
+          {message}
+        </p>
+        <Link href="/playground/instagram-follow" className={buttonClasses("secondary", "w-full")}>
+          명예의 전당에서 내 순위 보기
+        </Link>
+      </div>
+    );
 
   return (
     <div className="space-y-3 border-t border-[var(--color-border)] pt-3">
