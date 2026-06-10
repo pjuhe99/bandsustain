@@ -3,7 +3,7 @@ import { parseInstagramDate } from "./parseInstagramDate";
 import type { InstagramConnection, ParseOutcome } from "./types";
 
 const ANCHOR_RE =
-  /<a\b[^>]*href="(https?:\/\/(?:www\.)?instagram\.com\/[^"]*)"[^>]*>([\s\S]*?)<\/a>/gi;
+  /<a\b[^>]{0,300}href="(https?:\/\/(?:www\.)?instagram\.com\/[^"]{0,500})"[^>]{0,300}>([\s\S]*?)<\/a>/gi;
 
 // 프로필이 아닌 인스타그램 경로 (게시물/릴스 등)
 const RESERVED = new Set([
@@ -12,11 +12,11 @@ const RESERVED = new Set([
 
 function decodeEntities(s: string): string {
   return s
-    .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
-    .replace(/&#0?39;/g, "'");
+    .replace(/&#0?39;/g, "'")
+    .replace(/&amp;/g, "&");
 }
 
 export function parseConnectionsHtml(html: string): ParseOutcome {
@@ -27,6 +27,8 @@ export function parseConnectionsHtml(html: string): ParseOutcome {
     const href = m[1];
     const firstSeg =
       href.split("instagram.com/")[1]?.split(/[/?]/)[0]?.toLowerCase() ?? "";
+    // 빈 경로(루트 링크 https://www.instagram.com/)는 계정 아님 — failedCount 도 올리지 않음
+    if (firstSeg === "") continue;
     if (RESERVED.has(firstSeg)) continue;
 
     const linkText = decodeEntities(m[2].replace(/<[^>]*>/g, "")).trim();

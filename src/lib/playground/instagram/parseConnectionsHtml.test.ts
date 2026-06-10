@@ -53,3 +53,16 @@ test("프로필 외 경로(p/, reel/ 등) 링크는 무시", () => {
   const html = `<a href="https://www.instagram.com/p/Cxyz123">post</a>`;
   assert.equal(parseConnectionsHtml(html).connections.length, 0);
 });
+
+test("&amp;lt; 는 &lt; 로만 디코드 (이중 디코드 금지)", () => {
+  const html = `<a href="https://www.instagram.com/abc">abc</a></div><div>x &amp;lt;y&amp;gt; 2026</div>`;
+  const { connections } = parseConnectionsHtml(html);
+  assert.equal(connections[0].followedAtRaw, "x &lt;y&gt; 2026");
+});
+
+test("경로 없는 인스타그램 루트 링크는 계정으로 취급하지 않음", () => {
+  const html = `<a href="https://www.instagram.com/">Instagram</a>`;
+  const out = parseConnectionsHtml(html);
+  assert.equal(out.connections.length, 0);
+  assert.equal(out.failedCount, 0);
+});
