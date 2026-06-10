@@ -1,8 +1,16 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { buttonClasses } from "@/components/Button";
 import { followDayCount, formatKoreanDate } from "@/lib/playground/instagram/followDays";
 import type { AccountRelation } from "@/lib/playground/instagram/types";
+import type { BloomFilter } from "@/lib/playground/instagram/bloom";
+import {
+  classify,
+  loadCelebrityFilter,
+  loadOverrides,
+  saveOverride,
+  type CelebrityOverrides,
+} from "@/lib/playground/instagram/celebrity";
 
 export type TabKey = "notFollowingMeBack" | "iDoNotFollowBack" | "mutuals" | "followers" | "following";
 type SortKey = "recent" | "oldest" | "name" | "daysDesc" | "daysAsc";
@@ -49,12 +57,33 @@ export default function AccountList({ accounts, tab }: { accounts: AccountRelati
   const [sort, setSort] = useState<SortKey>("recent");
   const [limit, setLimit] = useState(PAGE);
 
-  const visible = useMemo(() => {
+  const [filter, setFilter] = useState<BloomFilter | null | undefined>(undefined);
+  const [overrides, setOverrides] = useState<CelebrityOverrides>({});
+  const [excludeCelebs, setExcludeCelebs] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    loadCelebrityFilter().then((f) => {
+      if (!alive) return;
+      setFilter(f);
+      setOverrides(loadOverrides());
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const celebrityEnabled = filter !== null && filter !== undefined;
+
+  const { rows, celebCount } = useMemo(() => {
     const q = query.trim().toLowerCase();
     const base = q ? accounts.filter((a) => a.username.includes(q)) : accounts;
     const decorated = base.map((a) => {
       const d = primaryDate(a, tab);
-      return { a, dateKey: d, daysKey: d ? followDayCount(d) : null };
+      return {
+        a,
+        dateKey: d,
+        daysKey: d ? followDayCount(d) : null,
+        verdict: celebrityEnabled ? classify(a.username, filter ?? null, overrides) : ("person" as const),
+      };
     });
     const nullLast = (cmp: (x: (typeof decorated)[number], y: (typeof decorated)[number]) => number) =>
       (x: (typeof decorated)[number], y: (typeof decorated)[number]) => {
@@ -71,8 +100,10 @@ export default function AccountList({ accounts, tab }: { accounts: AccountRelati
       case "daysDesc": decorated.sort(nullLast((x, y) => (y.daysKey ?? 0) - (x.daysKey ?? 0))); break;
       case "daysAsc": decorated.sort(nullLast((x, y) => (x.daysKey ?? 0) - (y.daysKey ?? 0))); break;
     }
-    return decorated.map((d) => d.a);
-  }, [accounts, query, sort, tab]);
+    const celebCount = decorated.filter((d) => d.verdict === "celebrity").length;
+    const rows = excludeCelebs ? decorated.filter((d) => d.verdict !== "celebrity") : decorated;
+    return { rows, celebCount };
+  }, [accounts, query, sort, tab, filter, overrides, celebrityEnabled, excludeCelebs]);
 
   return (
     <div className="space-y-3">
@@ -101,12 +132,28 @@ export default function AccountList({ accounts, tab }: { accounts: AccountRelati
         </select>
       </div>
 
-      {visible.length === 0 && (
+      {celebrityEnabled && (
+        <div className="space-y-1">
+          <label className="flex items-center gap-2 text-xs">
+            <input
+              type="checkbox"
+              checked={excludeCelebs}
+              onChange={(e) => setExcludeCelebs(e.target.checked)}
+            />
+            유명인·브랜드 제외 ({celebCount.toLocaleString()})
+          </label>
+          <p className="text-xs text-[var(--color-text-muted)]">
+            위키백과 등재 기준 자동 추정이라 누락·오판이 있을 수 있어요. 배지를 눌러 직접 고칠 수 있어요.
+          </p>
+        </div>
+      )}
+
+      {rows.length === 0 && (
         <p className="py-8 text-center text-sm text-[var(--color-text-muted)]">표시할 계정이 없어요.</p>
       )}
 
       <ul className="divide-y divide-[var(--color-border)] border border-[var(--color-border)]">
-        {visible.slice(0, limit).map((a) => (
+        {rows.slice(0, limit).map(({ a, verdict }) => (
           <li key={a.username} className="space-y-1 p-4">
             <div className="flex items-center justify-between gap-2">
               <a
@@ -126,6 +173,25 @@ export default function AccountList({ accounts, tab }: { accounts: AccountRelati
                 인스타그램에서 보기
               </a>
             </div>
+            {celebrityEnabled &&
+              (verdict === "celebrity" ? (
+                <button
+                  type="button"
+                  onClick={() => setOverrides(saveOverride(a.username, "person"))}
+                  className="text-xs text-[var(--color-accent)]"
+                  title="누르면 일반인으로 표시"
+                >
+                  ⭐ 유명인·브랜드 추정 ✕
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setOverrides(saveOverride(a.username, "celebrity"))}
+                  className="text-xs text-[var(--color-text-muted)] underline underline-offset-2"
+                >
+                  유명인으로 표시
+                </button>
+              ))}
             {a.isFollowing && (
               <DateLine label="내가 팔로우한 날" iso={a.followingSince} raw={a.followingSinceRaw} />
             )}
@@ -136,9 +202,9 @@ export default function AccountList({ accounts, tab }: { accounts: AccountRelati
         ))}
       </ul>
 
-      {visible.length > limit && (
+      {rows.length > limit && (
         <button type="button" className={buttonClasses("secondary", "w-full")} onClick={() => setLimit(limit + PAGE)}>
-          더 보기 ({(visible.length - limit).toLocaleString()}개 남음)
+          더 보기 ({(rows.length - limit).toLocaleString()}개 남음)
         </button>
       )}
     </div>
