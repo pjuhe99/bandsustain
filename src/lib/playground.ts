@@ -65,6 +65,7 @@ export const playgroundFeatures: PlaygroundFeature[] = [
   },
 ];
 
+// 플래그 게이트 기능은 env 미설정 시 숨김 — 새 게이트 기능은 여기에 if 분기 추가
 export function visiblePlaygroundFeatures(): PlaygroundFeature[] {
   return playgroundFeatures.filter((f) => {
     if (f.slug === "rehearsal-finder") return isRehearsalFinderEnabled();
