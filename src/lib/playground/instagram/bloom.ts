@@ -14,10 +14,18 @@ function fnv1a(s: string, seed = 0x811c9dc5): number {
   return h >>> 0;
 }
 
+function fmix32(h: number): number {
+  h ^= h >>> 16;
+  h = Math.imul(h, 0x85ebca6b) >>> 0;
+  h ^= h >>> 13;
+  h = Math.imul(h, 0xc2b2ae35) >>> 0;
+  h ^= h >>> 16;
+  return h >>> 0;
+}
+
 function bitIndexes(f: BloomFilter, s: string): number[] {
-  const h1 = fnv1a(s);
-  let h2 = fnv1a(s, 0x9747b28c);
-  if (h2 === 0) h2 = 0x27d4eb2f;
+  const h1 = fmix32(fnv1a(s));
+  const h2 = (fmix32(fnv1a(s, 0x9747b28c)) | 1) >>> 0; // 홀수 보장 (0 방지 겸), unsigned
   const out: number[] = [];
   for (let i = 0; i < f.k; i++) out.push((h1 + i * h2) % f.m); // double hashing — h1+i*h2 mod m
   return out;
