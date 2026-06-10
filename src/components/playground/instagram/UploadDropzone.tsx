@@ -21,7 +21,7 @@ export default function UploadDropzone(props: {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-display text-2xl font-black">ZIP 파일 업로드</h2>
+      <h2 className="font-display text-2xl md:text-3xl font-black">ZIP 파일 업로드</h2>
       <p className="text-sm text-[var(--color-text-muted)]">
         인스타그램에서 받은 ZIP 파일을 그대로 올려 주세요.
       </p>

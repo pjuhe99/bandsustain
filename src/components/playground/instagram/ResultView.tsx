@@ -45,7 +45,7 @@ export default function ResultView({ result, onReset }: { result: AnalysisResult
 
       {/* 대표 강조 문구 + 요약 카드 */}
       {result.hasFollowers && result.hasFollowing && (
-        <h2 className="font-display text-2xl font-black leading-snug">
+        <h2 className="font-display text-2xl md:text-3xl font-black leading-snug">
           내가 팔로우하지만
           <br />
           나를 팔로우하지 않는 계정은{" "}

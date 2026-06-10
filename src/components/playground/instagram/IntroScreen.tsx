@@ -26,8 +26,8 @@ export default function IntroScreen(props: { onStart: () => void; onSkipToUpload
   return (
     <div className="space-y-8">
       <header className="space-y-3">
-        <p className="text-xs uppercase tracking-widest text-[var(--color-text-muted)]">Playground</p>
-        <h1 className="font-display text-3xl font-black leading-tight">
+        <p className="text-xs uppercase tracking-widest text-[var(--color-text-muted)]">서스테인 팔로우 명예의 전당</p>
+        <h1 className="font-display text-3xl md:text-4xl font-black leading-tight">
           내 인스타 맞팔 현황,
           <br />
           파일 하나로 확인해 드려요
@@ -79,7 +79,7 @@ export default function IntroScreen(props: { onStart: () => void; onSkipToUpload
           이미 ZIP 파일이 있어요 → 바로 업로드
         </button>
         <Link
-          href="/playground/instagram-follow/hall-of-fame"
+          href="/playground/instagram-follow"
           className="text-center text-sm underline underline-offset-4"
         >
           서스테인 팔로우 명예의 전당 보기

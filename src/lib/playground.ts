@@ -23,11 +23,11 @@ export const playgroundFeatures: PlaygroundFeature[] = [
   },
   {
     slug: "instagram-follow",
-    title: "인스타 맞팔 분석기",
+    title: "서스테인 팔로우 명예의 전당",
     description:
-      "인스타그램 데이터 파일 하나로 나를 맞팔하지 않는 계정과 팔로우 시작일을 확인해보세요.",
-    cta: "분석하러 가기",
-    eyebrow: "쓸모 있는 도구",
+      "서스테인을 가장 오래 팔로우한 팬은 누구? 명예의 전당에 도전하고, 겸사겸사 나를 맞팔하지 않는 계정도 확인해 보세요.",
+    cta: "명예의 전당 보러 가기",
+    eyebrow: "팬 랭킹",
     badge: "BETA",
     href: "/playground/instagram-follow",
   },

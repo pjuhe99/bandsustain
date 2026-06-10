@@ -77,7 +77,7 @@ export default function GuideSteps(props: { onDone: () => void; onBackToIntro: (
         <p className="text-5xl" aria-hidden>
           {step.emoji}
         </p>
-        <h2 className="font-display text-xl font-black">{step.title}</h2>
+        <h2 className="font-display text-2xl md:text-3xl font-black">{step.title}</h2>
         {step.lines.map((l) => (
           <p key={l} className="text-sm text-[var(--color-text-muted)]">
             {l}

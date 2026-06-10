@@ -62,7 +62,7 @@ export default function SustainCard({ sustain }: { sustain: AnalysisResult["sust
         </p>
       )}
       <Link
-        href="/playground/instagram-follow/hall-of-fame"
+        href="/playground/instagram-follow"
         className="block text-center text-sm underline underline-offset-4"
       >
         명예의 전당 보러 가기
