@@ -14,7 +14,7 @@ export function normalizeUsername(raw: string): string | null {
     if (!ALLOWED_HOSTS.has(u.hostname.toLowerCase())) return null;
     const parts = u.pathname.split("/").filter(Boolean);
     if (parts.length === 0) return null;
-    s = parts[0] === "_u" ? (parts[1] ?? "") : parts[0];
+    s = parts[0].toLowerCase() === "_u" ? (parts[1] ?? "") : parts[0];
   }
   s = s.replace(/^@/, "").split("?")[0].replace(/\//g, "").trim().toLowerCase();
   return USERNAME_RE.test(s) ? s : null;

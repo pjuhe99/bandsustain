@@ -26,3 +26,6 @@ test("허용 문자 외 거부 (XSS 방어)", () => {
 test("프로필 링크는 정규형으로 재생성", () => {
   assert.equal(toProfileUrl("abc"), "https://www.instagram.com/abc/");
 });
+test("_U/ 대문자 딥링크도 추출", () => {
+  assert.equal(normalizeUsername("https://www.instagram.com/_U/band_sustain"), "band_sustain");
+});
