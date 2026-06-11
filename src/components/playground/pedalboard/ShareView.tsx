@@ -59,7 +59,7 @@ export function ShareView({ layout }: { layout: Layout }) {
       </div>
 
       {selected && (
-        <div className="fixed inset-x-0 bottom-0 z-30 bg-[var(--color-bg)] border-t border-[var(--color-border-strong)] px-4 md:px-6 py-3 flex items-center gap-3">
+        <div className="fixed inset-x-0 bottom-0 z-[45] bg-[var(--color-bg)] border-t border-[var(--color-border-strong)] px-4 md:px-6 py-3 flex items-center gap-3">
           <div className="relative w-12 h-12 md:w-14 md:h-14 shrink-0 bg-[var(--color-bg-muted)]">
             {selected.image_filename && (
               <Image src={`/playground/images/pedals/${selected.image_filename}`} alt="" fill className="object-contain" sizes="56px" />
