@@ -41,22 +41,43 @@ function shuffle(tracks: BgmTrack[]): BgmTrack[] {
 
 export default function BgmProvider({ children }: { children: React.ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  // 셔플 결과. 렌더 출력에 쓰이는 건 currentTitle뿐이고 그마저 started 이후라
-  // ref로 들고 있어도 안전하다 (hydration mismatch 회피).
+  // 셔플 결과는 첫 toggle() 시점에 채운다 (렌더 중 Math.random 금지 — hydration 안전).
   const playlistRef = useRef<BgmTrack[]>(BGM_TRACKS);
+  // 현재 곡 위치의 소스 오브 트루스. state 가 아니라 ref 인 이유: ended/error/
+  // Media Session 콜백이 렌더 사이클 밖에서 연달아 호출돼도 stale closure 없이
+  // 항상 최신 위치 기준으로 진행하기 위해. 렌더에는 currentTitle 만 노출한다.
+  const indexRef = useRef(0);
   const errorStreakRef = useRef(0);
   const [started, setStarted] = useState(false);
+  // playing 은 audio 엘리먼트의 play/pause 이벤트로만 갱신한다 (엘리먼트가
+  // 소스 오브 트루스). OS 의 외부 일시정지(이어폰 분리, 오디오 포커스 상실)도
+  // 이 경로로 자연히 반영된다.
   const [playing, setPlaying] = useState(false);
-  const [index, setIndex] = useState(0);
+  const [currentTitle, setCurrentTitle] = useState("");
 
-  const playCurrent = useCallback((i: number) => {
+  const playAt = useCallback((i: number) => {
     const audio = audioRef.current;
     if (!audio) return;
-    audio.src = playlistRef.current[i].src;
-    audio.play().then(
-      () => setPlaying(true),
-      () => setPlaying(false),
-    );
+    const n = playlistRef.current.length;
+    const wrapped = ((i % n) + n) % n;
+    indexRef.current = wrapped;
+    setCurrentTitle(playlistRef.current[wrapped].title);
+    audio.src = playlistRef.current[wrapped].src;
+    // 로드 실패 skip 은 error 이벤트 핸들러 담당. 여기 rejection 은
+    // autoplay 거부 등 — paused 상태로 두면 된다.
+    audio.play().catch(() => {});
+  }, []);
+
+  const stop = useCallback(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load(); // src 제거를 미디어 엘리먼트에 실제 반영 (리소스 해제)
+    }
+    indexRef.current = 0;
+    setCurrentTitle("");
+    setStarted(false);
   }, []);
 
   const toggle = useCallback(() => {
@@ -66,75 +87,62 @@ export default function BgmProvider({ children }: { children: React.ReactNode })
       playlistRef.current = shuffle(BGM_TRACKS);
       errorStreakRef.current = 0;
       setStarted(true);
-      setIndex(0);
-      playCurrent(0);
+      playAt(0);
       return;
     }
-    if (playing) {
-      audio.pause();
-      setPlaying(false);
+    if (audio.paused) {
+      audio.play().catch(() => {});
     } else {
-      audio.play().then(
-        () => setPlaying(true),
-        () => setPlaying(false),
-      );
-    }
-  }, [started, playing, playCurrent]);
-
-  const goTo = useCallback(
-    (i: number) => {
-      const n = playlistRef.current.length;
-      const wrapped = ((i % n) + n) % n;
-      setIndex(wrapped);
-      playCurrent(wrapped);
-    },
-    [playCurrent],
-  );
-
-  const next = useCallback(() => goTo(index + 1), [goTo, index]);
-  const prev = useCallback(() => goTo(index - 1), [goTo, index]);
-
-  const stop = useCallback(() => {
-    const audio = audioRef.current;
-    if (audio) {
       audio.pause();
-      audio.removeAttribute("src");
     }
-    setPlaying(false);
-    setStarted(false);
-    setIndex(0);
-  }, []);
+  }, [started, playAt]);
 
-  // ended → 다음 곡, error → skip (전곡 연속 실패 시 정지)
+  const next = useCallback(() => {
+    if (!started) return;
+    playAt(indexRef.current + 1);
+  }, [started, playAt]);
+
+  const prev = useCallback(() => {
+    if (!started) return;
+    playAt(indexRef.current - 1);
+  }, [started, playAt]);
+
+  // 오디오 이벤트 배선 — deps 가 전부 안정 콜백이라 마운트 1회.
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    const onPlaying = () => {
+      errorStreakRef.current = 0;
+    };
     const onEnded = () => {
       errorStreakRef.current = 0;
-      goTo(index + 1);
+      playAt(indexRef.current + 1);
     };
     const onError = () => {
       errorStreakRef.current += 1;
+      // 전곡 연속 실패 = 자산/네트워크가 전부 깨진 상태. 무한 skip 루프를
+      // 멈추고 초기 상태로 복귀 (Nav 버튼으로 재시도 가능).
       if (errorStreakRef.current >= playlistRef.current.length) {
-        setPlaying(false);
+        stop();
         return;
       }
-      goTo(index + 1);
+      playAt(indexRef.current + 1);
     };
-    const onPlay = () => {
-      errorStreakRef.current = 0;
-    };
+    audio.addEventListener("play", onPlay);
+    audio.addEventListener("pause", onPause);
+    audio.addEventListener("playing", onPlaying);
     audio.addEventListener("ended", onEnded);
     audio.addEventListener("error", onError);
-    audio.addEventListener("playing", onPlay);
     return () => {
+      audio.removeEventListener("play", onPlay);
+      audio.removeEventListener("pause", onPause);
+      audio.removeEventListener("playing", onPlaying);
       audio.removeEventListener("ended", onEnded);
       audio.removeEventListener("error", onError);
-      audio.removeEventListener("playing", onPlay);
     };
-  }, [goTo, index]);
-
-  const currentTitle = started ? playlistRef.current[index].title : "";
+  }, [playAt, stop]);
 
   // Media Session: 잠금화면/OS 미디어 컨트롤 연동 (미지원 브라우저는 무시)
   useEffect(() => {
@@ -143,17 +151,19 @@ export default function BgmProvider({ children }: { children: React.ReactNode })
       title: currentTitle,
       artist: "bandsustain",
     });
+    navigator.mediaSession.playbackState = playing ? "playing" : "paused";
     navigator.mediaSession.setActionHandler("play", toggle);
     navigator.mediaSession.setActionHandler("pause", toggle);
     navigator.mediaSession.setActionHandler("previoustrack", prev);
     navigator.mediaSession.setActionHandler("nexttrack", next);
     return () => {
+      navigator.mediaSession.playbackState = "none";
       navigator.mediaSession.setActionHandler("play", null);
       navigator.mediaSession.setActionHandler("pause", null);
       navigator.mediaSession.setActionHandler("previoustrack", null);
       navigator.mediaSession.setActionHandler("nexttrack", null);
     };
-  }, [started, currentTitle, toggle, prev, next]);
+  }, [started, currentTitle, playing, toggle, prev, next]);
 
   const value = useMemo<BgmContextValue>(
     () => ({ started, playing, currentTitle, toggle, next, prev, stop }),
