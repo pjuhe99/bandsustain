@@ -1,6 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import Logo from "../Logo";
 import { useBgm } from "./BgmProvider";
 
 // 제목이 영역을 넘칠 때만 마키로 흐른다. 넘치지 않으면 정적 표시.
@@ -124,7 +126,7 @@ function CloseIcon() {
 }
 
 export default function BgmMiniPlayer() {
-  const { started, playing, currentTitle, toggle, next, prev, stop } = useBgm();
+  const { started, playing, currentTitle, currentCover, toggle, next, prev, stop } = useBgm();
 
   // 시작 전엔 같은 자리에 상시 플로팅 음표 버튼 — 재생을 시작하면 바로 교체되고,
   // 바를 X 로 닫으면 다시 이 버튼으로 돌아온다.
@@ -146,7 +148,16 @@ export default function BgmMiniPlayer() {
       aria-label="BGM 플레이어"
       className="fixed z-40 bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 sm:w-80"
     >
-      <div className="flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/85 backdrop-blur-md shadow-lg pl-4 pr-1 py-1">
+      <div className="flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/85 backdrop-blur-md shadow-lg pl-1 pr-1 py-1">
+        <span className="relative w-11 h-11 mr-1 shrink-0 rounded-full overflow-hidden bg-[var(--color-bg-muted)]">
+          {currentCover ? (
+            <Image src={currentCover} alt="" fill className="object-cover" sizes="44px" />
+          ) : (
+            <span className="absolute inset-0 flex items-center justify-center">
+              <Logo className="w-7 h-auto text-[var(--color-text)]" />
+            </span>
+          )}
+        </span>
         <MarqueeTitle title={currentTitle} />
         <button
           onClick={prev}

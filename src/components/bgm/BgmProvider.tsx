@@ -16,6 +16,8 @@ type BgmContextValue = {
   started: boolean;
   playing: boolean;
   currentTitle: string;
+  /** 현재 곡 커버 URL (없는 곡은 null — UI 가 로고 폴백) */
+  currentCover: string | null;
   toggle: () => void;
   next: () => void;
   prev: () => void;
@@ -65,7 +67,7 @@ export default function BgmProvider({ children }: { children: React.ReactNode })
   // 소스 오브 트루스). OS 의 외부 일시정지(이어폰 분리, 오디오 포커스 상실)도
   // 이 경로로 자연히 반영된다.
   const [playing, setPlaying] = useState(false);
-  const [currentTitle, setCurrentTitle] = useState("");
+  const [currentTrack, setCurrentTrack] = useState<BgmTrack | null>(null);
 
   const playAt = useCallback((i: number) => {
     const audio = audioRef.current;
@@ -73,7 +75,7 @@ export default function BgmProvider({ children }: { children: React.ReactNode })
     const n = playlistRef.current.length;
     const wrapped = ((i % n) + n) % n;
     indexRef.current = wrapped;
-    setCurrentTitle(playlistRef.current[wrapped].title);
+    setCurrentTrack(playlistRef.current[wrapped]);
     try {
       localStorage.setItem(LAST_SRC_KEY, playlistRef.current[wrapped].src);
     } catch {
@@ -97,7 +99,7 @@ export default function BgmProvider({ children }: { children: React.ReactNode })
     // 이벤트에만 의존하면 playing 이 true 로 고착되므로 여기서 직접 내린다.
     setPlaying(false);
     indexRef.current = 0;
-    setCurrentTitle("");
+    setCurrentTrack(null);
     setStarted(false);
   }, []);
 
@@ -171,12 +173,18 @@ export default function BgmProvider({ children }: { children: React.ReactNode })
     };
   }, [playAt, stop]);
 
+  const currentTitle = currentTrack?.title ?? "";
+  const currentCover = currentTrack?.cover ?? null;
+
   // Media Session: 잠금화면/OS 미디어 컨트롤 연동 (미지원 브라우저는 무시)
   useEffect(() => {
     if (!started || !("mediaSession" in navigator)) return;
     navigator.mediaSession.metadata = new MediaMetadata({
       title: currentTitle,
       artist: "bandsustain",
+      artwork: currentCover
+        ? [{ src: currentCover, sizes: "256x256", type: "image/jpeg" }]
+        : [],
     });
     navigator.mediaSession.playbackState = playing ? "playing" : "paused";
     navigator.mediaSession.setActionHandler("play", toggle);
@@ -190,11 +198,11 @@ export default function BgmProvider({ children }: { children: React.ReactNode })
       navigator.mediaSession.setActionHandler("previoustrack", null);
       navigator.mediaSession.setActionHandler("nexttrack", null);
     };
-  }, [started, currentTitle, playing, toggle, prev, next]);
+  }, [started, currentTitle, currentCover, playing, toggle, prev, next]);
 
   const value = useMemo<BgmContextValue>(
-    () => ({ started, playing, currentTitle, toggle, next, prev, stop }),
-    [started, playing, currentTitle, toggle, next, prev, stop],
+    () => ({ started, playing, currentTitle, currentCover, toggle, next, prev, stop }),
+    [started, playing, currentTitle, currentCover, toggle, next, prev, stop],
   );
 
   return (
