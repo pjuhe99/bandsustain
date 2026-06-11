@@ -1,6 +1,60 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { useBgm } from "./BgmProvider";
+
+// 제목이 영역을 넘칠 때만 마키로 흐른다. 넘치지 않으면 정적 표시.
+// 측정은 항상 렌더되는 invisible 스팬으로 해서 overflow 상태가
+// 양방향(길어짐/짧아짐) 모두 갱신되게 한다.
+function MarqueeTitle({ title }: { title: string }) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const measureRef = useRef<HTMLSpanElement | null>(null);
+  const [textWidth, setTextWidth] = useState(0);
+  const [overflowing, setOverflowing] = useState(false);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const text = measureRef.current;
+    if (!container || !text) return;
+    const measure = () => {
+      const w = text.scrollWidth;
+      setTextWidth(w);
+      setOverflowing(w > container.clientWidth);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [title]);
+
+  // 한 사이클 = 제목 폭 + 갭(pr-8=32px). 속도 일정(~25px/s), 최소 8초.
+  const duration = Math.max(8, Math.round((textWidth + 32) / 25));
+
+  return (
+    <div ref={containerRef} className="relative flex-1 min-w-0 overflow-hidden">
+      <span
+        ref={measureRef}
+        aria-hidden="true"
+        className="invisible absolute whitespace-nowrap text-sm font-medium"
+      >
+        {title}
+      </span>
+      {overflowing ? (
+        <div
+          className="bgm-marquee flex w-max"
+          style={{ "--bgm-marquee-duration": `${duration}s` } as React.CSSProperties}
+        >
+          <span className="whitespace-nowrap pr-8 text-sm font-medium">{title}</span>
+          <span className="whitespace-nowrap pr-8 text-sm font-medium" aria-hidden="true">
+            {title}
+          </span>
+        </div>
+      ) : (
+        <span className="block truncate text-sm font-medium">{title}</span>
+      )}
+    </div>
+  );
+}
 
 function PrevIcon() {
   return (
@@ -93,7 +147,7 @@ export default function BgmMiniPlayer() {
       className="fixed z-40 bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 sm:w-80"
     >
       <div className="flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/85 backdrop-blur-md shadow-lg pl-4 pr-1 py-1">
-        <span className="flex-1 min-w-0 truncate text-sm font-medium">{currentTitle}</span>
+        <MarqueeTitle title={currentTitle} />
         <button
           onClick={prev}
           aria-label="이전 곡"
