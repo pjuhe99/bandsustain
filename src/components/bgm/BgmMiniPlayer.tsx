@@ -34,6 +34,25 @@ function NextIcon() {
   );
 }
 
+function NoteIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="w-6 h-6"
+      aria-hidden="true"
+    >
+      <path d="M9 18V5l12-2v13" />
+      <circle cx="6" cy="18" r="3" />
+      <circle cx="18" cy="16" r="3" />
+    </svg>
+  );
+}
+
 function CloseIcon() {
   return (
     <svg
@@ -53,7 +72,19 @@ function CloseIcon() {
 export default function BgmMiniPlayer() {
   const { started, playing, currentTitle, toggle, next, prev, stop } = useBgm();
 
-  if (!started) return null;
+  // 시작 전엔 같은 자리에 상시 플로팅 음표 버튼 — 재생을 시작하면 바로 교체되고,
+  // 바를 X 로 닫으면 다시 이 버튼으로 돌아온다.
+  if (!started) {
+    return (
+      <button
+        onClick={toggle}
+        aria-label="배경음악 재생"
+        className="fixed z-40 bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] right-4 sm:right-6 sm:bottom-6 w-12 h-12 flex items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/85 backdrop-blur-md shadow-lg text-[var(--color-text)] hover:text-[var(--color-accent)]"
+      >
+        <NoteIcon />
+      </button>
+    );
+  }
 
   return (
     <div

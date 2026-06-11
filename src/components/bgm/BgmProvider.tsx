@@ -39,6 +39,18 @@ function shuffle(tracks: BgmTrack[]): BgmTrack[] {
   return arr;
 }
 
+// 직전에 듣던 곡 기억용. 곡이 5곡뿐이라 균등 셔플로도 1/5 확률로 같은 곡으로
+// 또 시작하게 되는데, 그 체감이 커서 시작 곡에서만 직전 곡을 피한다.
+const LAST_SRC_KEY = "bgm:last-src";
+
+function readLastSrc(): string | null {
+  try {
+    return localStorage.getItem(LAST_SRC_KEY);
+  } catch {
+    return null;
+  }
+}
+
 export default function BgmProvider({ children }: { children: React.ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   // 셔플 결과는 첫 toggle() 시점에 채운다 (렌더 중 Math.random 금지 — hydration 안전).
@@ -62,6 +74,11 @@ export default function BgmProvider({ children }: { children: React.ReactNode })
     const wrapped = ((i % n) + n) % n;
     indexRef.current = wrapped;
     setCurrentTitle(playlistRef.current[wrapped].title);
+    try {
+      localStorage.setItem(LAST_SRC_KEY, playlistRef.current[wrapped].src);
+    } catch {
+      // 프라이빗 모드 등 — 시작 곡 다양성만 잃고 재생엔 영향 없음
+    }
     audio.src = playlistRef.current[wrapped].src;
     // 로드 실패 skip 은 error 이벤트 핸들러 담당. 여기 rejection 은
     // autoplay 거부 등 — paused 상태로 두면 된다.
@@ -75,6 +92,10 @@ export default function BgmProvider({ children }: { children: React.ReactNode })
       audio.removeAttribute("src");
       audio.load(); // src 제거를 미디어 엘리먼트에 실제 반영 (리소스 해제)
     }
+    // load() 는 미디어 로드 알고리즘 규칙상 큐에 대기 중인 미디어 이벤트
+    // 태스크(방금 pause() 가 큐잉한 pause 이벤트 포함)를 제거한다.
+    // 이벤트에만 의존하면 playing 이 true 로 고착되므로 여기서 직접 내린다.
+    setPlaying(false);
     indexRef.current = 0;
     setCurrentTitle("");
     setStarted(false);
@@ -84,7 +105,13 @@ export default function BgmProvider({ children }: { children: React.ReactNode })
     const audio = audioRef.current;
     if (!audio) return;
     if (!started) {
-      playlistRef.current = shuffle(BGM_TRACKS);
+      const shuffled = shuffle(BGM_TRACKS);
+      const lastSrc = readLastSrc();
+      if (shuffled.length > 1 && shuffled[0].src === lastSrc) {
+        const j = 1 + Math.floor(Math.random() * (shuffled.length - 1));
+        [shuffled[0], shuffled[j]] = [shuffled[j], shuffled[0]];
+      }
+      playlistRef.current = shuffled;
       errorStreakRef.current = 0;
       setStarted(true);
       playAt(0);
@@ -123,7 +150,7 @@ export default function BgmProvider({ children }: { children: React.ReactNode })
     const onError = () => {
       errorStreakRef.current += 1;
       // 전곡 연속 실패 = 자산/네트워크가 전부 깨진 상태. 무한 skip 루프를
-      // 멈추고 초기 상태로 복귀 (Nav 버튼으로 재시도 가능).
+      // 멈추고 초기 상태로 복귀 (플로팅 버튼으로 재시도 가능).
       if (errorStreakRef.current >= playlistRef.current.length) {
         stop();
         return;
