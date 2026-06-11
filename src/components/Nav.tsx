@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useScrollLock } from "@/lib/useScrollLock";
 import Logo from "./Logo";
+import { useBgm } from "./bgm/BgmProvider";
 
 const navLinks = [
   { href: "/members", label: "Members" },
@@ -23,6 +24,7 @@ const socialLinks = [
 
 export default function Nav() {
   const [open, setOpen] = useState(false);
+  const { toggle: toggleBgm, playing: bgmPlaying } = useBgm();
 
   useScrollLock(open);
 
@@ -34,27 +36,57 @@ export default function Nav() {
             <Logo className="h-7 md:h-8 w-auto text-[var(--color-text)]" />
           </Link>
 
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
-            {navLinks.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className="hover:underline underline-offset-4 decoration-2"
-              >
-                {l.label}
-              </Link>
-            ))}
-          </nav>
+          <div className="flex items-center gap-4 md:gap-8">
+            <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
+              {navLinks.map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className="hover:underline underline-offset-4 decoration-2"
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </nav>
 
-          <button
-            className="md:hidden w-8 h-8 flex flex-col items-center justify-center gap-1.5"
-            aria-label="Open menu"
-            onClick={() => setOpen(true)}
-          >
-            <span className="block w-6 h-[2px] bg-[var(--color-text)]" />
-            <span className="block w-6 h-[2px] bg-[var(--color-text)]" />
-            <span className="block w-6 h-[2px] bg-[var(--color-text)]" />
-          </button>
+            <button
+              onClick={toggleBgm}
+              aria-label={bgmPlaying ? "배경음악 일시정지" : "배경음악 재생"}
+              className={`relative w-8 h-8 flex items-center justify-center ${
+                bgmPlaying
+                  ? "text-[var(--color-accent)]"
+                  : "text-[var(--color-text)] hover:text-[var(--color-accent)]"
+              }`}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-5 h-5"
+                aria-hidden="true"
+              >
+                <path d="M9 18V5l12-2v13" />
+                <circle cx="6" cy="18" r="3" />
+                <circle cx="18" cy="16" r="3" />
+              </svg>
+              {bgmPlaying && (
+                <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" />
+              )}
+            </button>
+
+            <button
+              className="md:hidden w-8 h-8 flex flex-col items-center justify-center gap-1.5"
+              aria-label="Open menu"
+              onClick={() => setOpen(true)}
+            >
+              <span className="block w-6 h-[2px] bg-[var(--color-text)]" />
+              <span className="block w-6 h-[2px] bg-[var(--color-text)]" />
+              <span className="block w-6 h-[2px] bg-[var(--color-text)]" />
+            </button>
+          </div>
         </div>
       </header>
 
