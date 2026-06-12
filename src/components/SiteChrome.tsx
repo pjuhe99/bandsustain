@@ -19,7 +19,12 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
   return (
     <BgmProvider>
       {fullBleed ? (
-        <main className="flex-1 flex flex-col">{children}</main>
+        <>
+          <main className="flex-1 flex flex-col">{children}</main>
+          {/* 재생 중에만 축소 칩으로 노출 — UI 없이 소리만 나는 상태 방지.
+              분기 전환 시 리마운트되므로 진입 때마다 항상 축소로 시작한다. */}
+          <BgmMiniPlayer overlay />
+        </>
       ) : (
         <>
           <Nav />
