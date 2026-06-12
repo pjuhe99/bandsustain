@@ -159,12 +159,15 @@ export default function BgmMiniPlayer() {
           )}
         </span>
         <MarqueeTitle title={currentTitle} />
+        {/* key={currentTitle}: 곡 전환 시 아이콘 DOM 을 교체해 터치로 고착된
+            sticky hover(파란색)를 해제한다 — 재생/일시정지 버튼이 아이콘
+            스왑(Pause↔Play)으로 자연히 풀리는 것과 동일한 메커니즘. */}
         <button
           onClick={prev}
           aria-label="이전 곡"
           className="w-11 h-11 flex items-center justify-center text-[var(--color-text)] hover:text-[var(--color-accent)]"
         >
-          <PrevIcon />
+          <PrevIcon key={currentTitle} />
         </button>
         <button
           onClick={toggle}
@@ -178,7 +181,7 @@ export default function BgmMiniPlayer() {
           aria-label="다음 곡"
           className="w-11 h-11 flex items-center justify-center text-[var(--color-text)] hover:text-[var(--color-accent)]"
         >
-          <NextIcon />
+          <NextIcon key={currentTitle} />
         </button>
         <button
           onClick={stop}
