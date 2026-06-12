@@ -125,12 +125,37 @@ function CloseIcon() {
   );
 }
 
-export default function BgmMiniPlayer() {
+function ChevronDownIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="w-4 h-4"
+      aria-hidden="true"
+    >
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
+
+// overlay: full-bleed 라우트(페달보드 에디터 등)용 축소 모드.
+// - 재생 전이면 아무것도 안 그린다 (에디터 화면 점유 최소화)
+// - 재생 중이면 작은 원형 칩만 — 탭하면 미니바 펼침, 진입 시 항상 축소 시작
+//   (full-bleed 분기 전환 때 이 컴포넌트가 리마운트되므로 state 초기값으로 충분)
+// - 위치는 좌하단: 에디터의 우측 검색 패널(lg, 360px)·하단 검색 시트(모바일,
+//   50vh)와 겹치지 않게. 모바일은 시트 바로 위에 띄운다.
+export default function BgmMiniPlayer({ overlay = false }: { overlay?: boolean }) {
   const { started, playing, currentTitle, currentCover, toggle, next, prev, stop } = useBgm();
+  const [expanded, setExpanded] = useState(false);
 
   // 시작 전엔 같은 자리에 상시 플로팅 음표 버튼 — 재생을 시작하면 바로 교체되고,
   // 바를 X 로 닫으면 다시 이 버튼으로 돌아온다.
   if (!started) {
+    if (overlay) return null;
     return (
       <button
         onClick={toggle}
@@ -142,11 +167,33 @@ export default function BgmMiniPlayer() {
     );
   }
 
+  if (overlay && !expanded) {
+    return (
+      <button
+        onClick={() => setExpanded(true)}
+        aria-label="BGM 플레이어 열기"
+        className="fixed z-40 bottom-[calc(50vh+0.75rem)] left-3 lg:bottom-6 lg:left-6 w-12 h-12 rounded-full overflow-hidden border border-[var(--color-border)] bg-[var(--color-bg)]/85 backdrop-blur-md shadow-lg text-[var(--color-text)] hover:text-[var(--color-accent)]"
+      >
+        {currentCover ? (
+          <Image src={currentCover} alt="" fill className="object-cover" sizes="48px" />
+        ) : (
+          <span className="absolute inset-0 flex items-center justify-center">
+            <NoteIcon />
+          </span>
+        )}
+      </button>
+    );
+  }
+
   return (
     <div
       role="region"
       aria-label="BGM 플레이어"
-      className="fixed z-40 bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 sm:w-80"
+      className={
+        overlay
+          ? "fixed z-40 bottom-[calc(50vh+0.75rem)] left-3 right-3 lg:bottom-6 lg:left-6 lg:right-auto lg:w-[22rem]"
+          : "fixed z-40 bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 sm:w-80"
+      }
     >
       <div className="flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/85 backdrop-blur-md shadow-lg pl-1 pr-1 py-1">
         <span className="relative w-11 h-11 mr-1 shrink-0 rounded-full overflow-hidden bg-[var(--color-bg-muted)]">
@@ -190,6 +237,15 @@ export default function BgmMiniPlayer() {
         >
           <CloseIcon />
         </button>
+        {overlay && (
+          <button
+            onClick={() => setExpanded(false)}
+            aria-label="플레이어 접기"
+            className="w-8 h-11 -ml-1 flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+          >
+            <ChevronDownIcon />
+          </button>
+        )}
       </div>
     </div>
   );
