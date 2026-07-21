@@ -9,6 +9,7 @@ const columns = [
       { href: "/quote", label: "Quote" },
       { href: "/live", label: "Live" },
       { href: "/news", label: "News" },
+      { href: "/columns", label: "Columns" },
     ],
   },
   {
