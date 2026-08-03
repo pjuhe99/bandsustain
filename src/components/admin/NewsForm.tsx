@@ -3,6 +3,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import type { NewsItem } from "@/lib/news";
 import ImageUpload from "@/components/admin/ImageUpload";
+import { useUploadPending } from "@/lib/useUploadPending";
 import type { FormState } from "@/app/admin/(authed)/news/actions";
 
 export default function NewsForm({
@@ -15,6 +16,7 @@ export default function NewsForm({
   submitLabel: string;
 }) {
   const [state, formAction, pending] = useActionState<FormState, FormData>(action, {});
+  const { uploading, onPendingChange } = useUploadPending();
   const fe = state.fieldErrors ?? {};
   const dateDefault = item ? item.date.toISOString().slice(0, 10) : "";
   return (
@@ -41,8 +43,13 @@ export default function NewsForm({
           initialPath={item?.heroImage}
           required
           alt={item?.headline ?? "news hero"}
+          onPendingChange={onPendingChange}
         />
-        {fe.heroImage && <p className="text-xs text-[var(--color-accent)] mt-2">{fe.heroImage}</p>}
+        {fe.heroImage && (
+          <p role="alert" className="text-sm font-semibold text-[var(--color-accent)] border border-[var(--color-accent)] px-3 py-2 mt-2">
+            {fe.heroImage}
+          </p>
+        )}
       </div>
       <label className="flex flex-col gap-2 text-sm">
         <span className="text-xs uppercase tracking-wider text-[var(--color-text-muted)]">Body</span>
@@ -62,17 +69,22 @@ export default function NewsForm({
           resource="news"
           initialPath={item?.midImage}
           alt={(item?.headline ?? "news") + " mid"}
+          onPendingChange={onPendingChange}
         />
-        {fe.midImage && <p className="text-xs text-[var(--color-accent)] mt-2">{fe.midImage}</p>}
+        {fe.midImage && (
+          <p role="alert" className="text-sm font-semibold text-[var(--color-accent)] border border-[var(--color-accent)] px-3 py-2 mt-2">
+            {fe.midImage}
+          </p>
+        )}
       </div>
       {state.error && <p className="text-sm text-[var(--color-accent)]">{state.error}</p>}
       <div className="flex gap-3 mt-2">
         <button
           type="submit"
-          disabled={pending}
-          className="px-6 py-3 text-sm font-semibold uppercase tracking-wider bg-[var(--color-text)] text-[var(--color-bg)] border border-[var(--color-text)] hover:bg-transparent hover:text-[var(--color-text)] transition-colors disabled:opacity-50"
+          disabled={pending || uploading}
+          className="px-6 py-3 text-sm font-semibold uppercase tracking-wider bg-[var(--color-text)] text-[var(--color-bg)] border border-[var(--color-text)] hover:bg-transparent hover:text-[var(--color-text)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {pending ? "저장 중…" : submitLabel}
+          {uploading ? "이미지 업로드 중…" : pending ? "저장 중…" : submitLabel}
         </button>
         <Link
           href="/admin/news"

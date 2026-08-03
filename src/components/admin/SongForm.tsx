@@ -3,6 +3,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import type { Song } from "@/lib/songs";
 import ImageUpload from "@/components/admin/ImageUpload";
+import { useUploadPending } from "@/lib/useUploadPending";
 import type { FormState } from "@/app/admin/(authed)/songs/actions";
 
 const CATEGORIES = ["Album", "EP", "Single", "Live Session"] as const;
@@ -17,6 +18,7 @@ export default function SongForm({
   submitLabel: string;
 }) {
   const [state, formAction, pending] = useActionState<FormState, FormData>(action, {});
+  const { uploading, onPendingChange } = useUploadPending();
   const fe = state.fieldErrors ?? {};
   const releasedDefault = song ? song.releasedAt.toISOString().slice(0, 10) : "";
   return (
@@ -53,8 +55,13 @@ export default function SongForm({
           initialPath={song?.artworkUrl}
           required
           alt={song?.title ?? "song artwork"}
+          onPendingChange={onPendingChange}
         />
-        {fe.artworkUrl && <p className="text-xs text-[var(--color-accent)] mt-2">{fe.artworkUrl}</p>}
+        {fe.artworkUrl && (
+          <p role="alert" className="text-sm font-semibold text-[var(--color-accent)] border border-[var(--color-accent)] px-3 py-2 mt-2">
+            {fe.artworkUrl}
+          </p>
+        )}
       </div>
       <Field name="listenUrl" label="Listen URL (YouTube/Spotify 등, 선택)" defaultValue={song?.listenUrl ?? ""} error={fe.listenUrl} />
       <label className="flex flex-col gap-2 text-sm">
@@ -72,10 +79,10 @@ export default function SongForm({
       <div className="flex gap-3 mt-2">
         <button
           type="submit"
-          disabled={pending}
-          className="px-6 py-3 text-sm font-semibold uppercase tracking-wider bg-[var(--color-text)] text-[var(--color-bg)] border border-[var(--color-text)] hover:bg-transparent hover:text-[var(--color-text)] transition-colors disabled:opacity-50"
+          disabled={pending || uploading}
+          className="px-6 py-3 text-sm font-semibold uppercase tracking-wider bg-[var(--color-text)] text-[var(--color-bg)] border border-[var(--color-text)] hover:bg-transparent hover:text-[var(--color-text)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {pending ? "저장 중…" : submitLabel}
+          {uploading ? "이미지 업로드 중…" : pending ? "저장 중…" : submitLabel}
         </button>
         <Link
           href="/admin/songs"
