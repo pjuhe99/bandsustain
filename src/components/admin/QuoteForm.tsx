@@ -3,6 +3,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import type { Quote } from "@/lib/quotes";
 import ImageUpload from "@/components/admin/ImageUpload";
+import { useUploadPending } from "@/lib/useUploadPending";
 import type { FormState } from "@/app/admin/(authed)/quotes/actions";
 
 export default function QuoteForm({
@@ -15,6 +16,7 @@ export default function QuoteForm({
   submitLabel: string;
 }) {
   const [state, formAction, pending] = useActionState<FormState, FormData>(action, {});
+  const { uploading, onPendingChange } = useUploadPending();
   const fe = state.fieldErrors ?? {};
   return (
     <form action={formAction} className="flex flex-col gap-6 max-w-2xl">
@@ -71,17 +73,22 @@ export default function QuoteForm({
           resource="quotes"
           initialPath={quote?.portrait_url}
           alt={quote?.attribution ?? "quote portrait"}
+          onPendingChange={onPendingChange}
         />
-        {fe.portraitUrl && <p className="text-xs text-[var(--color-accent)] mt-2">{fe.portraitUrl}</p>}
+        {fe.portraitUrl && (
+          <p role="alert" className="text-sm font-semibold text-[var(--color-accent)] border border-[var(--color-accent)] px-3 py-2 mt-2">
+            {fe.portraitUrl}
+          </p>
+        )}
       </div>
       {state.error && <p className="text-sm text-[var(--color-accent)]">{state.error}</p>}
       <div className="flex gap-3 mt-2">
         <button
           type="submit"
-          disabled={pending}
-          className="px-6 py-3 text-sm font-semibold uppercase tracking-wider bg-[var(--color-text)] text-[var(--color-bg)] border border-[var(--color-text)] hover:bg-transparent hover:text-[var(--color-text)] transition-colors disabled:opacity-50"
+          disabled={pending || uploading}
+          className="px-6 py-3 text-sm font-semibold uppercase tracking-wider bg-[var(--color-text)] text-[var(--color-bg)] border border-[var(--color-text)] hover:bg-transparent hover:text-[var(--color-text)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {pending ? "저장 중…" : submitLabel}
+          {uploading ? "이미지 업로드 중…" : pending ? "저장 중…" : submitLabel}
         </button>
         <Link
           href="/admin/quotes"
