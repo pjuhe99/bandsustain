@@ -32,6 +32,7 @@ test("buildPublicSitemap returns approved public routes and freshness metadata",
     "https://bandsustain.com/quote",
     "https://bandsustain.com/playground",
     "https://bandsustain.com/playground/kim-yeongmin-bot",
+    "https://bandsustain.com/playground/rebirth",
     "https://bandsustain.com/news/7",
   ]);
 
@@ -45,8 +46,8 @@ test("buildPublicSitemap returns approved public routes and freshness metadata",
   assert.equal(iso(items[4]?.lastModified), "2026-05-15T00:00:00.000Z");
   // [7] playground: now
   assert.equal(iso(items[7]?.lastModified), now.toISOString());
-  // [9] news/7: 05-10
-  assert.equal(iso(items[9]?.lastModified), "2026-05-10T00:00:00.000Z");
+  // [10] news/7: 05-10
+  assert.equal(iso(items[10]?.lastModified), "2026-05-10T00:00:00.000Z");
 });
 
 test("buildPublicSitemap includes /columns and published column detail URLs", () => {

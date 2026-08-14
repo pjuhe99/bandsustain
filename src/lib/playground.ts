@@ -13,6 +13,14 @@ export type PlaygroundFeature = {
 
 export const playgroundFeatures: PlaygroundFeature[] = [
   {
+    slug: "rebirth",
+    title: "다시 태어난다면",
+    description: "전 세계 출생·인구 통계로 태어날 도시와 가정의 경제적 출발점까지 뽑아보세요.",
+    cta: "다시 태어나기",
+    eyebrow: "통계로 보는 운명",
+    href: "/playground/rebirth",
+  },
+  {
     slug: "rehearsal-finder",
     title: "합주실 추천",
     description: "멤버들의 출발 위치를 입력하면 이동시간·가격·장비를 고려해 합주실을 추천해드려요.",

@@ -113,6 +113,12 @@ export function buildPublicSitemap({
       changeFrequency: "weekly",
       priority: 0.7,
     },
+    {
+      url: `${siteUrl}/playground/rebirth`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
   ];
 
   const newsPages: MetadataRoute.Sitemap = news.map((item) => ({
