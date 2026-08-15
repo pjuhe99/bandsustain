@@ -58,6 +58,9 @@ yarn-error.log*
 /public/images/naver-hapjusil/
 /logs/
 
+# Downloaded source files used to rebuild the rebirth dataset.
+/.cache/rebirth/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
