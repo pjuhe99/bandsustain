@@ -24,6 +24,10 @@ const integer = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
 const compact = new Intl.NumberFormat("ko-KR", { notation: "compact", maximumFractionDigits: 1 });
 const money = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
 const MIN_SCENE_LOADING_MS = 700;
+// 마지막 굴림 이후 이만큼 조용해야 AI 문장을 요청한다. 연타 구간은 통째로 건너뛴다.
+const SCENE_SETTLE_MS = 1200;
+// 문단 영역이 화면에 들어오기 직전부터 요청을 시작해, 스크롤 도중 빈 자리가 보이지 않게 한다.
+const SCENE_VIEW_MARGIN = "0px 0px 160px 0px";
 
 function chanceLabel(probability: number) {
   if (probability <= 0) return "계산 불가";
@@ -54,7 +58,7 @@ function CountryFlag({ iso2, countryName }: { iso2: string; countryName: string 
   return <Image src={url} alt={`${countryName} 국기`} width={48} height={36} onError={() => setImageFailed(true)} className="mr-3 inline-block h-8 w-11 rounded-sm border border-black/10 object-cover align-[-0.12em] shadow-sm" />;
 }
 
-function ResultCard({ result, onShare, scene, sceneLoading, sceneFallback, shareReady }: { result: RebirthResult; onShare: () => void; scene: string; sceneLoading: boolean; sceneFallback: boolean; shareReady: boolean }) {
+function ResultCard({ result, onShare, scene, sceneStatus, sceneRef, sceneFallback, shareBusy }: { result: RebirthResult; onShare: () => void; scene: string; sceneStatus: "idle" | "loading" | "ready"; sceneRef: (node: HTMLElement | null) => void; sceneFallback: boolean; shareBusy: boolean }) {
   const topPercent = Math.max(1, 101 - result.percentile);
   const globalTopPercent = Math.max(1, 101 - result.globalPercentile);
   const place = locationName(result);
@@ -71,8 +75,8 @@ function ResultCard({ result, onShare, scene, sceneLoading, sceneFallback, share
           </h2>
           <p className="mt-2 text-sm text-[var(--color-text-muted)]">{result.country.name}</p>
         </div>
-        <button type="button" onClick={onShare} disabled={!shareReady} className="border border-[var(--color-border-strong)] px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] transition-colors hover:bg-black hover:text-white disabled:cursor-wait disabled:opacity-45">
-          {shareReady ? "결과 공유" : "문구 준비 중…"}
+        <button type="button" onClick={onShare} disabled={shareBusy} className="border border-[var(--color-border-strong)] px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] transition-colors hover:bg-black hover:text-white disabled:cursor-wait disabled:opacity-45">
+          {shareBusy ? "문구 준비 중…" : "결과 공유"}
         </button>
       </div>
 
@@ -105,9 +109,9 @@ function ResultCard({ result, onShare, scene, sceneLoading, sceneFallback, share
         </div>
       </div>
 
-      <section className="mt-6 bg-[var(--color-bg-muted)] p-5 md:p-6">
+      <section ref={sceneRef} className="mt-6 bg-[var(--color-bg-muted)] p-5 md:p-6">
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">당신의 새로운 하루</p>
-        {sceneLoading ? (
+        {sceneStatus === "loading" ? (
           <div className="mt-5 flex items-center gap-4" role="status" aria-live="polite">
             <span className="relative flex h-11 w-11 shrink-0 items-center justify-center" aria-hidden>
               <span className="absolute inset-0 rounded-full border-2 border-[var(--color-accent)]/20" />
@@ -117,6 +121,16 @@ function ResultCard({ result, onShare, scene, sceneLoading, sceneFallback, share
             <span>
               <strong className="block font-display text-lg">새로운 하루를 그리는 중</strong>
               <span className="mt-1 block text-sm text-[var(--color-text-muted)]">그 지역의 공기와 생활 리듬을 한 장면으로 엮고 있어요.</span>
+            </span>
+          </div>
+        ) : sceneStatus === "idle" ? (
+          <div className="mt-5 flex items-center gap-4">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center" aria-hidden>
+              <span className="h-2 w-2 rounded-full bg-[var(--color-accent)]/40" />
+            </span>
+            <span>
+              <strong className="block font-display text-lg text-[var(--color-text-muted)]">새로운 하루를 그릴 준비 완료</strong>
+              <span className="mt-1 block text-sm text-[var(--color-text-muted)]">이 결과가 정해지면 이곳에 하루의 장면이 나타나요.</span>
             </span>
           </div>
         ) : (
@@ -147,7 +161,17 @@ export default function RebirthExperience() {
   const [aiScene, setAiScene] = useState<{ key: string; text: string } | null>(null);
   const [sceneLoading, setSceneLoading] = useState(false);
   const [sceneFallback, setSceneFallback] = useState(false);
+  // AI 문장을 실제로 요청하기로 확정한 결과. 두 게이트를 모두 통과해야 채워진다.
+  const [sceneTarget, setSceneTarget] = useState<RebirthResult | null>(null);
+  // 굴림이 멎은 뒤 SCENE_SETTLE_MS 가 지난 결과의 seed. 연타 중에는 계속 null 로 되돌아간다.
+  const [settledSeed, setSettledSeed] = useState<string | null>(null);
+  // 게이트를 건너뛰는 seed. 공유 링크 복원과 `결과 공유` 버튼이 채운다.
+  const [bypassSeed, setBypassSeed] = useState<string | null>(null);
+  const [sceneInView, setSceneInView] = useState(false);
+  const [sceneNode, setSceneNode] = useState<HTMLElement | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const resultSeed = useMemo(() => (result ? encodeRebirthSeed(result) : null), [result]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -164,8 +188,9 @@ export default function RebirthExperience() {
           setMode(sharedResult.mode);
           setResult(sharedResult);
           setHistory([sharedResult]);
-          setSceneLoading(true);
           setSceneFallback(false);
+          // 공유 링크의 본체는 그 문장이다. 뷰포트·안정화 게이트를 건너뛴다.
+          setBypassSeed(encodeRebirthSeed(sharedResult));
         }
       })
       .catch((reason: unknown) => {
@@ -177,11 +202,49 @@ export default function RebirthExperience() {
     };
   }, []);
 
+  // 결과가 바뀌면 진행 중이던 요청을 버리고(sceneTarget 해제) 안정화 타이머를 다시 잰다.
   useEffect(() => {
+    setSceneTarget(null);
+    setSettledSeed(null);
+    setSceneLoading(false);
+    if (!result) return;
+    const seed = encodeRebirthSeed(result);
+    const settleTimer = window.setTimeout(() => setSettledSeed(seed), SCENE_SETTLE_MS);
+    return () => window.clearTimeout(settleTimer);
+  }, [result]);
+
+  // 문단 영역이 실제로 화면에 들어왔는지 관찰한다.
+  useEffect(() => {
+    if (!sceneNode) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setSceneInView(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[entries.length - 1];
+        if (entry) setSceneInView(entry.isIntersecting);
+      },
+      { rootMargin: SCENE_VIEW_MARGIN },
+    );
+    observer.observe(sceneNode);
+    return () => observer.disconnect();
+  }, [sceneNode]);
+
+  // 두 게이트를 모두 통과했을 때만 생성 대상으로 확정한다.
+  useEffect(() => {
+    if (!result || !resultSeed || sceneTarget === result) return;
+    // 다음 굴림이 이미 진행 중이면 곧 버려질 결과다. 요청하지 않는다.
+    if (bypassSeed === resultSeed || (!rolling && settledSeed === resultSeed && sceneInView)) setSceneTarget(result);
+  }, [result, resultSeed, sceneTarget, bypassSeed, settledSeed, sceneInView, rolling]);
+
+  useEffect(() => {
+    const result = sceneTarget;
     if (!result) return;
     const controller = new AbortController();
     const key = encodeRebirthSeed(result);
     const climate = locationClimate(result);
+    setSceneLoading(true);
     const startedAt = performance.now();
     const body = JSON.stringify({
       seed: key,
@@ -232,7 +295,7 @@ export default function RebirthExperience() {
         if (!controller.signal.aborted) setSceneLoading(false);
       });
     return () => controller.abort();
-  }, [result]);
+  }, [sceneTarget]);
 
   const summary = useMemo(() => {
     if (!data) return null;
@@ -251,7 +314,6 @@ export default function RebirthExperience() {
       const next = drawRebirth(data, mode);
       setResult(next);
       setAiScene(null);
-      setSceneLoading(Boolean(next));
       setSceneFallback(false);
       if (next) {
         setHistory((previous) => [next, ...previous].slice(0, 6));
@@ -266,6 +328,12 @@ export default function RebirthExperience() {
   async function share() {
     if (!result) return;
     const seed = encodeRebirthSeed(result);
+    if (aiScene?.key !== seed && !sceneFallback) {
+      // 아직 생성이 시작되지 않았다면 여기서 곧바로 트리거한다.
+      setBypassSeed(seed);
+      setNotice("공유 문구를 준비하고 있어요. 잠시 후 다시 눌러주세요.");
+      return;
+    }
     const url = new URL(`/playground/rebirth/share/${seed}`, window.location.origin);
     const text = `다시 태어난다면 나는 ${locationName(result)}, ${result.country.nameKo}의 상위 ${Math.max(1, 101 - result.percentile)}% 가정에서 태어납니다.`;
     try {
@@ -325,7 +393,17 @@ export default function RebirthExperience() {
         {notice && <p className="text-sm text-[var(--color-accent)]" role="status">{notice}</p>}
       </div>
 
-      {result && <ResultCard result={result} onShare={share} scene={aiScene?.key === encodeRebirthSeed(result) ? aiScene.text : buildDailyScene(result)} sceneLoading={sceneLoading} sceneFallback={sceneFallback} shareReady={aiScene?.key === encodeRebirthSeed(result)} />}
+      {result && (
+        <ResultCard
+          result={result}
+          onShare={share}
+          scene={aiScene?.key === resultSeed ? aiScene.text : buildDailyScene(result)}
+          sceneStatus={sceneLoading ? "loading" : aiScene?.key === resultSeed || sceneFallback ? "ready" : "idle"}
+          sceneRef={setSceneNode}
+          sceneFallback={sceneFallback}
+          shareBusy={sceneTarget === result && aiScene?.key !== resultSeed && !sceneFallback}
+        />
+      )}
 
       {history.length > 1 && (
         <section>
