@@ -4,6 +4,7 @@ import OpenAI from "openai";
 import { z } from "zod";
 import { getRebirthAiSettings } from "@/lib/rebirth/aiSettings";
 import { getSharedScene, saveFirstSharedScene } from "@/lib/rebirth/shareScenes";
+import { insertRebirthUsageLog, readRebirthTokenUsage } from "@/lib/rebirth/usage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -59,6 +60,15 @@ function trimSceneToCompleteSentence(raw: string) {
   return kept.length >= 3 && [...completeScene].length >= 120 ? completeScene : "";
 }
 
+async function recordUsage(args: Parameters<typeof insertRebirthUsageLog>[0]) {
+  try {
+    await insertRebirthUsageLog(args);
+  } catch (error) {
+    // 계측 실패가 사용자에게 보여 줄 이미 생성된 장면을 실패시키면 안 된다.
+    console.warn("[rebirth-scene] usage log failed", error instanceof Error ? `${error.name}: ${error.message}` : "unknown");
+  }
+}
+
 export async function POST(request: Request) {
   const parsed = SceneSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "bad_request" }, { status: 400 });
@@ -66,7 +76,15 @@ export async function POST(request: Request) {
   const input = parsed.data;
   try {
     const cached = await getSharedScene(input.seed);
-    if (cached) return NextResponse.json({ scene: cached, cached: true });
+    if (cached) {
+      await recordUsage({
+        seed: input.seed,
+        outcome: "cache_hit",
+        attempt: 0,
+        modelName: null,
+      });
+      return NextResponse.json({ scene: cached, cached: true });
+    }
   } catch (error) {
     console.warn("[rebirth-scene] shared scene lookup failed", error instanceof Error ? `${error.name}: ${error.message}` : "unknown");
     return NextResponse.json({ error: "storage_unavailable" }, { status: 503 });
@@ -125,21 +143,27 @@ export async function POST(request: Request) {
   ].join("\n");
 
   try {
-    const client = new OpenAI({ apiKey: settings.apiKey, timeout: 45_000 });
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      const response = await client.responses.create({
-        model: settings.model,
-        input: prompt,
-        max_output_tokens: 1_500,
-      });
-      const scene = trimSceneToCompleteSentence(response.output_text);
-      if (scene) {
-        await saveFirstSharedScene(input.seed, scene);
-        const persisted = await getSharedScene(input.seed);
-        return withCount(NextResponse.json({ scene: persisted ?? scene }), count + 1);
-      }
-      console.warn(`[rebirth-scene] incomplete response; retrying (${attempt + 1}/2)`);
+    // 재시도는 이 경로에서 비용을 급격히 키웠다. 사용자 요청당 모델 호출은 한 번만 허용한다.
+    const client = new OpenAI({ apiKey: settings.apiKey, timeout: 45_000, maxRetries: 0 });
+    const response = await client.responses.create({
+      model: settings.model,
+      input: prompt,
+      max_output_tokens: 1_500,
+    });
+    const scene = trimSceneToCompleteSentence(response.output_text);
+    await recordUsage({
+      seed: input.seed,
+      outcome: scene ? "generated" : "incomplete",
+      attempt: 1,
+      modelName: settings.model,
+      usage: readRebirthTokenUsage(response),
+    });
+    if (scene) {
+      await saveFirstSharedScene(input.seed, scene);
+      const persisted = await getSharedScene(input.seed);
+      return withCount(NextResponse.json({ scene: persisted ?? scene }), count + 1);
     }
+    console.warn("[rebirth-scene] incomplete response; no retry");
     throw new Error("empty_response");
   } catch (error) {
     console.warn("[rebirth-scene] generation failed", error instanceof Error ? `${error.name}: ${error.message}` : "unknown");
