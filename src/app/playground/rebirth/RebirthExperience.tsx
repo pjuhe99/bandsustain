@@ -258,18 +258,15 @@ export default function RebirthExperience() {
     });
 
     async function requestScene() {
-      for (let attempt = 0; attempt < 2; attempt += 1) {
-        const response = await fetch("/api/playground/rebirth/scene", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          signal: controller.signal,
-          body,
-        });
-        if (response.ok) {
-          const payload = await response.json() as { scene?: unknown };
-          if (typeof payload.scene === "string" && payload.scene.trim()) return payload.scene.trim();
-        }
-        if (response.status !== 502 && response.status !== 503) return null;
+      const response = await fetch("/api/playground/rebirth/scene", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
+        body,
+      });
+      if (response.ok) {
+        const payload = await response.json() as { scene?: unknown };
+        if (typeof payload.scene === "string" && payload.scene.trim()) return payload.scene.trim();
       }
       return null;
     }
