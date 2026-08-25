@@ -20,6 +20,16 @@ export type RefStat = {
   visitors: number;
 };
 
+export type ExternalLandingStat = RefStat & {
+  path: string;
+};
+
+export type DailyBreakdown = {
+  date: string;
+  paths: PathStat[];
+  externalLandings: ExternalLandingStat[];
+};
+
 export type Snapshot = {
   todayViews: number;
   todayVisitors: number;
@@ -33,6 +43,12 @@ export type Snapshot = {
 // Visitor hash uses monthly salt → unique-visitor counts within the same
 // calendar month are exact; cross-month windows over-count returning visitors
 // (they appear once per month they touched).
+
+function toDateKey(value: Date | string): string {
+  return value instanceof Date
+    ? `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`
+    : String(value).slice(0, 10);
+}
 
 export async function getSnapshot(): Promise<Snapshot> {
   const [rows] = await getPool().query<(RowDataPacket & {
@@ -109,6 +125,77 @@ export async function getDailyMetrics(days: number): Promise<DailyMetric[]> {
     out.push({ date: key, views: v.views, visitors: v.visitors });
   }
   return out;
+}
+
+// Daily detail is fetched in two grouped queries rather than a query per day.
+// Referrers are only sent by AnalyticsBeacon on a tab's first page view, so an
+// external referrer paired with a path represents the page it arrived on.
+export async function getDailyBreakdowns(days: number, limitPerDay = 10): Promise<DailyBreakdown[]> {
+  type PathRow = RowDataPacket & {
+    d: Date | string;
+    path: string;
+    views: number;
+    visitors: number;
+  };
+  type LandingRow = PathRow & { ref_host: string };
+
+  const [pathResult, landingResult] = await Promise.all([
+    getPool().query<PathRow[]>(
+      `SELECT DATE(ts) AS d,
+              path,
+              COUNT(*) AS views,
+              COUNT(DISTINCT visitor_hash) AS visitors
+         FROM analytics_events
+        WHERE ts >= CURDATE() - INTERVAL ? DAY
+     GROUP BY DATE(ts), path
+     ORDER BY d ASC, views DESC`,
+      [days],
+    ),
+    getPool().query<LandingRow[]>(
+      `SELECT DATE(ts) AS d,
+              ref_host,
+              path,
+              COUNT(*) AS views,
+              COUNT(DISTINCT visitor_hash) AS visitors
+         FROM analytics_events
+        WHERE ts >= CURDATE() - INTERVAL ? DAY
+          AND ref_host IS NOT NULL
+     GROUP BY DATE(ts), ref_host, path
+     ORDER BY d ASC, views DESC`,
+      [days],
+    ),
+  ]);
+
+  const byDate = new Map<string, DailyBreakdown>();
+  const getDay = (value: Date | string) => {
+    const date = toDateKey(value);
+    let day = byDate.get(date);
+    if (!day) {
+      day = { date, paths: [], externalLandings: [] };
+      byDate.set(date, day);
+    }
+    return day;
+  };
+
+  for (const r of pathResult[0]) {
+    const day = getDay(r.d);
+    if (day.paths.length < limitPerDay) {
+      day.paths.push({ path: r.path, views: Number(r.views), visitors: Number(r.visitors) });
+    }
+  }
+  for (const r of landingResult[0]) {
+    const day = getDay(r.d);
+    if (day.externalLandings.length < limitPerDay) {
+      day.externalLandings.push({
+        refHost: r.ref_host,
+        path: r.path,
+        views: Number(r.views),
+        visitors: Number(r.visitors),
+      });
+    }
+  }
+
+  return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 
 // Top paths/refs scoped to current calendar month so unique-visitor count

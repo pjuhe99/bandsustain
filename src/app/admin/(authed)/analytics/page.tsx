@@ -1,6 +1,7 @@
 import {
   getSnapshot,
   getDailyMetrics,
+  getDailyBreakdowns,
   getTopPathsThisMonth,
   getTopReferrersThisMonth,
   getClickSnapshot,
@@ -8,6 +9,7 @@ import {
   getTopClickedLiveThisMonth,
   getTopClickHostsThisMonth,
   type DailyMetric,
+  type DailyBreakdown,
 } from "@/lib/analytics-stats";
 
 export const dynamic = "force-dynamic";
@@ -18,10 +20,11 @@ function thisMonthLabel(): string {
 }
 
 export default async function AnalyticsPage() {
-  const [snap, daily, topPaths, topRefs, clickSnap, topSongs, topLives, topHosts] =
+  const [snap, daily, dailyBreakdowns, topPaths, topRefs, clickSnap, topSongs, topLives, topHosts] =
     await Promise.all([
       getSnapshot(),
       getDailyMetrics(30),
+      getDailyBreakdowns(30),
       getTopPathsThisMonth(20),
       getTopReferrersThisMonth(20),
       getClickSnapshot(),
@@ -76,6 +79,7 @@ export default async function AnalyticsPage() {
           하루 단위 페이지뷰와 그날의 unique 방문자 수 (각 점은 그날의 DAU).
         </p>
         <DailyChart data={daily} />
+        <DailyBreakdownPanel data={daily} breakdowns={dailyBreakdowns} />
       </section>
 
       {/* Top paths */}
@@ -449,6 +453,17 @@ function DailyChart({ data }: { data: DailyMetric[] }) {
               <path d={visitorsPath} fill="none" stroke="var(--color-text)" strokeWidth={1.5} strokeDasharray="4 3" />
             </>
           )}
+          {data.map((day, i) => {
+            const point = xy(i, day.views, maxViews);
+            const x = Math.max(PAD, point.x - stepX / 2);
+            const width = Math.min(stepX || innerW, PAD + innerW - x);
+            return (
+              <g key={day.date}>
+                <title>{`${day.date} · ${day.views.toLocaleString()} views · ${day.visitors.toLocaleString()} visitors`}</title>
+                <rect x={x} y={PAD} width={width} height={innerH} fill="transparent" />
+              </g>
+            );
+          })}
         </svg>
         <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] mt-1 px-1">
           <span>{data[0]?.date.slice(5) ?? ""}</span>
@@ -457,5 +472,42 @@ function DailyChart({ data }: { data: DailyMetric[] }) {
         </div>
       </div>
     </div>
+  );
+}
+
+
+function DailyBreakdownPanel({ data, breakdowns }: { data: DailyMetric[]; breakdowns: DailyBreakdown[] }) {
+  const byDate = new Map(breakdowns.map((item) => [item.date, item]));
+  const defaultDate = data[Math.max(0, data.length - 2)]?.date;
+
+  return (
+    <section className="mt-6 border-t border-[var(--color-border)] pt-5">
+      <h3 className="text-sm uppercase tracking-wider font-semibold">Daily details</h3>
+      <p className="mt-1 text-xs text-[var(--color-text-muted)]">날짜를 열면 그날 많이 본 페이지와 외부 유입의 도착 페이지를 확인할 수 있습니다.</p>
+      <div className="mt-4 space-y-2">
+        {[...data].reverse().map((day) => {
+          const detail = byDate.get(day.date);
+          return (
+            <details key={day.date} className="border border-[var(--color-border)] p-3" open={day.date === defaultDate}>
+              <summary className="cursor-pointer list-none flex flex-wrap items-center justify-between gap-2 text-sm">
+                <span className="font-semibold">{day.date}</span>
+                <span className="tabular-nums text-[var(--color-text-muted)]">{day.views.toLocaleString()} views · {day.visitors.toLocaleString()} visitors</span>
+              </summary>
+              <div className="mt-4 grid gap-6 lg:grid-cols-2">
+                <div>
+                  <h4 className="text-xs uppercase tracking-wider text-[var(--color-text-muted)]">Top paths</h4>
+                  {detail?.paths.length ? <table className="mt-2 w-full text-sm"><thead className="text-left text-[10px] uppercase tracking-wider text-[var(--color-text-muted)]"><tr><th className="pb-2 pr-3">Path</th><th className="pb-2 pr-3 text-right">Views</th><th className="pb-2 text-right">Visitors</th></tr></thead><tbody>{detail.paths.map((item) => <tr key={item.path} className="border-t border-[var(--color-border)]"><td className="py-2 pr-3 font-mono text-xs break-all">{item.path}</td><td className="py-2 pr-3 text-right tabular-nums">{item.views}</td><td className="py-2 text-right tabular-nums text-[var(--color-text-muted)]">{item.visitors}</td></tr>)}</tbody></table> : <p className="mt-2 text-sm text-[var(--color-text-muted)]">해당 날짜의 페이지뷰가 없습니다.</p>}
+                </div>
+                <div>
+                  <h4 className="text-xs uppercase tracking-wider text-[var(--color-text-muted)]">External source → arrival page</h4>
+                  <p className="mt-1 text-[11px] text-[var(--color-text-muted)]">외부 referrer가 기록된 첫 페이지뷰만 표시합니다. 직접 입력·북마크·메신저 앱 링크는 포함되지 않습니다.</p>
+                  {detail?.externalLandings.length ? <table className="mt-2 w-full text-sm"><thead className="text-left text-[10px] uppercase tracking-wider text-[var(--color-text-muted)]"><tr><th className="pb-2 pr-3">Source</th><th className="pb-2 pr-3">Arrival page</th><th className="pb-2 text-right">Visitors</th></tr></thead><tbody>{detail.externalLandings.map((item) => <tr key={`${item.refHost}-${item.path}`} className="border-t border-[var(--color-border)]"><td className="py-2 pr-3 text-xs break-all">{item.refHost}</td><td className="py-2 pr-3 font-mono text-xs break-all">{item.path}</td><td className="py-2 text-right tabular-nums text-[var(--color-text-muted)]">{item.visitors}</td></tr>)}</tbody></table> : <p className="mt-2 text-sm text-[var(--color-text-muted)]">해당 날짜의 외부 유입 기록이 없습니다.</p>}
+                </div>
+              </div>
+            </details>
+          );
+        })}
+      </div>
+    </section>
   );
 }
